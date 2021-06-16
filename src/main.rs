@@ -1,4 +1,4 @@
-extern crate sdl;
+extern crate roguelike;
 
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
@@ -7,24 +7,33 @@ use sdl2::keyboard::Keycode;
 use sdl2::image::LoadTexture;
 use sdl2::render::Texture;
 
-use sdl::SDLCore;
-use sdl::Demo;
+use roguelike::SDLCore;
+use roguelike::Demo;
 
 use std::cmp::min;
 
+// TODO: Move all sdl code to a separate file, keep the main.rs file simple
+
+// Constants to clean up SDLCore initiation
 const TITLE: &str = "CS 1666 - RogueLike";
+const VSYNC: bool = true;
+const WINDOW_WIDTH: u32 = 1280;
+const WINDOW_HEIGHT: u32 = 720;
 
-const CAM_W: u32 = 1280;
-const CAM_H: u32 = 720;
+fn main() {
+    // Initializes SDL and hands off control.
+    roguelike::runner(TITLE, Manager::init);
+}
 
-pub struct SDLInfo {
+// Manager struct responsible for working with SDL, menu system, initializing game, etc.
+pub struct Manager {
     core: SDLCore,
 }
 
-impl Demo for SDLInfo {
+impl Demo for Manager {
     fn init() -> Result<Self, String> {
-        let core = SDLCore::init(TITLE, true, CAM_W, CAM_H)?;
-        Ok(SDLInfo{core})
+        let core = SDLCore::init(TITLE, VSYNC, WINDOW_WIDTH, WINDOW_HEIGHT)?;
+        Ok(Manager{core})
     }
 
     fn run(&mut self) -> Result<(), String> {
@@ -56,7 +65,7 @@ impl Demo for SDLInfo {
             self.core.wincan.clear();
 
             // Draw current picture
-            self.core.wincan.copy(&pics[current_index], None, Rect::new(0, 0, CAM_W, CAM_H))?;
+            self.core.wincan.copy(&pics[current_index], None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
 
             self.core.wincan.present();
         }
@@ -66,6 +75,3 @@ impl Demo for SDLInfo {
     }
 }
 
-fn main() {
-    sdl::runner(TITLE, SDLInfo::init);
-}
