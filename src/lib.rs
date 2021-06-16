@@ -10,13 +10,10 @@ pub struct SDLCore {
 }
 
 impl SDLCore {
-	pub fn init(
-		title: &str,
-		vsync: bool,
-		width: u32,
-		height: u32,
-	) -> Result<SDLCore, String>
-	{
+	pub fn init(title: &str, vsync: bool,
+		    width: u32, height: u32) -> Result<SDLCore, String> {
+
+		// Calls to SDL2 library for initializing window
 		let sdl_cxt = sdl2::init()?;
 		let video_subsys = sdl_cxt.video()?;
 
@@ -26,27 +23,23 @@ impl SDLCore {
 
 		let wincan = window.into_canvas().accelerated();
 
-		// Check if we should lock to vsync
-		let wincan = if vsync {
-			wincan.present_vsync()
-		}
-		else {
-			wincan
+		// Determine whether SDL should lock to vsync or not.
+		let wincan = match vsync {
+			true => wincan.present_vsync(),
+			false => wincan,
 		};
 		
 		let wincan = wincan.build()
 			.map_err(|e| e.to_string())?;
 
+		// Incoming inputs from keyboard, window, etc.
 		let event_pump = sdl_cxt.event_pump()?;
 
+		// Defines the size of the window.
 		let cam = Rect::new(0, 0, width, height);
-
-		Ok(SDLCore{
-			sdl_cxt,
-			wincan,
-			event_pump,
-			cam,
-		})
+		
+		// Return new core struct.
+		Ok(SDLCore{sdl_cxt, wincan, event_pump, cam,})
 	}
 }
 

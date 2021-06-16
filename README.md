@@ -1,9 +1,11 @@
-# roguelike-repo
+# Roguelike
 
-test push
-keyon's test
+## Created by 
 
-# SDL Demo
-sdl demo is located in ```sdl/src/main.rs``` 
-
-can be run from ```sdl/``` using ```cargo run sdl```
+Joseph Cavanaugh  
+Connor Halloran  
+Jagr Krtanjek  
+Dan Rothman  
+Tyler Sheinberg  
+Keyon  
+Trae Yelovich  
