@@ -1,7 +1,7 @@
 
-struct Vec2<T> {
-    x: T,
-    y: T,
+pub struct Vec2<T> {
+    pub x: T,
+    pub y: T,
 }
 
 impl<T> Vec2<T> {
