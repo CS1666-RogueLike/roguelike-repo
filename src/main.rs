@@ -1,5 +1,13 @@
 extern crate roguelike;
 
+mod menu;
+use crate::menu::*;
+
+mod game;
+use crate::game::*;
+
+mod player;
+
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::event::Event;
@@ -11,6 +19,7 @@ use roguelike::SDLCore;
 use roguelike::Demo;
 
 use std::cmp::min;
+use std::collections::HashSet;
 
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
 
@@ -28,50 +37,73 @@ fn main() {
 // Manager struct responsible for working with SDL, menu system, initializing game, etc.
 pub struct Manager {
     core: SDLCore,
+    menu: MenuState,
+    game: Game,
+    // TEXTURES
 }
 
+
 impl Demo for Manager {
+    // Initialize manager struct.
     fn init() -> Result<Self, String> {
         let core = SDLCore::init(TITLE, VSYNC, WINDOW_WIDTH, WINDOW_HEIGHT)?;
-        Ok(Manager{core})
+        let menu = MenuState::GameActive;
+        let game = Game::new();
+        Ok(Manager{core, menu, game})
     }
 
     fn run(&mut self) -> Result<(), String> {
-        let texture_creator = self.core.wincan.texture_creator();
-
-        let dan = texture_creator.load_texture("images/Dan.png")?;
-        let jagr = texture_creator.load_texture("images/Lich.jpg")?;
-        let tyler = texture_creator.load_texture("images/Tyler.jpg")?;
-        let connor = texture_creator.load_texture("images/connor.png")?;
-        let joe = texture_creator.load_texture("images/joecavanaugh.jpg")?;
-        let keyon = texture_creator.load_texture("images/keyon_h.JPG")?;
-        let trae = texture_creator.load_texture("images/trae.png")?;
-
-        let pics = vec![dan, jagr, tyler, connor, joe, keyon, trae];
-        let mut current_index = 0;
-
         'gameloop: loop {
+
             for event in self.core.event_pump.poll_iter() {
                 match event {
                     Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'gameloop,
-                    Event::KeyDown{ keycode: Some(Keycode::Space), .. } => {
-                        current_index = min(current_index + 1, pics.len() - 1);
-                    }
                     _ => {},
                 }
             }
 
-            self.core.wincan.set_draw_color(Color::BLACK);
-            self.core.wincan.clear();
+            let keystate: HashSet<Keycode> = self.core.event_pump
+                .keyboard_state()
+                .pressed_scancodes()
+                .filter_map(Keycode::from_scancode)
+                .collect();
 
-            // Draw current picture
-            self.core.wincan.copy(&pics[current_index], None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+            let mut mov_x = 0;
+            let mut mov_y = 0;
 
-            self.core.wincan.present();
+            if keystate.contains(&Keycode::W) { print!("W"); mov_y -= 1; }
+            if keystate.contains(&Keycode::S) { print!("S"); mov_y += 1; }
+            if keystate.contains(&Keycode::A) { print!("A"); mov_x -= 1; }
+            if keystate.contains(&Keycode::D) { print!("D"); mov_x += 1; }
+
+            self.game.player.update_pos(mov_x, mov_y);
+
+            println!("");
+
+            // Draw game state
+            self.draw();
         }
+
 
         // Out of game loop, return Ok
         Ok(())
     }
+}
+
+impl Manager {
+    fn draw(& mut self) {
+            self.core.wincan.set_draw_color(Color::BLACK);
+            self.core.wincan.clear();
+
+            self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+            self.core.wincan.fill_rect(Rect::new(self.game.player.get_pos_x(),
+                                                self.game.player.get_pos_y(),
+                                                self.game.player.get_hbox_x(),
+                                                self.game.player.get_hbox_y()));
+
+            self.core.wincan.present();
+
+    }
+
 }
 
