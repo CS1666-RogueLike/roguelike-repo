@@ -8,8 +8,12 @@ use crate::game::*;
 
 mod player;
 
+mod util;
+use crate::util::*;
+
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
+use sdl2::rect::Point;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::image::LoadTexture;
@@ -24,7 +28,7 @@ use std::collections::HashSet;
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
 
 // Constants to clean up SDLCore initiation
-const TITLE: &str = "CS 1666 - RogueLike";
+const TITLE: &str = "Roguelike";
 const VSYNC: bool = true;
 const WINDOW_WIDTH: u32 = 1280;
 const WINDOW_HEIGHT: u32 = 720;
@@ -39,9 +43,7 @@ pub struct Manager {
     core: SDLCore,
     menu: MenuState,
     game: Game,
-    // TEXTURES
 }
-
 
 impl Demo for Manager {
     // Initialize manager struct.
@@ -53,11 +55,15 @@ impl Demo for Manager {
     }
 
     fn run(&mut self) -> Result<(), String> {
+        
+        // Used so that holding the esc key down won't flash between states every frame
+
+
         'gameloop: loop {
 
             for event in self.core.event_pump.poll_iter() {
                 match event {
-                    Event::Quit{..} | Event::KeyDown{keycode: Some(Keycode::Escape), ..} => break 'gameloop,
+                    Event::Quit{..} => break 'gameloop,
                     _ => {},
                 }
             }
@@ -71,14 +77,24 @@ impl Demo for Manager {
             let mut mov_x = 0;
             let mut mov_y = 0;
 
-            if keystate.contains(&Keycode::W) { print!("W"); mov_y -= 1; }
-            if keystate.contains(&Keycode::S) { print!("S"); mov_y += 1; }
-            if keystate.contains(&Keycode::A) { print!("A"); mov_x -= 1; }
-            if keystate.contains(&Keycode::D) { print!("D"); mov_x += 1; }
+            use menu::MenuState::*;
 
-            self.game.player.update_pos(mov_x, mov_y);
+            match self.menu {
 
-            println!("");
+                GameActive => {
+                    // Movement
+                    if keystate.contains(&Keycode::W) { mov_y -= 1; }
+                    if keystate.contains(&Keycode::S) { mov_y += 1; }
+                    if keystate.contains(&Keycode::A) { mov_x -= 1; }
+                    if keystate.contains(&Keycode::D) { mov_x += 1; }
+
+                    self.game.player.update_pos(mov_x, mov_y);
+                }
+
+                GamePaused => {}
+
+                MainMenu => {}
+            }
 
             // Draw game state
             self.draw();
@@ -91,17 +107,50 @@ impl Demo for Manager {
 }
 
 impl Manager {
-    fn draw(& mut self) {
-            self.core.wincan.set_draw_color(Color::BLACK);
-            self.core.wincan.clear();
+    fn draw(& mut self) -> Result<(), String> {
+            use menu::MenuState::*;
+            match self.menu {
+                GameActive => {
+                    // Draw black screen
+                    self.core.wincan.set_draw_color(Color::BLACK);
+                    self.core.wincan.clear();
+                    
+                    // Draw background
+                    let texture_creator = self.core.wincan.texture_creator();
+                    let bg = texture_creator.load_texture("assets/test_image.png")?;
+                    self.core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
+        
+                    // Draw player hitbox
+                    self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                    self.core.wincan.fill_rect(Rect::new(self.game.player.get_pos_x() - (self.game.player.get_hbox_x()/2) as i32,
+                                                        self.game.player.get_pos_y() - (self.game.player.get_hbox_y()/2) as i32,
+                                                        self.game.player.get_hbox_x(),
+                                                        self.game.player.get_hbox_y()));
+        
+                    // Draw null at center of player hitbox
+                    self.core.wincan.set_draw_color(Color::RGBA(255, 255, 255, 255));
+                    self.core.wincan.draw_line(
+                        Point::new(self.game.player.get_pos_x() + 4, self.game.player.get_pos_y()),
+                        Point::new(self.game.player.get_pos_x() - 4, self.game.player.get_pos_y()),
+                    );
+                    self.core.wincan.draw_line(
+                        Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() + 4),
+                        Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() - 4),
+                    );
+                }
 
-            self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-            self.core.wincan.fill_rect(Rect::new(self.game.player.get_pos_x(),
-                                                self.game.player.get_pos_y(),
-                                                self.game.player.get_hbox_x(),
-                                                self.game.player.get_hbox_y()));
+                GamePaused => {
+                    println!("GAME IS PAUSED, PRESS ESC TO RESUME");
+                    self.core.wincan.set_draw_color(Color::RGBA(100, 0, 0, 255));
+                    self.core.wincan.clear();
+                }
+
+                _ => (),
+            }
 
             self.core.wincan.present();
+
+            Ok(())
 
     }
 
