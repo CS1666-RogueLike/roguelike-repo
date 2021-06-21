@@ -146,6 +146,12 @@ impl Manager {
                     let texture_creator = self.core.wincan.texture_creator();
                     let bg = texture_creator.load_texture("assets/test_image.png")?;
                     let slime = texture_creator.load_texture("assets/slime_sprite.png")?;
+
+                    let slime_up = texture_creator.load_texture("assets/slime_up.png")?;
+                    let slime_down = texture_creator.load_texture("assets/slime_down.png")?;
+                    let slime_left = texture_creator.load_texture("assets/slime_left.png")?;
+                    let slime_right = texture_creator.load_texture("assets/slime_right.png")?;
+
                     let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
                     let rock = texture_creator.load_texture("assets/rock.png")?;
 
@@ -156,14 +162,6 @@ impl Manager {
                     // Draw background
                     self.core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
         
-                    // Draw each tile in the room with a unique color
-                    for x in 0..15 {
-                        for y in 0..9 {
-                            self.core.wincan.set_draw_color(Color::RGBA(255, x*10, y*20, 255));
-                            self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x as i32 * 64, TOP_WALL + y as i32 * 64, 64, 64));
-                        }
-                    }
-
                     for x in 0..15 {
                         for y in 0..9 {
                             if x == 7 && y == 4 {
@@ -174,6 +172,44 @@ impl Manager {
                             }
                         }
                     }
+
+                    match self.game.player.get_dir() {
+                        Direction::Up => {
+                            self.core.wincan.copy(&slime_up, None,
+                                Rect::new( 
+                                    self.game.player.get_pos_x() - 35 + 4,
+                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
+                                    64, 64)
+                                );
+                        }
+                        Direction::Down => {
+                            self.core.wincan.copy(&slime_down, None,
+                                Rect::new( 
+                                    self.game.player.get_pos_x() - 35,
+                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
+                                    64, 64)
+                                );
+                        }
+                        Direction::Left => {
+                            self.core.wincan.copy(&slime_left, None,
+                                Rect::new( 
+                                    self.game.player.get_pos_x() - 35 + 4,
+                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
+                                    64, 64)
+                                );
+                        }
+                        Direction::Right => {
+                            self.core.wincan.copy(&slime_right, None,
+                                Rect::new( 
+                                    self.game.player.get_pos_x() - 35,
+                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
+                                    64, 64)
+                                );
+                        }
+
+                    }
+
+                    /*
                     // Draw player sprite
                     self.core.wincan.copy(&slime, None,
                         Rect::new( 
@@ -182,8 +218,40 @@ impl Manager {
                             64, 64)
                         );
 
+                    // Draw box next to player indicating direction
+                    let x_offset = match self.game.player.get_dir() {
+                        Direction::Left => -50,
+                        Direction::Right => 50,
+                        _ => 0,
+                    };
+                    let y_offset = match self.game.player.get_dir() {
+                        Direction::Up => -50,
+                        Direction::Down => 50,
+                        _ => 0,
+                    };
+                    self.core.wincan.set_draw_color(Color::RGBA(128, 255, 128, 255));
+                    self.core.wincan.fill_rect(Rect::new(self.game.player.get_pos_x() + x_offset - 8,
+                                                         self.game.player.get_pos_y() + y_offset - 26,
+                                                         16, 16)
+                                               );
+                                               */
+
+
+
+
+
+
+
                     // CHANGE THIS VALUE TO STOP DRAWING DEBUG STUFF
                     let debug = true;
+
+
+
+
+
+
+
+
 
                     if debug {
                     // Draw player collision hitbox
@@ -217,27 +285,13 @@ impl Manager {
                         Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() - 4),
                     );
 
-                    // Draw box next to player indicating direction
-                    let x_offset = match self.game.player.get_dir() {
-                        Direction::Left => -50,
-                        Direction::Right => 50,
-                        _ => 0,
-                    };
-                    let y_offset = match self.game.player.get_dir() {
-                        Direction::Up => -50,
-                        Direction::Down => 50,
-                        _ => 0,
-                    };
-                    self.core.wincan.set_draw_color(Color::RGBA(128, 255, 128, 255));
-                    self.core.wincan.fill_rect(Rect::new(self.game.player.get_pos_x() + x_offset - 8,
-                                                         self.game.player.get_pos_y() + y_offset - 26,
-                                                         16, 16)
-                                               );
-                    }
-
+                    
                     // Draw rock hitbox
                     self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                     self.core.wincan.draw_rect(Rect::new(174 * 4, 82 * 4, 64, 64));
+
+                    }
+
                 }
 
                 GamePaused => {
