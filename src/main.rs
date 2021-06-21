@@ -13,6 +13,8 @@ use crate::util::*;
 
 mod tile;
 
+mod map;
+
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
@@ -140,29 +142,43 @@ impl Manager {
             match self.menu {
 
                 GameActive => {
+                    // Load textures
+                    let texture_creator = self.core.wincan.texture_creator();
+                    let bg = texture_creator.load_texture("assets/test_image.png")?;
+                    let slime = texture_creator.load_texture("assets/slime_sprite.png")?;
+                    let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
+                    let rock = texture_creator.load_texture("assets/rock.png")?;
+
                     // Draw black screen
                     self.core.wincan.set_draw_color(Color::BLACK);
                     self.core.wincan.clear();
                     
                     // Draw background
-                    let texture_creator = self.core.wincan.texture_creator();
-                    let bg = texture_creator.load_texture("assets/test_image.png")?;
                     self.core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
         
                     // Draw each tile in the room with a unique color
                     for x in 0..15 {
                         for y in 0..9 {
                             self.core.wincan.set_draw_color(Color::RGBA(255, x*10, y*20, 255));
-                            self.core.wincan.fill_rect(Rect::new(LEFT_WALL + x as i32 * 64, TOP_WALL + y as i32 * 64, 64, 64));
+                            self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x as i32 * 64, TOP_WALL + y as i32 * 64, 64, 64));
                         }
                     }
 
+                    for x in 0..15 {
+                        for y in 0..9 {
+                            if x == 7 && y == 4 {
+                                self.core.wincan.copy(&rock, None, Rect::new(LEFT_WALL + x as i32 * 64, TOP_WALL + y as i32 * 64, 64, 64));
+                            }
+                            else {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x as i32 * 64, TOP_WALL + y as i32 * 64, 64, 64));
+                            }
+                        }
+                    }
                     // Draw player sprite
-                    let slime = texture_creator.load_texture("assets/slime_sprite.png")?;
                     self.core.wincan.copy(&slime, None,
                         Rect::new( 
                             self.game.player.get_pos_x() - 35,
-                            self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox_y()/2) as i32,
+                            self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
                             64, 64)
                         );
 
@@ -172,16 +188,20 @@ impl Manager {
                     if debug {
                     // Draw player collision hitbox
                     self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                    self.core.wincan.draw_rect(self.game.player.get_walkbox_world());
+                    /*
                     self.core.wincan.draw_rect(Rect::new(self.game.player.get_pos_x() - (self.game.player.get_walkbox_x()/2) as i32,
                                                         self.game.player.get_pos_y() - (self.game.player.get_walkbox_y()/2) as i32,
                                                         self.game.player.get_walkbox_x(),
                                                         self.game.player.get_walkbox_y())
                                                );
+                                               */
+
 
                     // Draw player damage hitbox
                     self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
                     self.core.wincan.draw_rect(Rect::new(self.game.player.get_pos_x() - (self.game.player.get_hitbox_x()/2) as i32,
-                                                        self.game.player.get_pos_y() - (self.game.player.get_hitbox_y()) as i32 + (self.game.player.get_walkbox_y()/2) as i32,
+                                                        self.game.player.get_pos_y() - (self.game.player.get_hitbox_y()) as i32 + (self.game.player.get_walkbox().height()/2) as i32,
                                                         self.game.player.get_hitbox_x(),
                                                         self.game.player.get_hitbox_y())
                                                );
@@ -214,6 +234,10 @@ impl Manager {
                                                          16, 16)
                                                );
                     }
+
+                    // Draw rock hitbox
+                    self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                    self.core.wincan.draw_rect(Rect::new(174 * 4, 82 * 4, 64, 64));
                 }
 
                 GamePaused => {
