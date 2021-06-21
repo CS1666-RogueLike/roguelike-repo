@@ -1,38 +1,52 @@
 use crate::util::*;
 
-//these numbers pulled from photoshop to get exact pixel size for background
-const COLL_L: i32 = 248;
-const COLL_R: i32 = 1208;
-const COLL_U: i32 = 72;
-const COLL_D: i32 = 648;
-
 pub struct Player {
-    pos: Vec2<i32>,
-    hbox: Vec2<u32>,
-    speed: i32,
+    pos: Vec2<f32>, // Position of middle of player.
+    hitbox: Vec2<u32>, // Hitbox where player takes damage.
+    walkbox: Vec2<u32>, // Hitbox involved in collision with rooms.
+    speed: f32,
+    dir: Direction,
 }
 
 impl Player {
     pub fn new() -> Player {
         Player {
-            pos: Vec2::new(512, 256),
-            hbox: Vec2::new(64, 64),
-            speed: 3,
+            pos: Vec2::new(512.0, 256.0),
+            hitbox: Vec2::new(48, 52),
+            walkbox: Vec2::new(40, 24),
+            speed: 2.75,
+            dir: Direction::Down,
         }
     }
 
-    pub fn update_pos(& mut self, mov_x: i32, mov_y: i32) {
-        self.pos.x += mov_x * self.speed;
-        self.pos.y += mov_y * self.speed;
+    pub fn update_pos(& mut self, mut mov_vec: Vec2<f32>) {
+
+        // Fix diagonal directions giving more speed than one direction
+        if mov_vec.x != 0.0 && mov_vec.y != 0.0 {
+            // The number approximates sqrt(2)/2, the position on the unit circle at 45 degrees 
+            // that is 1 unit away from the center.
+            mov_vec.x *= 0.707106;
+            mov_vec.y *= 0.707106;
+        }
+
+        // Udate position using movement vector and speed
+        self.pos.x += mov_vec.x * self.speed;
+        self.pos.y += mov_vec.y * self.speed;
 
 
-        self.pos.x = self.pos.x.clamp(COLL_L + (self.hbox.x/2) as i32, COLL_R - (self.hbox.x/2) as i32);
-        self.pos.y = self.pos.y.clamp(COLL_U + (self.hbox.y/2) as i32, COLL_D - (self.hbox.y/2) as i32);
+        self.pos.x = self.pos.x.clamp(LEFT_WALL as f32 + (self.walkbox.x/2) as f32, RIGHT_WALL as f32 - (self.walkbox.x/2) as f32);
+        self.pos.y = self.pos.y.clamp(TOP_WALL as f32 + (self.walkbox.y/2) as f32, BOT_WALL as f32 - (self.walkbox.y/2) as f32);
     }
 
-    pub fn get_pos_x(&self) -> i32 { self.pos.x }
-    pub fn get_pos_y(&self) -> i32 { self.pos.y }
+    pub fn get_pos_x(&self) -> i32 { self.pos.x as i32}
+    pub fn get_pos_y(&self) -> i32 { self.pos.y as i32}
 
-    pub fn get_hbox_x(&self) -> u32 { self.hbox.x }
-    pub fn get_hbox_y(&self) -> u32 { self.hbox.y }
+    pub fn get_walkbox_x(&self) -> u32 { self.walkbox.x }
+    pub fn get_walkbox_y(&self) -> u32 { self.walkbox.y }
+
+    pub fn get_hitbox_x(&self) -> u32 { self.hitbox.x }
+    pub fn get_hitbox_y(&self) -> u32 { self.hitbox.y }
+
+    pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }
+    pub fn get_dir(& mut self) -> Direction { self.dir }
 }
