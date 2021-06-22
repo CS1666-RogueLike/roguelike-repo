@@ -3,26 +3,20 @@ use sdl2::rect::Rect;
 
 pub struct Player {
     pos: Vec2<f32>, // Position of middle of player.
-    hitbox: Vec2<u32>, // Hitbox where player takes damage.
-    walkbox: Rect, // Hitbox involved in collision with rooms.
+    hitbox: Vec2<f32>, // Hitbox where player takes damage.
+    walkbox: Hitbox, // Hitbox involved in collision with rooms.
     speed: f32,
     dir: Direction,
 }
 
-/*
-                    self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                    self.core.wincan.draw_rect(Rect::new(self.game.player.get_pos_x() - (self.game.player.get_walkbox_x()/2) as i32,
-                                                        self.game.player.get_pos_y() - (self.game.player.get_walkbox_y()/2) as i32,
-                                                        self.game.player.get_walkbox_x(),
-                                                        self.game.player.get_walkbox_y())
-                                                        */
+
 impl Player {
     pub fn new() -> Player {
         Player {
-            pos: Vec2::new(512.0, 256.0),
-            hitbox: Vec2::new(48, 52),
-            walkbox: Rect::new(20, 12, 40, 24),
-            speed: 1.75,
+            pos: Vec2::new(3.0, 3.0),
+            hitbox: Vec2::new(0.75, 0.8125),
+            walkbox: Hitbox::new(1.0, 1.0, 0.625, 0.375),
+            speed: 5.0,
             dir: Direction::Down,
         }
     }
@@ -43,8 +37,8 @@ impl Player {
 
 
         // Wall collision
-        self.pos.x = self.pos.x.clamp(LEFT_WALL as f32 + (self.walkbox.x/2) as f32, RIGHT_WALL as f32 - (self.walkbox.x/2) as f32);
-        self.pos.y = self.pos.y.clamp(TOP_WALL as f32 + (self.walkbox.y/2) as f32, BOT_WALL as f32 - (self.walkbox.y/2) as f32);
+        self.pos.x = self.pos.x.clamp(LEFT_WALL as f32 + (self.walkbox.x/2.0) as f32, RIGHT_WALL as f32 - (self.walkbox.x/2.0) as f32);
+        self.pos.y = self.pos.y.clamp(TOP_WALL as f32 + (self.walkbox.y/2.0) as f32, BOT_WALL as f32 - (self.walkbox.y/2.0) as f32);
 
         // Hacky af block collision that needs to be changed later
         let inter_rect = self.get_walkbox_world().intersection(Rect::new(174 * 4, 82 * 4, 64, 64));
@@ -83,17 +77,17 @@ impl Player {
     pub fn get_pos_x(&self) -> i32 { self.pos.x as i32}
     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32}
 
-    pub fn get_walkbox(&self) -> Rect { self.walkbox }
+    pub fn get_walkbox(&self) -> Hitbox { self.walkbox }
     pub fn get_walkbox_world(&self) -> Rect { Rect::new(
-                                                    self.pos.x as i32 - self.walkbox.x(),
-                                                    self.pos.y as i32 - self.walkbox.y(),
-                                                    self.walkbox.width(),
-                                                    self.walkbox.height(),
+                                                    self.pos.x as i32 - self.walkbox.x,
+                                                    self.pos.y as i32 - self.walkbox.y,
+                                                    self.walkbox.width,
+                                                    self.walkbox.height,
                                                     )
     }
 
-    pub fn get_hitbox_x(&self) -> u32 { self.hitbox.x }
-    pub fn get_hitbox_y(&self) -> u32 { self.hitbox.y }
+    pub fn get_hitbox_x(&self) -> f32 { self.hitbox.x }
+    pub fn get_hitbox_y(&self) -> f32 { self.hitbox.y }
 
     pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }
     pub fn get_dir(& mut self) -> Direction { self.dir }

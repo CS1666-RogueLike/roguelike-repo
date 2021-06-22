@@ -165,10 +165,10 @@ impl Manager {
                     for x in 0..15 {
                         for y in 0..9 {
                             if x == 7 && y == 4 {
-                                self.core.wincan.copy(&rock, None, Rect::new(LEFT_WALL + x as i32 * 64, TOP_WALL + y as i32 * 64, 64, 64));
+                                self.core.wincan.copy(&rock, None, Rect::new(LEFT_WALL as i32 + x as i32 * 64, TOP_WALL as i32 + y as i32 * 64, 64, 64));
                             }
                             else {
-                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x as i32 * 64, TOP_WALL + y as i32 * 64, 64, 64));
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL as i32 + x as i32 * 64, TOP_WALL as i32 + y as i32 * 64, 64, 64));
                             }
                         }
                     }
@@ -178,7 +178,7 @@ impl Manager {
                             self.core.wincan.copy(&slime_up, None,
                                 Rect::new( 
                                     self.game.player.get_pos_x() - 35 + 4,
-                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
+                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height/2) as i32,
                                     64, 64)
                                 );
                         }
@@ -186,7 +186,7 @@ impl Manager {
                             self.core.wincan.copy(&slime_down, None,
                                 Rect::new( 
                                     self.game.player.get_pos_x() - 35,
-                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
+                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height/2) as i32,
                                     64, 64)
                                 );
                         }
@@ -194,7 +194,7 @@ impl Manager {
                             self.core.wincan.copy(&slime_left, None,
                                 Rect::new( 
                                     self.game.player.get_pos_x() - 35 + 4,
-                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
+                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height/2) as i32,
                                     64, 64)
                                 );
                         }
@@ -202,7 +202,7 @@ impl Manager {
                             self.core.wincan.copy(&slime_right, None,
                                 Rect::new( 
                                     self.game.player.get_pos_x() - 35,
-                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
+                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height/2) as i32,
                                     64, 64)
                                 );
                         }
@@ -269,7 +269,7 @@ impl Manager {
                     // Draw player damage hitbox
                     self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
                     self.core.wincan.draw_rect(Rect::new(self.game.player.get_pos_x() - (self.game.player.get_hitbox_x()/2) as i32,
-                                                        self.game.player.get_pos_y() - (self.game.player.get_hitbox_y()) as i32 + (self.game.player.get_walkbox().height()/2) as i32,
+                                                        self.game.player.get_pos_y() - (self.game.player.get_hitbox_y()) as i32 + (self.game.player.get_walkbox().height/2) as i32,
                                                         self.game.player.get_hitbox_x(),
                                                         self.game.player.get_hitbox_y())
                                                );
