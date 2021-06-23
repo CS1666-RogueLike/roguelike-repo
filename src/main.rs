@@ -53,7 +53,7 @@ impl Demo for Manager {
     // Initialize manager struct.
     fn init() -> Result<Self, String> {
         let core = SDLCore::init(TITLE, VSYNC, WINDOW_WIDTH, WINDOW_HEIGHT)?;
-        let menu = MenuState::GameActive;
+        let menu = MenuState::MainMenu;
         let game = Game::new();
         Ok(Manager{core, menu, game})
     }
@@ -75,7 +75,12 @@ impl Demo for Manager {
         println!("\tLeft Arrow\tLook Left");
         println!("\tRight Arrow\tLook Right");
         println!("");
+        println!("\tEscape\tPause game (while in game, not menus)");
         println!("");
+
+        // Hacky solution for pause menu
+        let mut esc_prev = false;
+        let mut esc_curr = false;
 
         'gameloop: loop {
 
@@ -100,9 +105,17 @@ impl Demo for Manager {
             // Movement vector to determine movement direction.
             let mut mov_vec = Vec2::new(0.0, 0.0);
 
-            // Filter inputs by menu state. Currently not implemented but will be useful in the
-            // future.
+            // Filter inputs by menu state.
             match self.menu {
+
+                MainMenu => {
+                    if keystate.contains(&Keycode::Space) {
+                        self.menu = GameActive;
+                        self.game = Game::new(); // Initialize a new game
+                        // This makes it so exiting to menu and staring the game again works
+                        // properly
+                    }
+                }
 
                 GameActive => {
                     // Movement
@@ -118,12 +131,41 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Left)  { self.game.player.set_dir(Direction::Left);  }
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
 
+                    // Pause Code
+                    esc_prev = esc_curr;
+                    if keystate.contains(&Keycode::Escape) && esc_prev == false { 
+                        esc_curr = true; 
+                        self.menu = GamePaused;
+                    }
+                    else if keystate.contains(&Keycode::Escape) && esc_prev == true { 
+                        esc_curr = true;
+                    }
+                    else {
+                        esc_curr = false;
+                    }
+
+                    // Player position
                     self.game.player.update_pos(mov_vec);
                 }
 
-                GamePaused => {}
+                GamePaused => {
+                    // Unpause Code
+                    esc_prev = esc_curr;
+                    if keystate.contains(&Keycode::Escape) && esc_prev == false { 
+                        esc_curr = true; 
+                        self.menu = GameActive;
+                    }
+                    else if keystate.contains(&Keycode::Escape) && esc_prev == true { 
+                        esc_curr = true;
+                    }
+                    else {
+                        esc_curr = false;
+                    }
 
-                MainMenu => {}
+                    // MM
+                    if keystate.contains(&Keycode::X) { self.menu = MainMenu }
+                }
+
             }
 
             // Draw game state
@@ -139,11 +181,17 @@ impl Demo for Manager {
 impl Manager {
     fn draw(& mut self) -> Result<(), String> {
             use menu::MenuState::*;
+            let texture_creator = self.core.wincan.texture_creator();
             match self.menu {
+
+
+                MainMenu => {
+                    let main_menu = texture_creator.load_texture("assets/main_menu.png")?;
+                    self.core.wincan.copy(&main_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
+}
 
                 GameActive => {
                     // Load textures
-                    let texture_creator = self.core.wincan.texture_creator();
                     let bg = texture_creator.load_texture("assets/test_image.png")?;
                     let slime = texture_creator.load_texture("assets/slime_sprite.png")?;
 
@@ -158,8 +206,7 @@ impl Manager {
                     // Draw black screen
                     self.core.wincan.set_draw_color(Color::BLACK);
                     self.core.wincan.clear();
-                    
-                    // Draw background
+
                     self.core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
         
                     for x in 0..15 {
@@ -209,47 +256,10 @@ impl Manager {
 
                     }
 
-                    /*
-                    // Draw player sprite
-                    self.core.wincan.copy(&slime, None,
-                        Rect::new( 
-                            self.game.player.get_pos_x() - 35,
-                            self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
-                            64, 64)
-                        );
-
-                    // Draw box next to player indicating direction
-                    let x_offset = match self.game.player.get_dir() {
-                        Direction::Left => -50,
-                        Direction::Right => 50,
-                        _ => 0,
-                    };
-                    let y_offset = match self.game.player.get_dir() {
-                        Direction::Up => -50,
-                        Direction::Down => 50,
-                        _ => 0,
-                    };
-                    self.core.wincan.set_draw_color(Color::RGBA(128, 255, 128, 255));
-                    self.core.wincan.fill_rect(Rect::new(self.game.player.get_pos_x() + x_offset - 8,
-                                                         self.game.player.get_pos_y() + y_offset - 26,
-                                                         16, 16)
-                                               );
-                                               */
-
-
-
-
-
 
 
                     // CHANGE THIS VALUE TO STOP DRAWING DEBUG STUFF
                     let debug = true;
-
-
-
-
-
-
 
 
 
@@ -295,9 +305,11 @@ impl Manager {
                 }
 
                 GamePaused => {
-                    println!("GAME IS PAUSED, PRESS ESC TO RESUME");
-                    self.core.wincan.set_draw_color(Color::RGBA(100, 0, 0, 255));
+                    self.core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
                     self.core.wincan.clear();
+
+                    let pause_menu = texture_creator.load_texture("assets/pause_menu.png")?;
+                    self.core.wincan.copy(&pause_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
                 }
 
                 _ => (),
