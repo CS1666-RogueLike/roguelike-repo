@@ -1,9 +1,9 @@
 
 //these numbers pulled from photoshop to get exact pixel size for background
-pub const LEFT_WALL: i32 = 248;
-pub const RIGHT_WALL: i32 = 1208;
-pub const TOP_WALL: i32 = 72;
-pub const BOT_WALL: i32 = 648;
+pub const LEFT_WALL: i32 = 248 - 64;
+pub const RIGHT_WALL: i32 = 1208 + 64;
+pub const TOP_WALL: i32 = 72 - 64;
+pub const BOT_WALL: i32 = 648 + 64;
 
 // ------------------------------------------- Vec2 --------------------------------------------
 pub struct Vec2<T> {
