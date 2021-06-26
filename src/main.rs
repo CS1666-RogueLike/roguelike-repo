@@ -63,7 +63,7 @@ impl Demo for Manager {
     }
 
     fn run(&mut self) -> Result<(), String> {
-        
+
         // Print controls to terminal.
         println!("");
         println!("");
@@ -128,11 +128,11 @@ impl Demo for Manager {
 
                     // Pause Code
                     esc_prev = esc_curr;
-                    if keystate.contains(&Keycode::Escape) && esc_prev == false { 
-                        esc_curr = true; 
+                    if keystate.contains(&Keycode::Escape) && esc_prev == false {
+                        esc_curr = true;
                         self.menu = GamePaused;
                     }
-                    else if keystate.contains(&Keycode::Escape) && esc_prev == true { 
+                    else if keystate.contains(&Keycode::Escape) && esc_prev == true {
                         esc_curr = true;
                     }
                     else {
@@ -163,11 +163,11 @@ impl Demo for Manager {
                 GamePaused => {
                     // Unpause Code
                     esc_prev = esc_curr;
-                    if keystate.contains(&Keycode::Escape) && esc_prev == false { 
-                        esc_curr = true; 
+                    if keystate.contains(&Keycode::Escape) && esc_prev == false {
+                        esc_curr = true;
                         self.menu = GameActive;
                     }
-                    else if keystate.contains(&Keycode::Escape) && esc_prev == true { 
+                    else if keystate.contains(&Keycode::Escape) && esc_prev == true {
                         esc_curr = true;
                     }
                     else {
@@ -202,7 +202,7 @@ impl Manager {
         self.game.player.pos.x = self.game.player.pos.x.clamp(LEFT_WALL as f32 + (self.game.player.walkbox.x/2) as f32, RIGHT_WALL as f32 - (self.game.player.walkbox.x/2) as f32);
         self.game.player.pos.y = self.game.player.pos.y.clamp(TOP_WALL as f32 + (self.game.player.walkbox.y/2) as f32, BOT_WALL as f32 - (self.game.player.walkbox.y/2) as f32);
 
-        
+
         self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
         let mut x = 0;
         let mut y = 0;
@@ -210,7 +210,7 @@ impl Manager {
         for row in &self.game.map.room.tiles {
             for t in row {
                 match t.walkability() {
-                    Wall | Rock => {
+                    Wall | Rock | Pit => {
                         // Hacky af block collision that needs to be changed later
                         let opt = self.game.player.get_walkbox_world().intersection(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
 
@@ -225,7 +225,7 @@ impl Manager {
                         };
                         let mut x_offset = inter_rect.width() as i32;
                         let mut y_offset = inter_rect.height() as i32;
-                
+
                         if self.game.player.pos.x < inter_rect.x() as f32 {
                             // TO THE LEFT OF ROCK
                             y_offset = 0;
@@ -244,7 +244,7 @@ impl Manager {
                             x_offset = 0;
                             y_offset *= -1;
                         }
-                
+
                         self.game.player.pos.x -= x_offset as f32;
                         self.game.player.pos.y -= y_offset as f32;
                     }
@@ -258,7 +258,7 @@ impl Manager {
             x = 0;
         }
     }
-    
+
     // Draw entire game state on screen.
     fn draw(& mut self) -> Result<(), String> {
 
@@ -295,7 +295,7 @@ impl Manager {
 
                 // Draw background of game screen
                 self.core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
-    
+
                 let mut x = 0;
                 let mut y = 0;
                 for row in &self.game.map.room.tiles {
@@ -304,18 +304,23 @@ impl Manager {
                             Walkability::Floor => {
                                 self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
-                            
+
                             // Do nothing, we already drew the surrounding walls as one image.
                             Walkability::Wall => (),
 
                             Walkability::Rock => {
                                 self.core.wincan.copy(&rock, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
-        
+
+                            Walkability::Pit => {
+                                self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
+
                             _ => panic!("NO MATCH FOR TILE TYPE"),
                             // This needs to panic, otherwise the rooms won't be the right size and a bunch
                             // of crazy buggy stuff could happen.
-        
+
                         }
                         x += 1;
                     }
@@ -326,7 +331,7 @@ impl Manager {
                 match self.game.player.get_dir() {
                     Direction::Up => {
                         self.core.wincan.copy(&slime_up, None,
-                            Rect::new( 
+                            Rect::new(
                                 self.game.player.get_pos_x() - 35 + 4,
                                 self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
                                 64, 64)
@@ -334,7 +339,7 @@ impl Manager {
                     }
                     Direction::Down => {
                         self.core.wincan.copy(&slime_down, None,
-                            Rect::new( 
+                            Rect::new(
                                 self.game.player.get_pos_x() - 35,
                                 self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
                                 64, 64)
@@ -342,7 +347,7 @@ impl Manager {
                     }
                     Direction::Left => {
                         self.core.wincan.copy(&slime_left, None,
-                            Rect::new( 
+                            Rect::new(
                                 self.game.player.get_pos_x() - 35 + 4,
                                 self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
                                 64, 64)
@@ -350,7 +355,7 @@ impl Manager {
                     }
                     Direction::Right => {
                         self.core.wincan.copy(&slime_right, None,
-                            Rect::new( 
+                            Rect::new(
                                 self.game.player.get_pos_x() - 35,
                                 self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
                                 64, 64)
@@ -376,7 +381,7 @@ impl Manager {
                                                     self.game.player.get_hitbox_x(),
                                                     self.game.player.get_hitbox_y())
                                             );
-        
+
                 // Draw null at center of player hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(255, 0, 255, 255));
                 self.core.wincan.draw_line(
@@ -396,11 +401,11 @@ impl Manager {
                 for row in &self.game.map.room.tiles {
                     for t in row {
                         match t.walkability() {
-                            
-                            Wall | Rock => {
+
+                            Wall | Rock | Pit => {
                                 self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
-        
+
                             _ => (),
                             // Dont draw anything for other tiles
                         }
@@ -409,7 +414,7 @@ impl Manager {
                     y += 1;
                     x = 0;
                 }
-    
+
                 // Draw a box over the current tile
                 self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
                 self.core.wincan.draw_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
@@ -440,4 +445,3 @@ impl Manager {
     }
 
 }
-

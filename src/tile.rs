@@ -19,6 +19,7 @@ pub enum Walkability {
     Wall, // Outer walls of the room. Nothing can pass over.
 }
 
+// what is it doing to the player/entity that is walking over it
 pub enum WalkoverAction {
     DoNothing,
 }
@@ -40,5 +41,11 @@ impl Tile for Rock {
 pub struct Wall {}
 impl Tile for Wall {
     fn walkability(&self) -> Walkability { Walkability::Wall }
+    fn on_walkover(&self) -> WalkoverAction { WalkoverAction::DoNothing }
+}
+
+pub struct Pit {}
+impl Tile for Pit {
+    fn walkability(&self) -> Walkability { Walkability::Pit }
     fn on_walkover(&self) -> WalkoverAction { WalkoverAction::DoNothing }
 }
