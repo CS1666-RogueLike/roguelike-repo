@@ -21,7 +21,7 @@ pub struct Room {
 impl Room {
     // Returns a room that the developer sets every tile of manually.
     pub fn new_test_room() -> Room {
-        
+
         // ----------------------- READ THIS!!!!!!!!!!!!!!!!! -----------------------
         // Manually defining the room array is needed, but the syntax to do that manually would be a mess.
         // Instead, we can define an array of the same size of just characters, with each character
@@ -32,6 +32,7 @@ impl Room {
         // _ -> Ground (to make looking at it easier)
         // w -> Wall
         // r -> Rock
+        // p -> Pit
 
         let blueprint = [
         //                                   MID
@@ -40,9 +41,9 @@ impl Room {
             ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 1
             ['W','_','R','_','R','_','_','_','_','_','R','R','R','R','R','_','W'], // 2
             ['W','_','R','_','R','_','_','_','_','_','R','_','_','_','R','_','W'], // 3
-            ['W','_','R','_','R','_','R','_','_','_','R','_','_','_','R','_','W'], // 4
-            ['_','_','R','R','R','_','_','_','_','_','_','_','_','_','R','_','_'], // 5 MID
-            ['W','_','R','_','R','_','R','_','_','_','R','_','_','_','R','_','W'], // 6
+            ['W','_','R','_','R','_','R','_','_','_','R','_','P','_','R','_','W'], // 4
+            ['_','_','R','R','R','_','_','_','_','_','_','_','P','_','R','_','_'], // 5 MID
+            ['W','_','R','_','R','_','R','_','_','_','R','_','P','_','R','_','W'], // 6
             ['W','_','R','_','R','_','R','_','_','_','R','_','_','_','R','_','W'], // 7
             ['W','_','R','_','R','_','R','_','_','_','R','R','R','R','R','_','W'], // 8
             ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 9
@@ -65,9 +66,10 @@ impl Room {
                     '_' => tiles[y as usize].push(Box::new(Ground {})),
                     'W' => tiles[y as usize].push(Box::new(Wall {})),
                     'R' => tiles[y as usize].push(Box::new(Rock {})),
+                    'P' => tiles[y as usize].push(Box::new(Pit {})),
 
                     _ => panic!("NO MATCH FOR TILE TYPE"), // NOTE THAT THIS IS DIFFERENT FROM '_' WHICH CHECKS FOR THE UNDERSCORE CHARACTER
-                    // This needs to panic if an unrecogized character is found, 
+                    // This needs to panic if an unrecogized character is found,
                     // otherwise the rooms won't be the right size and a bunch
                     // of crazy buggy stuff could happen.
                 }
