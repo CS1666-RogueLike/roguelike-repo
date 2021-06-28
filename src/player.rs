@@ -7,7 +7,22 @@ pub struct Player {
     pub walkbox: Rect, // Hitbox involved in collision with rooms.
     pub speed: f32,
     pub dir: Direction,
+    pub hp: i32,    //store the health for player
+    pub m_hp: i32,
 }
+
+pub trait Health {
+    fn max_hp(&self) -> i32;  //the maximum HP the entity can have
+    fn health(&self) -> i32;    // the current HP the entity has
+    fn damage(&mut self, d: i32) -> i32;  // applying the amount of damage received
+    //fn damage_type(&self) -> i32; // the damage category
+    //fn bonus_type(&self) -> i32;    // the type of bonus dropped by enemy
+    //fn percent_damaged(&self) -> f32;
+    fn heal(&mut self, h: i32) -> i32;
+
+}
+
+
 
 /*
                     self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
@@ -24,14 +39,17 @@ impl Player {
             walkbox: Rect::new(20, 12, 40, 24),
             speed: 2.0,
             dir: Direction::Down,
+            hp: MAX_HP,
+            m_hp: MAX_HP,
         }
     }
+
 
     pub fn update_pos(& mut self, mut mov_vec: Vec2<f32>) {
 
         // Fix diagonal directions giving more speed than one direction
         if mov_vec.x != 0.0 && mov_vec.y != 0.0 {
-            // The number approximates sqrt(2)/2, the position on the unit circle at 45 degrees 
+            // The number approximates sqrt(2)/2, the position on the unit circle at 45 degrees
             // that is 1 unit away from the center.
             mov_vec.x *= 0.707106;
             mov_vec.y *= 0.707106;
@@ -63,3 +81,27 @@ impl Player {
     pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }
     pub fn get_dir(& mut self) -> Direction { self.dir }
 }
+
+impl Health for Player {
+    fn max_hp(&self) -> i32 {
+        return self.m_hp;
+    }
+	fn health(&self) -> i32 {
+        return self.hp;
+        }
+    fn heal(&mut self, h: i32) -> i32 {
+        self.hp = self.hp + h;
+        if self.hp > self.m_hp {
+            self.hp = self.m_hp;
+        }
+        return self.hp;
+    }
+    fn damage(&mut self, d: i32) -> i32 {
+        self.hp -= d;
+        if self.hp <= 0 {
+            self.hp = 0;
+            }
+        return self.hp;
+        }
+
+	}

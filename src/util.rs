@@ -5,6 +5,10 @@ pub const RIGHT_WALL: i32 = 1208 + 64;
 pub const TOP_WALL: i32 = 72 - 64;
 pub const BOT_WALL: i32 = 648 + 64;
 
+//-------------------------------Player/Creature Constants---------------------------------
+pub const MAX_HP: i32 = 3;
+pub const DEATH_HP: i32 = 0;
+
 // ------------------------------------------- Vec2 --------------------------------------------
 pub struct Vec2<T> {
     pub x: T,
