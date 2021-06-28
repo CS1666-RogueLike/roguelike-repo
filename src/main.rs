@@ -27,6 +27,7 @@ use sdl2::render::Texture;
 
 use roguelike::SDLCore;
 use roguelike::Demo;
+use player::Health;
 
 use std::cmp::min;
 use std::collections::HashSet;
@@ -84,6 +85,9 @@ impl Demo for Manager {
         println!("");
         println!("\tEscape\t\tPause game (while in game, not menus)");
         println!("");
+
+        println!("Health is: {}", self.game.player.health());
+        println!("Max Health is: {}", self.game.player.max_hp());
 
         // Hacky solution for pause menu
         let mut esc_prev = false;
@@ -157,6 +161,15 @@ impl Demo for Manager {
                     self.game.player.update_pos(mov_vec);
                     // Apply collision
                     self.collide();
+                    // // debugging healing and damage to a PLAYER
+                    // if keystate.contains(&Keycode::H) { self.game.player.heal(2);
+                    //     println!("Health is: {}", self.game.player.health());
+                    // }  // heal
+                    // if keystate.contains(&Keycode::B) { self.game.player.damage(1);
+                    //     println!("Health is: {}", self.game.player.health());
+                    // }  //damage
+
+
                     // --------------------------------- GAMEPLAY CODE END -------------------------
                 }
 
