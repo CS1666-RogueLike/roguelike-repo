@@ -18,7 +18,7 @@ pub trait Health {
     //fn damage_type(&self) -> i32; // the damage category
     //fn bonus_type(&self) -> i32;    // the type of bonus dropped by enemy
     //fn percent_damaged(&self) -> f32;
-    fn heal(&mut self, h: i32) -> i32;
+    fn heal(&mut self, h: i32) -> i32; //function to heal hitpoints
 
 }
 
