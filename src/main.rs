@@ -149,16 +149,16 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Num2) { self.debug = true; }
                     // Lock doors
                     if keystate.contains(&Keycode::Num3) {
-                        self.game.map.room.tiles[5][0] = Box::new(Door { lock: LockState::Locked, position: Direction::Up });
-                        self.game.map.room.tiles[5][16] = Box::new(Door { lock: LockState::Locked, position: Direction::Up });
-                        self.game.map.room.tiles[0][8] = Box::new(Door { lock: LockState::Locked, position: Direction::Up });
-                        self.game.map.room.tiles[10][8] = Box::new(Door { lock: LockState::Locked, position: Direction::Up });
+                        self.game.map.room.tiles[5][0].lock();
+                        self.game.map.room.tiles[5][16].lock();
+                        self.game.map.room.tiles[0][8].lock();
+                        self.game.map.room.tiles[10][8].lock();
                     }
                     if keystate.contains(&Keycode::Num4) {
-                        self.game.map.room.tiles[5][0] = Box::new(Door { lock: LockState::Unlocked, position: Direction::Up });
-                        self.game.map.room.tiles[5][16] = Box::new(Door { lock: LockState::Unlocked, position: Direction::Up });
-                        self.game.map.room.tiles[0][8] = Box::new(Door { lock: LockState::Unlocked, position: Direction::Up });
-                        self.game.map.room.tiles[10][8] = Box::new(Door { lock: LockState::Unlocked, position: Direction::Up });
+                        self.game.map.room.tiles[5][0].unlock();
+                        self.game.map.room.tiles[5][16].unlock();
+                        self.game.map.room.tiles[0][8].unlock();
+                        self.game.map.room.tiles[10][8].unlock();
                     }
 
                     // -------------------------------------- GAMEPLAY CODE -------------------------
@@ -351,22 +351,34 @@ impl Manager {
                 let mut y = 0;
                 for row in &self.game.map.room.tiles {
                     for t in row {
-                        match t.walkability() {
-                            Walkability::Floor => {
+                        match t.sprite() {
+                            SpriteID::Ground => {
                                 self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
 
                             // Do nothing, we already drew the surrounding walls as one image.
-                            Walkability::Wall => (),
+                            SpriteID::Wall => (),
 
-                            Walkability::Rock => {
+                            SpriteID::Rock => {
                                 self.core.wincan.copy(&rock, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
 
-                            Walkability::Pit => {
+                            SpriteID::Pit => {
                                 self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
                                 self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
+
+                            SpriteID::DoorLocked => {
+                                self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
+                            SpriteID::DoorUnlocked => {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                self.core.wincan.set_draw_color(Color::RGBA(0, 255, 0, 255));
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
+
+
 
                             _ => panic!("NO MATCH FOR TILE TYPE"),
                             // This needs to panic, otherwise the rooms won't be the right size and a bunch
