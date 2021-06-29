@@ -9,6 +9,7 @@ pub struct Player {
     pub dir: Direction,
     pub hp: i32,    //store the health for player
     pub m_hp: i32,
+    pub powerUpVec: Vec<i32>, //[Health, Speed, Attack]
 }
 
 pub trait Health {
@@ -20,6 +21,12 @@ pub trait Health {
     //fn percent_damaged(&self) -> f32;
     fn heal(&mut self, h: i32) -> i32;
 
+}
+
+pub trait powerUp {
+    fn plusPowerHealth(&mut self);
+    fn plusPowerSpeed(&mut self);
+    fn plusPowerAttack(&mut self);
 }
 
 
@@ -41,6 +48,7 @@ impl Player {
             dir: Direction::Down,
             hp: MAX_HP,
             m_hp: MAX_HP,
+            powerUpVec: vec![0; 3],
         }
     }
 
@@ -88,7 +96,7 @@ impl Health for Player {
     }
 	fn health(&self) -> i32 {
         return self.hp;
-        }
+    }
     fn heal(&mut self, h: i32) -> i32 {
         self.hp = self.hp + h;
         if self.hp > self.m_hp {
@@ -102,6 +110,41 @@ impl Health for Player {
             self.hp = 0;
             }
         return self.hp;
-        }
+    }
+}
 
-	}
+impl powerUp for Player {
+    fn plusPowerHealth(&mut self){
+        if let Some(temp) = self.powerUpVec.get_mut(0){
+            *temp += 1;
+        }
+        if self.powerUpVec[0] == 3 {
+            if let Some(temp) = self.powerUpVec.get_mut(0){
+                *temp = 0;
+            }
+            //plus health funciton
+        }
+    }
+    fn plusPowerSpeed(&mut self){
+        if let Some(temp) = self.powerUpVec.get_mut(1){
+            *temp += 1;
+        }
+        if self.powerUpVec[1] == 3 {
+            if let Some(temp) = self.powerUpVec.get_mut(1){
+                *temp = 0;
+            }
+            //plus Speed funciton
+        }
+    }
+    fn plusPowerAttack(&mut self){
+        if let Some(temp) = self.powerUpVec.get_mut(2){
+            *temp += 1;
+        }
+        if self.powerUpVec[2] == 3 {
+            if let Some(temp) = self.powerUpVec.get_mut(2){
+                *temp = 0;
+            }
+            //plus Attack funciton
+        }
+    }
+}
