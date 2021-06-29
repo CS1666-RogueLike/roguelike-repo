@@ -4,7 +4,9 @@ use crate::tile::*;
 pub const ROOM_WIDTH: i32 = 17;
 pub const ROOM_HEIGHT: i32 = 11;
 
+
 pub struct Room {
+    pub exists: bool,
     pub tiles: Vec<Vec<Box<dyn Tile>>>,
 }
 
@@ -20,6 +22,10 @@ pub struct Room {
 
 impl Room {
     // Returns a room that the developer sets every tile of manually.
+    pub fn non_room() -> Room {
+        Room { exists: false, tiles: Vec::new() }
+
+    }
     pub fn new_test_room() -> Room {
 
         // ----------------------- READ THIS!!!!!!!!!!!!!!!!! -----------------------
@@ -38,12 +44,12 @@ impl Room {
         let blueprint = [
         //                                   MID
         //    0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
-            ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 0
+            ['W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W'], // 0
             ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 1
             ['W','_','R','_','R','_','_','_','_','_','R','R','R','R','R','_','W'], // 2
             ['W','_','R','_','R','_','_','_','_','_','R','_','_','_','R','_','W'], // 3
             ['W','_','R','_','R','_','R','_','_','_','R','_','P','_','R','_','W'], // 4
-            ['D','_','R','R','R','_','_','_','_','_','_','_','P','_','R','_','D'], // 5 MID
+            ['D','_','R','R','R','_','_','_','_','_','_','_','P','_','R','_','W'], // 5 MID
             ['W','_','R','_','R','_','R','_','_','_','R','_','P','_','R','_','W'], // 6
             ['W','_','R','_','R','_','R','_','_','_','R','_','_','_','R','_','W'], // 7
             ['W','_','R','_','R','_','R','_','_','_','R','R','R','R','R','_','W'], // 8
@@ -102,6 +108,7 @@ impl Room {
 
         // Return room struct.
         Room {
+            exists: true,
             tiles: tiles,
         }
 

@@ -37,7 +37,20 @@ pub enum Direction {
     Right,
 }
 
+#[derive(Copy, Clone)]
 pub enum LockState {
     Locked,
     Unlocked,
+    NA,
+}
+
+
+//#[derive(Copy, Clone)]
+pub enum SpriteID {
+    Ground,
+    Wall,
+    Rock,
+    Pit,
+    DoorLocked,
+    DoorUnlocked,
 }
