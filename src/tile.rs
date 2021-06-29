@@ -1,5 +1,11 @@
+use crate::util::*;
 
 pub trait Tile {
+    // TODO: Find some way to identify what sprite to draw
+    // This could be done by returning an enum, or potentially through TypeID
+    // Enum might be the best option though, esp for tiles with changing state (door)
+
+
     // Determines the walkability of the tile, which informs what entities can pass over it.
     fn walkability(&self) -> Walkability;
 
@@ -22,6 +28,7 @@ pub enum Walkability {
 // what is it doing to the player/entity that is walking over it
 pub enum WalkoverAction {
     DoNothing,
+    ChangeRooms,
 }
 
 pub struct Ground {}
@@ -48,4 +55,18 @@ pub struct Pit {}
 impl Tile for Pit {
     fn walkability(&self) -> Walkability { Walkability::Pit }
     fn on_walkover(&self) -> WalkoverAction { WalkoverAction::DoNothing }
+}
+
+pub struct Door {
+    pub(crate) lock: LockState,
+    pub(crate) position: Direction,
+}
+impl Tile for Door {
+    fn walkability(&self) -> Walkability {
+        match self.lock {
+            LockState::Locked => Walkability::Wall,
+            LockState::Unlocked => Walkability::Floor,
+        }
+    }
+    fn on_walkover(&self) -> WalkoverAction { WalkoverAction::ChangeRooms }
 }
