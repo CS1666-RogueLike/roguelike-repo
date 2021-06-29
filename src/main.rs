@@ -73,6 +73,8 @@ impl Demo for Manager {
         println!("");
         println!("\t1\t\tTurn OFF debug graphics");
         println!("\t2\t\tTurn ON debug graphics");
+        println!("\t3\t\tLock doors");
+        println!("\t4\t\tUnlock doors");
         println!("");
         println!("\tW\t\tMove Up");
         println!("\tS\t\tMove Down");
@@ -143,8 +145,22 @@ impl Demo for Manager {
                     else {
                         esc_curr = false;
                     }
+                    // Debug on/off
                     if keystate.contains(&Keycode::Num1) { self.debug = false; }
                     if keystate.contains(&Keycode::Num2) { self.debug = true; }
+                    // Lock doors
+                    if keystate.contains(&Keycode::Num3) {
+                        self.game.map.room.tiles[5][0] = Box::new(Door { lock: LockState::Locked, position: Direction::Up });
+                        self.game.map.room.tiles[5][16] = Box::new(Door { lock: LockState::Locked, position: Direction::Up });
+                        self.game.map.room.tiles[0][8] = Box::new(Door { lock: LockState::Locked, position: Direction::Up });
+                        self.game.map.room.tiles[10][8] = Box::new(Door { lock: LockState::Locked, position: Direction::Up });
+                    }
+                    if keystate.contains(&Keycode::Num4) {
+                        self.game.map.room.tiles[5][0] = Box::new(Door { lock: LockState::Unlocked, position: Direction::Up });
+                        self.game.map.room.tiles[5][16] = Box::new(Door { lock: LockState::Unlocked, position: Direction::Up });
+                        self.game.map.room.tiles[0][8] = Box::new(Door { lock: LockState::Unlocked, position: Direction::Up });
+                        self.game.map.room.tiles[10][8] = Box::new(Door { lock: LockState::Unlocked, position: Direction::Up });
+                    }
 
                     // -------------------------------------- GAMEPLAY CODE -------------------------
                     // Movement
@@ -160,6 +176,7 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
                     // Move player
                     self.game.player.update_pos(mov_vec);
+
                     // Apply collision
                     self.collide();
                     // // debugging healing and damage to a PLAYER
@@ -174,6 +191,14 @@ impl Demo for Manager {
                     //     println!("Health is: {}", self.game.player.health());
                     // }  //damage
 
+                    // Set prev frame tile
+                    self.game.player.prev_frame_tile = self.game.player.current_frame_tile;
+                    // Update current fream tile
+                    self.game.player.current_frame_tile = Vec2::new((self.game.player.get_pos_x() - LEFT_WALL) / 64,
+                                                                    (self.game.player.get_pos_y() - TOP_WALL) / 64);
+                    //println!("{}, {}", self.game.player.current_frame_tile.x, self.game.player.current_frame_tile.y);
+
+                    self.walkover();
 
                     // --------------------------------- GAMEPLAY CODE END -------------------------
                 }
@@ -277,7 +302,20 @@ impl Manager {
         }
     }
 
-    // Draw entire game state on screen.
+    fn walkover(& mut self) {
+        // Branch for tiles that should only be called once (doors, pickups
+        if self.game.player.current_frame_tile != self.game.player.prev_frame_tile {
+            //TODO: Find a way to make these chain calls less crazy
+            match self.game.map.room.tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].on_walkover() {
+                WalkoverAction::DoNothing => (),
+                WalkoverAction::ChangeRooms => println!("Door tile walked over."),
+
+            }
+        }
+        // TODO: else branch for continuous tiles (spike tile)
+    }
+
+        // Draw entire game state on screen.
     fn draw(& mut self) -> Result<(), String> {
 
         // MOVE SOMEWHERE ELSE, TEXTURES SHOULD ONLY BE INITIALIZED ONCE
@@ -435,11 +473,21 @@ impl Manager {
 
                 // Draw a box over the current tile
                 self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
-                self.core.wincan.draw_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
-                                                    (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
-                                                    64,
-                                                    65,
-                                                    ));
+                    if self.game.player.current_frame_tile != self.game.player.prev_frame_tile {
+                        self.core.wincan.fill_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
+                                                             (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
+                                                             64,
+                                                             65,
+                        ));
+
+                    }
+                    else {
+                        self.core.wincan.draw_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
+                                                             (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
+                                                             64,
+                                                             65,
+                        ));
+                    }
 
                 }
 

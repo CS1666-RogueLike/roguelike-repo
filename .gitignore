@@ -13,3 +13,6 @@ Cargo.lock
 
 # MacOS folder metadata file
 .DS_Store
+.idea/misc.xml
+.idea/roguelike-repo.iml
+.idea/vcs.xml

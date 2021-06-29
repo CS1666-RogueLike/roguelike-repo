@@ -10,6 +10,7 @@ pub const MAX_HP: i32 = 3;
 pub const DEATH_HP: i32 = 0;
 
 // ------------------------------------------- Vec2 --------------------------------------------
+#[derive(Copy, Clone, PartialEq)]
 pub struct Vec2<T> {
     pub x: T,
     pub y: T,
@@ -34,4 +35,9 @@ pub enum Direction {
     Down,
     Left,
     Right,
+}
+
+pub enum LockState {
+    Locked,
+    Unlocked,
 }

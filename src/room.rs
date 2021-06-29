@@ -1,4 +1,4 @@
-
+use crate::util::*;
 use crate::tile::*;
 
 pub const ROOM_WIDTH: i32 = 17;
@@ -30,24 +30,25 @@ impl Room {
 
         // KEY:
         // _ -> Ground (to make looking at it easier)
-        // w -> Wall
-        // r -> Rock
-        // p -> Pit
+        // W -> Wall
+        // R -> Rock
+        // P -> Pit
+        // D -> Door
 
         let blueprint = [
         //                                   MID
         //    0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
-            ['W','W','W','W','W','W','W','W','_','W','W','W','W','W','W','W','W'], // 0
+            ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 0
             ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 1
             ['W','_','R','_','R','_','_','_','_','_','R','R','R','R','R','_','W'], // 2
             ['W','_','R','_','R','_','_','_','_','_','R','_','_','_','R','_','W'], // 3
             ['W','_','R','_','R','_','R','_','_','_','R','_','P','_','R','_','W'], // 4
-            ['_','_','R','R','R','_','_','_','_','_','_','_','P','_','R','_','_'], // 5 MID
+            ['D','_','R','R','R','_','_','_','_','_','_','_','P','_','R','_','D'], // 5 MID
             ['W','_','R','_','R','_','R','_','_','_','R','_','P','_','R','_','W'], // 6
             ['W','_','R','_','R','_','R','_','_','_','R','_','_','_','R','_','W'], // 7
             ['W','_','R','_','R','_','R','_','_','_','R','R','R','R','R','_','W'], // 8
             ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 9
-            ['W','W','W','W','W','W','W','W','_','W','W','W','W','W','W','W','W'], // 10
+            ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 10
         ];
 
         // Vec that contains actual Tile trait implementing structs
@@ -67,6 +68,8 @@ impl Room {
                     'W' => tiles[y as usize].push(Box::new(Wall {})),
                     'R' => tiles[y as usize].push(Box::new(Rock {})),
                     'P' => tiles[y as usize].push(Box::new(Pit {})),
+                    // TODO: Add code for proper handling of direction
+                    'D' => tiles[y as usize].push(Box::new(Door { lock: LockState::Unlocked, position: Direction::Up })),
 
                     _ => panic!("NO MATCH FOR TILE TYPE"), // NOTE THAT THIS IS DIFFERENT FROM '_' WHICH CHECKS FOR THE UNDERSCORE CHARACTER
                     // This needs to panic if an unrecogized character is found,
@@ -75,6 +78,7 @@ impl Room {
                 }
             }
         }
+
 
         /*
         // Debug print to make sure structure was built properly
