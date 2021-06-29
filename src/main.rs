@@ -11,9 +11,11 @@ mod player;
 mod util;
 use crate::util::*;
 
-mod tile;
-
 mod map;
+mod floor;
+mod room;
+mod tile;
+use crate::tile::*;
 
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
@@ -25,6 +27,7 @@ use sdl2::render::Texture;
 
 use roguelike::SDLCore;
 use roguelike::Demo;
+use player::Health;
 
 use std::cmp::min;
 use std::collections::HashSet;
@@ -45,6 +48,7 @@ fn main() {
 // Manager struct responsible for working with SDL, menu system, initializing game, etc.
 pub struct Manager {
     core: SDLCore, // SDL data for drawing.
+    debug: bool,
     menu: MenuState, // Enum that controls the control flow via the menu.
     game: Game, // Struct holding all game related data.
 }
@@ -53,17 +57,21 @@ impl Demo for Manager {
     // Initialize manager struct.
     fn init() -> Result<Self, String> {
         let core = SDLCore::init(TITLE, VSYNC, WINDOW_WIDTH, WINDOW_HEIGHT)?;
-        let menu = MenuState::GameActive;
+        let debug = false;
+        let menu = MenuState::MainMenu;
         let game = Game::new();
-        Ok(Manager{core, menu, game})
+        Ok(Manager{core, debug, menu, game})
     }
 
     fn run(&mut self) -> Result<(), String> {
-        
+
         // Print controls to terminal.
         println!("");
         println!("");
         println!(" --------------- CONTROLS --------------- ");
+        println!("");
+        println!("\t1\t\tTurn OFF debug graphics");
+        println!("\t2\t\tTurn ON debug graphics");
         println!("");
         println!("\tW\t\tMove Up");
         println!("\tS\t\tMove Down");
@@ -75,7 +83,15 @@ impl Demo for Manager {
         println!("\tLeft Arrow\tLook Left");
         println!("\tRight Arrow\tLook Right");
         println!("");
+        println!("\tEscape\t\tPause game (while in game, not menus)");
         println!("");
+
+        println!("Health is: {}", self.game.player.health());
+        println!("Max Health is: {}", self.game.player.max_hp());
+
+        // Hacky solution for pause menu
+        let mut esc_prev = false;
+        let mut esc_curr = false;
 
         'gameloop: loop {
 
@@ -100,30 +116,81 @@ impl Demo for Manager {
             // Movement vector to determine movement direction.
             let mut mov_vec = Vec2::new(0.0, 0.0);
 
-            // Filter inputs by menu state. Currently not implemented but will be useful in the
-            // future.
+            // Filter inputs by menu state.
             match self.menu {
 
+                MainMenu => {
+                    if keystate.contains(&Keycode::Space) {
+                        self.menu = GameActive;
+                        self.game = Game::new(); // Initialize a new game
+                        // This makes it so exiting to menu and staring the game again works
+                        // properly
+                    }
+                }
+
                 GameActive => {
+
+                    // Pause Code
+                    esc_prev = esc_curr;
+                    if keystate.contains(&Keycode::Escape) && esc_prev == false {
+                        esc_curr = true;
+                        self.menu = GamePaused;
+                    }
+                    else if keystate.contains(&Keycode::Escape) && esc_prev == true {
+                        esc_curr = true;
+                    }
+                    else {
+                        esc_curr = false;
+                    }
+                    if keystate.contains(&Keycode::Num1) { self.debug = false; }
+                    if keystate.contains(&Keycode::Num2) { self.debug = true; }
+
+                    // -------------------------------------- GAMEPLAY CODE -------------------------
                     // Movement
                     if keystate.contains(&Keycode::W) { mov_vec.y -= 1.0; }
                     if keystate.contains(&Keycode::S) { mov_vec.y += 1.0; }
                     if keystate.contains(&Keycode::A) { mov_vec.x -= 1.0; }
                     if keystate.contains(&Keycode::D) { mov_vec.x += 1.0; }
-
                     // Direction (will eventually be attacks)
                     // TODO: FIX SO THAT NEW KEY OVERRIDES OLD ONE INSTEAD OF HAVING SET PRIORITY
                     if keystate.contains(&Keycode::Up)    { self.game.player.set_dir(Direction::Up);    }
                     if keystate.contains(&Keycode::Down)  { self.game.player.set_dir(Direction::Down);  }
                     if keystate.contains(&Keycode::Left)  { self.game.player.set_dir(Direction::Left);  }
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
-
+                    // Move player
                     self.game.player.update_pos(mov_vec);
+                    // Apply collision
+                    self.collide();
+                    // // debugging healing and damage to a PLAYER
+                    // if keystate.contains(&Keycode::H) { self.game.player.heal(2);
+                    //     println!("Health is: {}", self.game.player.health());
+                    // }  // heal
+                    // if keystate.contains(&Keycode::B) { self.game.player.damage(1);
+                    //     println!("Health is: {}", self.game.player.health());
+                    // }  //damage
+
+
+                    // --------------------------------- GAMEPLAY CODE END -------------------------
                 }
 
-                GamePaused => {}
+                GamePaused => {
+                    // Unpause Code
+                    esc_prev = esc_curr;
+                    if keystate.contains(&Keycode::Escape) && esc_prev == false {
+                        esc_curr = true;
+                        self.menu = GameActive;
+                    }
+                    else if keystate.contains(&Keycode::Escape) && esc_prev == true {
+                        esc_curr = true;
+                    }
+                    else {
+                        esc_curr = false;
+                    }
 
-                MainMenu => {}
+                    // MM
+                    if keystate.contains(&Keycode::X) { self.menu = MainMenu }
+                }
+
             }
 
             // Draw game state
@@ -137,170 +204,250 @@ impl Demo for Manager {
 }
 
 impl Manager {
+
+    fn draw_init(& mut self) {
+
+    }
+
+    fn collide(& mut self) {
+
+        // Outermost wall collision
+        self.game.player.pos.x = self.game.player.pos.x.clamp(LEFT_WALL as f32 + (self.game.player.walkbox.x/2) as f32, RIGHT_WALL as f32 - (self.game.player.walkbox.x/2) as f32);
+        self.game.player.pos.y = self.game.player.pos.y.clamp(TOP_WALL as f32 + (self.game.player.walkbox.y/2) as f32, BOT_WALL as f32 - (self.game.player.walkbox.y/2) as f32);
+
+
+        self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
+        let mut x = 0;
+        let mut y = 0;
+        use tile::Walkability::*;
+        for row in &self.game.map.room.tiles {
+            for t in row {
+                match t.walkability() {
+                    Wall | Rock | Pit => {
+                        // Hacky af block collision that needs to be changed later
+                        let opt = self.game.player.get_walkbox_world().intersection(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+
+                        // increment x
+                        // if we do this later it messes thing up due to the continue statement in
+                        // the unboxing
+                        x += 1;
+
+                        let mut inter_rect = match opt {
+                            Some(x) => x,
+                            None => continue, // If no intersection just leave function, we're done
+                        };
+                        let mut x_offset = inter_rect.width() as i32;
+                        let mut y_offset = inter_rect.height() as i32;
+
+                        if self.game.player.pos.x < inter_rect.x() as f32 {
+                            // TO THE LEFT OF ROCK
+                            y_offset = 0;
+                        }
+                        if self.game.player.pos.x > (inter_rect.x() + inter_rect.width() as i32) as f32 {
+                            // TO THE RIGHT OF ROCK
+                            x_offset *= -1;
+                            y_offset = 0;
+                        }
+                        if self.game.player.pos.y < inter_rect.y() as f32 {
+                            // ABOVE ROCK
+                            x_offset = 0;
+                        }
+                        if self.game.player.pos.y > (inter_rect.y() + inter_rect.height() as i32) as f32 {
+                            // BELOW ROCK
+                            x_offset = 0;
+                            y_offset *= -1;
+                        }
+
+                        self.game.player.pos.x -= x_offset as f32;
+                        self.game.player.pos.y -= y_offset as f32;
+                    }
+
+                    _ => x += 1,
+                }
+            }
+
+            // Prepare for next iteration of loop
+            y += 1;
+            x = 0;
+        }
+    }
+
+    // Draw entire game state on screen.
     fn draw(& mut self) -> Result<(), String> {
-            use menu::MenuState::*;
-            match self.menu {
 
-                GameActive => {
-                    // Load textures
-                    let texture_creator = self.core.wincan.texture_creator();
-                    let bg = texture_creator.load_texture("assets/test_image.png")?;
-                    let slime = texture_creator.load_texture("assets/slime_sprite.png")?;
+        // MOVE SOMEWHERE ELSE, TEXTURES SHOULD ONLY BE INITIALIZED ONCE
+        let texture_creator = self.core.wincan.texture_creator();
 
-                    let slime_up = texture_creator.load_texture("assets/slime_up.png")?;
-                    let slime_down = texture_creator.load_texture("assets/slime_down.png")?;
-                    let slime_left = texture_creator.load_texture("assets/slime_left.png")?;
-                    let slime_right = texture_creator.load_texture("assets/slime_right.png")?;
+        // Scope enums for readability
+        use menu::MenuState::*;
 
-                    let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
-                    let rock = texture_creator.load_texture("assets/rock.png")?;
+        // Determine what to draw depending on state of the menu.
+        match self.menu {
 
-                    // Draw black screen
-                    self.core.wincan.set_draw_color(Color::BLACK);
-                    self.core.wincan.clear();
-                    
-                    // Draw background
-                    self.core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
-        
-                    for x in 0..15 {
-                        for y in 0..9 {
-                            if x == 7 && y == 4 {
-                                self.core.wincan.copy(&rock, None, Rect::new(LEFT_WALL as i32 + x as i32 * 64, TOP_WALL as i32 + y as i32 * 64, 64, 64));
+            MainMenu => {
+                let main_menu = texture_creator.load_texture("assets/main_menu.png")?;
+                self.core.wincan.copy(&main_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
+            }
+
+            GameActive => {
+                // Load textures
+                let bg = texture_creator.load_texture("assets/test_image.png")?;
+                let slime = texture_creator.load_texture("assets/slime_sprite.png")?;
+
+                let slime_up = texture_creator.load_texture("assets/slime_up.png")?;
+                let slime_down = texture_creator.load_texture("assets/slime_down.png")?;
+                let slime_left = texture_creator.load_texture("assets/slime_left.png")?;
+                let slime_right = texture_creator.load_texture("assets/slime_right.png")?;
+
+                let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
+                let rock = texture_creator.load_texture("assets/rock.png")?;
+
+                // Draw black screen
+                self.core.wincan.set_draw_color(Color::BLACK);
+                self.core.wincan.clear();
+
+                // Draw background of game screen
+                self.core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
+
+                let mut x = 0;
+                let mut y = 0;
+                for row in &self.game.map.room.tiles {
+                    for t in row {
+                        match t.walkability() {
+                            Walkability::Floor => {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
-                            else {
-                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL as i32 + x as i32 * 64, TOP_WALL as i32 + y as i32 * 64, 64, 64));
+
+                            // Do nothing, we already drew the surrounding walls as one image.
+                            Walkability::Wall => (),
+
+                            Walkability::Rock => {
+                                self.core.wincan.copy(&rock, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
+
+                            Walkability::Pit => {
+                                self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
+
+                            _ => panic!("NO MATCH FOR TILE TYPE"),
+                            // This needs to panic, otherwise the rooms won't be the right size and a bunch
+                            // of crazy buggy stuff could happen.
+
                         }
+                        x += 1;
+                    }
+                    y += 1;
+                    x = 0;
+                }
+
+                match self.game.player.get_dir() {
+                    Direction::Up => {
+                        self.core.wincan.copy(&slime_up, None,
+                            Rect::new(
+                                self.game.player.get_pos_x() - 35 + 4,
+                                self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
+                                64, 64)
+                            );
+                    }
+                    Direction::Down => {
+                        self.core.wincan.copy(&slime_down, None,
+                            Rect::new(
+                                self.game.player.get_pos_x() - 35,
+                                self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
+                                64, 64)
+                            );
+                    }
+                    Direction::Left => {
+                        self.core.wincan.copy(&slime_left, None,
+                            Rect::new(
+                                self.game.player.get_pos_x() - 35 + 4,
+                                self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
+                                64, 64)
+                            );
+                    }
+                    Direction::Right => {
+                        self.core.wincan.copy(&slime_right, None,
+                            Rect::new(
+                                self.game.player.get_pos_x() - 35,
+                                self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
+                                64, 64)
+                            );
                     }
 
-                    match self.game.player.get_dir() {
-                        Direction::Up => {
-                            self.core.wincan.copy(&slime_up, None,
-                                Rect::new( 
-                                    self.game.player.get_pos_x() - 35 + 4,
-                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height/2) as i32,
-                                    64, 64)
-                                );
-                        }
-                        Direction::Down => {
-                            self.core.wincan.copy(&slime_down, None,
-                                Rect::new( 
-                                    self.game.player.get_pos_x() - 35,
-                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height/2) as i32,
-                                    64, 64)
-                                );
-                        }
-                        Direction::Left => {
-                            self.core.wincan.copy(&slime_left, None,
-                                Rect::new( 
-                                    self.game.player.get_pos_x() - 35 + 4,
-                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height/2) as i32,
-                                    64, 64)
-                                );
-                        }
-                        Direction::Right => {
-                            self.core.wincan.copy(&slime_right, None,
-                                Rect::new( 
-                                    self.game.player.get_pos_x() - 35,
-                                    self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height/2) as i32,
-                                    64, 64)
-                                );
-                        }
+                }
 
+
+
+
+
+
+                if self.debug {
+                // Draw player collision hitbox
+                self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                self.core.wincan.draw_rect(self.game.player.get_walkbox_world());
+
+                // Draw player damage hitbox
+                self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
+                self.core.wincan.draw_rect(Rect::new(self.game.player.get_pos_x() - (self.game.player.get_hitbox_x()/2) as i32,
+                                                    self.game.player.get_pos_y() - (self.game.player.get_hitbox_y()) as i32 + (self.game.player.get_walkbox().height()/2) as i32,
+                                                    self.game.player.get_hitbox_x(),
+                                                    self.game.player.get_hitbox_y())
+                                            );
+
+                // Draw null at center of player hitbox
+                self.core.wincan.set_draw_color(Color::RGBA(255, 0, 255, 255));
+                self.core.wincan.draw_line(
+                    Point::new(self.game.player.get_pos_x() + 4, self.game.player.get_pos_y()),
+                    Point::new(self.game.player.get_pos_x() - 4, self.game.player.get_pos_y()),
+                );
+                self.core.wincan.draw_line(
+                    Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() + 4),
+                    Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() - 4),
+                );
+
+                // Draw collision hitboxes
+                use tile::Walkability::*;
+                self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
+                x = 0;
+                y = 0;
+                for row in &self.game.map.room.tiles {
+                    for t in row {
+                        match t.walkability() {
+
+                            Wall | Rock | Pit => {
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
+
+                            _ => (),
+                            // Dont draw anything for other tiles
+                        }
+                        x += 1;
                     }
+                    y += 1;
+                    x = 0;
+                }
 
-                    /*
-                    // Draw player sprite
-                    self.core.wincan.copy(&slime, None,
-                        Rect::new( 
-                            self.game.player.get_pos_x() - 35,
-                            self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
-                            64, 64)
-                        );
+                // Draw a box over the current tile
+                self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
+                self.core.wincan.draw_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
+                                                    (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
+                                                    64,
+                                                    65,
+                                                    ));
 
-                    // Draw box next to player indicating direction
-                    let x_offset = match self.game.player.get_dir() {
-                        Direction::Left => -50,
-                        Direction::Right => 50,
-                        _ => 0,
-                    };
-                    let y_offset = match self.game.player.get_dir() {
-                        Direction::Up => -50,
-                        Direction::Down => 50,
-                        _ => 0,
-                    };
-                    self.core.wincan.set_draw_color(Color::RGBA(128, 255, 128, 255));
-                    self.core.wincan.fill_rect(Rect::new(self.game.player.get_pos_x() + x_offset - 8,
-                                                         self.game.player.get_pos_y() + y_offset - 26,
-                                                         16, 16)
-                                               );
-                                               */
-
-
-
-
-
-
-
-                    // CHANGE THIS VALUE TO STOP DRAWING DEBUG STUFF
-                    let debug = true;
-
-
-
-
-
-
-
-
-
-                    if debug {
-                    // Draw player collision hitbox
-                    self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                    self.core.wincan.draw_rect(self.game.player.get_walkbox_world());
-                    /*
-                    self.core.wincan.draw_rect(Rect::new(self.game.player.get_pos_x() - (self.game.player.get_walkbox_x()/2) as i32,
-                                                        self.game.player.get_pos_y() - (self.game.player.get_walkbox_y()/2) as i32,
-                                                        self.game.player.get_walkbox_x(),
-                                                        self.game.player.get_walkbox_y())
-                                               );
-                                               */
-
-
-                    // Draw player damage hitbox
-                    self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
-                    self.core.wincan.draw_rect(Rect::new(self.game.player.get_pos_x() - (self.game.player.get_hitbox_x()/2) as i32,
-                                                        self.game.player.get_pos_y() - (self.game.player.get_hitbox_y()) as i32 + (self.game.player.get_walkbox().height/2) as i32,
-                                                        self.game.player.get_hitbox_x(),
-                                                        self.game.player.get_hitbox_y())
-                                               );
-        
-                    // Draw null at center of player hitbox
-                    self.core.wincan.set_draw_color(Color::RGBA(255, 0, 255, 255));
-                    self.core.wincan.draw_line(
-                        Point::new(self.game.player.get_pos_x() + 4, self.game.player.get_pos_y()),
-                        Point::new(self.game.player.get_pos_x() - 4, self.game.player.get_pos_y()),
-                    );
-                    self.core.wincan.draw_line(
-                        Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() + 4),
-                        Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() - 4),
-                    );
-
-                    
-                    // Draw rock hitbox
-                    self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                    self.core.wincan.draw_rect(Rect::new(174 * 4, 82 * 4, 64, 64));
-
-                    }
+                }
 
                 }
 
                 GamePaused => {
-                    println!("GAME IS PAUSED, PRESS ESC TO RESUME");
-                    self.core.wincan.set_draw_color(Color::RGBA(100, 0, 0, 255));
+                    self.core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
                     self.core.wincan.clear();
+
+                    let pause_menu = texture_creator.load_texture("assets/pause_menu.png")?;
+                    self.core.wincan.copy(&pause_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
                 }
 
-                _ => (),
             }
 
             // Tell SDL to draw everything on screen.
@@ -311,4 +458,3 @@ impl Manager {
     }
 
 }
-
