@@ -135,7 +135,7 @@ impl PowerUp for Player {
             if let Some(temp) = self.power_up_vec.get_mut(0){
                 *temp = 0;
             }
-            //plus health funciton
+            //self.m_hp += 1; can dictate later
         }
     }
     fn plus_power_speed(&mut self){
@@ -146,7 +146,7 @@ impl PowerUp for Player {
             if let Some(temp) = self.power_up_vec.get_mut(1){
                 *temp = 0;
             }
-            //plus Speed funciton
+            //self.speed += 1; can dictate later
         }
     }
     fn plus_power_attack(&mut self){
@@ -157,7 +157,7 @@ impl PowerUp for Player {
             if let Some(temp) = self.power_up_vec.get_mut(2){
                 *temp = 0;
             }
-            //plus Attack funciton
+            //can dictate once attack is implemented
         }
     }
 }
