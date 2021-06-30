@@ -13,7 +13,7 @@ pub struct Player {
     pub hp: i32,    //store the health for player
     pub m_hp: i32,
 
-    pub powerUpVec: Vec<i32>, //[Health, Speed, Attack]
+    pub power_up_vec: Vec<i32>, //[Health, Speed, Attack]
 
     pub prev_frame_tile: Vec2<i32>,
     pub current_frame_tile: Vec2<i32>,
@@ -34,10 +34,10 @@ pub trait Health {
 
 }
 
-pub trait powerUp {
-    fn plusPowerHealth(&mut self);
-    fn plusPowerSpeed(&mut self);
-    fn plusPowerAttack(&mut self);
+pub trait PowerUp {
+    fn plus_power_health(&mut self);
+    fn plus_power_speed(&mut self);
+    fn plus_power_attack(&mut self);
 }
 
 
@@ -61,7 +61,7 @@ impl Player {
             hp: MAX_HP,
             m_hp: MAX_HP,
 
-            powerUpVec: vec![0; 3],
+            power_up_vec: vec![0; 3],
 
             prev_frame_tile: Vec2::new(8, 5),
             current_frame_tile: Vec2::new(8, 5),
@@ -127,35 +127,35 @@ impl Health for Player {
 }
 
 
-impl powerUp for Player {
-    fn plusPowerHealth(&mut self){
-        if let Some(temp) = self.powerUpVec.get_mut(0){
+impl PowerUp for Player {
+    fn plus_power_health(&mut self){
+        if let Some(temp) = self.power_up_vec.get_mut(0){
             *temp += 1;
         }
         if self.powerUpVec[0] == 3 {
-            if let Some(temp) = self.powerUpVec.get_mut(0){
+            if let Some(temp) = self.power_up_vec.get_mut(0){
                 *temp = 0;
             }
             //plus health funciton
         }
     }
-    fn plusPowerSpeed(&mut self){
-        if let Some(temp) = self.powerUpVec.get_mut(1){
+    fn plus_power_speed(&mut self){
+        if let Some(temp) = self.power_up_vec.get_mut(1){
             *temp += 1;
         }
         if self.powerUpVec[1] == 3 {
-            if let Some(temp) = self.powerUpVec.get_mut(1){
+            if let Some(temp) = self.power_up_vec.get_mut(1){
                 *temp = 0;
             }
             //plus Speed funciton
         }
     }
-    fn plusPowerAttack(&mut self){
-        if let Some(temp) = self.powerUpVec.get_mut(2){
+    fn plus_power_attack(&mut self){
+        if let Some(temp) = self.power_up_vec.get_mut(2){
             *temp += 1;
         }
         if self.powerUpVec[2] == 3 {
-            if let Some(temp) = self.powerUpVec.get_mut(2){
+            if let Some(temp) = self.power_up_vec.get_mut(2){
                 *temp = 0;
             }
             //plus Attack funciton
