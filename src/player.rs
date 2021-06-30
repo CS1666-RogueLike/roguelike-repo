@@ -68,7 +68,6 @@ impl Player {
         }
     }
 
-
     pub fn update_pos(& mut self, mut mov_vec: Vec2<f32>) {
 
         // Fix diagonal directions giving more speed than one direction

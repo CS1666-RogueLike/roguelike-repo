@@ -1,10 +1,8 @@
 use crate::util::*;
 
 pub trait Tile {
-    // TODO: Find some way to identify what sprite to draw
-    // This could be done by returning an enum, or potentially through TypeID
-    // Enum might be the best option though, esp for tiles with changing state (door)
-
+    // Determines what tile sprite to use when drawing.
+    fn sprite(&self) -> SpriteID;
 
     // Determines the walkability of the tile, which informs what entities can pass over it.
     fn walkability(&self) -> Walkability;
@@ -16,6 +14,14 @@ pub trait Tile {
     // done within the function, but anything that interacts with outside structs must be done
     // outside.
     fn on_walkover(&self) -> WalkoverAction;
+
+    // Methods for locking and unlocking doors. For all tiles that do not lock/unlock, do nothing for
+    // lock and unlock and for get_lock_state return NA (Not Applicable)
+    // By implementing these for all tiles we don't have to do weird casting, replacement in place with
+    // a new tile, or keeping track of what doors a room has for unlocking.
+    fn lock(& mut self);
+    fn unlock(& mut self);
+    fn get_lock_state(&self) -> LockState;
 }
 
 pub enum Walkability {
@@ -33,28 +39,44 @@ pub enum WalkoverAction {
 
 pub struct Ground {}
 impl Tile for Ground {
+    fn sprite(&self) -> SpriteID { SpriteID::Ground }
     fn walkability(&self) -> Walkability { Walkability::Floor }
     fn on_walkover(&self) -> WalkoverAction { WalkoverAction::DoNothing }
+    fn lock(& mut self) {}
+    fn unlock(& mut self) {}
+    fn get_lock_state(&self) -> LockState { LockState::NA }
 }
 
 
 pub struct Rock {}
 impl Tile for Rock {
+    fn sprite(&self) -> SpriteID { SpriteID::Rock }
     fn walkability(&self) -> Walkability { Walkability::Rock }
     fn on_walkover(&self) -> WalkoverAction { WalkoverAction::DoNothing }
+    fn lock(& mut self) {}
+    fn unlock(& mut self) {}
+    fn get_lock_state(&self) -> LockState { LockState::NA }
 }
 
 
 pub struct Wall {}
 impl Tile for Wall {
+    fn sprite(&self) -> SpriteID { SpriteID::Wall }
     fn walkability(&self) -> Walkability { Walkability::Wall }
     fn on_walkover(&self) -> WalkoverAction { WalkoverAction::DoNothing }
+    fn lock(& mut self) {}
+    fn unlock(& mut self) {}
+    fn get_lock_state(&self) -> LockState { LockState::NA }
 }
 
 pub struct Pit {}
 impl Tile for Pit {
+    fn sprite(&self) -> SpriteID { SpriteID::Pit }
     fn walkability(&self) -> Walkability { Walkability::Pit }
     fn on_walkover(&self) -> WalkoverAction { WalkoverAction::DoNothing }
+    fn lock(& mut self) {}
+    fn unlock(& mut self) {}
+    fn get_lock_state(&self) -> LockState { LockState::NA }
 }
 
 pub struct Door {
@@ -62,11 +84,22 @@ pub struct Door {
     pub(crate) position: Direction,
 }
 impl Tile for Door {
+    fn sprite(&self) -> SpriteID {
+        match self.lock {
+            LockState::Locked => SpriteID::DoorLocked,
+            LockState::Unlocked => SpriteID::DoorUnlocked,
+            LockState::NA => panic!("Locking tile shouldn't have NA!!!")
+        }
+    }
     fn walkability(&self) -> Walkability {
         match self.lock {
             LockState::Locked => Walkability::Wall,
             LockState::Unlocked => Walkability::Floor,
+            LockState::NA => panic!("Locking tile shouldn't have NA!!!")
         }
     }
     fn on_walkover(&self) -> WalkoverAction { WalkoverAction::ChangeRooms }
+    fn lock(&mut self) { self.lock = LockState::Locked; }
+    fn unlock(&mut self) { self.lock = LockState::Unlocked; }
+    fn get_lock_state(&self) -> LockState { self.lock }
 }

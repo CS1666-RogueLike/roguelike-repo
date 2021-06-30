@@ -1,7 +1,9 @@
 
 use crate::room::*;
+use crate::floor::*;
 
 pub struct Map {
+    //pub floors: [Floor; 1],
 
     pub room: Room, // TEMP
 }
@@ -9,8 +11,11 @@ pub struct Map {
 impl Map {
     pub fn new() -> Map {
         Map {
-            room: Room::new_test_room()
+            //floors: [Floor::test_floor()],
+            room: Room::new_test_room(),
         }
     }
+
+    //pub fn current_room() -> Room {}
 
 }
