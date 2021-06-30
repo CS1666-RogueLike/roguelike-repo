@@ -13,8 +13,11 @@ pub struct Player {
     pub hp: i32,    //store the health for player
     pub m_hp: i32,
 
+    pub power_up_vec: Vec<i32>, //[Health, Speed, Attack]
+
     pub prev_frame_tile: Vec2<i32>,
     pub current_frame_tile: Vec2<i32>,
+
 }
 
 pub trait Health {
@@ -31,6 +34,22 @@ pub trait Health {
 
 }
 
+pub trait PowerUp {
+    fn plus_power_health(&mut self);
+    fn plus_power_speed(&mut self);
+    fn plus_power_attack(&mut self);
+}
+
+
+
+/*
+                    self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                    self.core.wincan.draw_rect(Rect::new(self.game.player.get_pos_x() - (self.game.player.get_walkbox_x()/2) as i32,
+                                                        self.game.player.get_pos_y() - (self.game.player.get_walkbox_y()/2) as i32,
+                                                        self.game.player.get_walkbox_x(),
+                                                        self.game.player.get_walkbox_y())
+                                                        */
+
 impl Player {
     pub fn new() -> Player {
         Player {
@@ -41,6 +60,9 @@ impl Player {
             dir: Direction::Down,
             hp: MAX_HP,
             m_hp: MAX_HP,
+
+            power_up_vec: vec![0; 3],
+
             prev_frame_tile: Vec2::new(8, 5),
             current_frame_tile: Vec2::new(8, 5),
         }
@@ -101,4 +123,41 @@ impl Health for Player {
         self.hp
     }
 
-	}
+}
+
+
+impl PowerUp for Player {
+    fn plus_power_health(&mut self){
+        if let Some(temp) = self.power_up_vec.get_mut(0){
+            *temp += 1;
+        }
+        if self.power_up_vec[0] == 3 {
+            if let Some(temp) = self.power_up_vec.get_mut(0){
+                *temp = 0;
+            }
+            //self.m_hp += 1; can dictate later
+        }
+    }
+    fn plus_power_speed(&mut self){
+        if let Some(temp) = self.power_up_vec.get_mut(1){
+            *temp += 1;
+        }
+        if self.power_up_vec[1] == 3 {
+            if let Some(temp) = self.power_up_vec.get_mut(1){
+                *temp = 0;
+            }
+            //self.speed += 1; can dictate later
+        }
+    }
+    fn plus_power_attack(&mut self){
+        if let Some(temp) = self.power_up_vec.get_mut(2){
+            *temp += 1;
+        }
+        if self.power_up_vec[2] == 3 {
+            if let Some(temp) = self.power_up_vec.get_mut(2){
+                *temp = 0;
+            }
+            //can dictate once attack is implemented
+        }
+    }
+}

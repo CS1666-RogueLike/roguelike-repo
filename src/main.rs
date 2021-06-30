@@ -28,6 +28,7 @@ use sdl2::render::Texture;
 use roguelike::SDLCore;
 use roguelike::Demo;
 use player::Health;
+use player::PowerUp;
 
 use std::cmp::min;
 use std::collections::HashSet;
@@ -182,6 +183,10 @@ impl Demo for Manager {
                     // if keystate.contains(&Keycode::H) { self.game.player.heal(2);
                     //     println!("Health is: {}", self.game.player.health());
                     // }  // heal
+                    //if keystate.contains(&Keycode::H) {
+                    //    self.game.player.plusPowerHealth();
+                    //    println!("PowerupHealth is {}", self.game.player.powerUpVec[0]);
+                    //}  // powerup
                     // if keystate.contains(&Keycode::B) { self.game.player.damage(1);
                     //     println!("Health is: {}", self.game.player.health());
                     // }  //damage
