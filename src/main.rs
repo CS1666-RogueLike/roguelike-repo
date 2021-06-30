@@ -28,7 +28,7 @@ use sdl2::render::Texture;
 use roguelike::SDLCore;
 use roguelike::Demo;
 use player::Health;
-use player::powerUp;
+use player::PowerUp;
 
 use std::cmp::min;
 use std::collections::HashSet;
