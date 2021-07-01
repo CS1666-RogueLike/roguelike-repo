@@ -37,7 +37,7 @@ impl Player {
             pos: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
             hitbox: Vec2::new(48, 52),
             walkbox: Rect::new(20, 12, 40, 24),
-            speed: 2.5,
+            speed: 3.5,
             dir: Direction::Down,
             hp: MAX_HP,
             m_hp: MAX_HP,
