@@ -26,7 +26,7 @@ impl Room {
         Room { exists: false, tiles: Vec::new() }
 
     }
-    pub fn new_test_room() -> Room {
+    pub fn new_test_room(blueprint: [[char; 17]; 11]) -> Room {
 
         // ----------------------- READ THIS!!!!!!!!!!!!!!!!! -----------------------
         // Manually defining the room array is needed, but the syntax to do that manually would be a mess.
@@ -41,21 +41,7 @@ impl Room {
         // P -> Pit
         // D -> Door
 
-        let blueprint = [
-        //                                   MID
-        //    0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
-            ['W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W'], // 0
-            ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 1
-            ['W','_','R','_','R','_','_','_','_','_','R','R','R','R','R','_','W'], // 2
-            ['W','_','R','_','R','_','_','_','_','_','R','_','_','_','R','_','W'], // 3
-            ['W','_','R','_','R','_','R','_','_','_','R','_','P','_','R','_','W'], // 4
-            ['D','_','R','R','R','_','_','_','_','_','_','_','P','_','R','_','W'], // 5 MID
-            ['W','_','R','_','R','_','R','_','_','_','R','_','P','_','R','_','W'], // 6
-            ['W','_','R','_','R','_','R','_','_','_','R','_','_','_','R','_','W'], // 7
-            ['W','_','R','_','R','_','R','_','_','_','R','R','R','R','R','_','W'], // 8
-            ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 9
-            ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 10
-        ];
+        // BLUEPRINT ARRAY SHOULD BE DEFINED IN FLOOR.RS AND PASSED IN
 
         // Vec that contains actual Tile trait implementing structs
         let mut tiles: Vec<Vec<Box<dyn Tile>>> = Vec::new();

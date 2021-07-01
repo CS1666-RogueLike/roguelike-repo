@@ -30,7 +30,7 @@ use roguelike::Demo;
 use player::Health;
 use player::PowerUp;
 
-use std::cmp::min;
+//use std::cmp::min;
 use std::collections::HashSet;
 
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
@@ -96,6 +96,8 @@ impl Demo for Manager {
         let mut esc_prev = false;
         let mut esc_curr = false;
 
+        //println!("DOES THE ROOM EXIST? {}", self.game.current_room().exists);
+
         'gameloop: loop {
 
             // Check for press of close window button.
@@ -150,16 +152,16 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Num2) { self.debug = true; }
                     // Lock doors
                     if keystate.contains(&Keycode::Num3) {
-                        self.game.map.room.tiles[5][0].lock();
-                        self.game.map.room.tiles[5][16].lock();
-                        self.game.map.room.tiles[0][8].lock();
-                        self.game.map.room.tiles[10][8].lock();
+                        self.game.current_room_mut().tiles[5][0].lock();
+                        self.game.current_room_mut().tiles[5][16].lock();
+                        self.game.current_room_mut().tiles[0][8].lock();
+                        self.game.current_room_mut().tiles[10][8].lock();
                     }
                     if keystate.contains(&Keycode::Num4) {
-                        self.game.map.room.tiles[5][0].unlock();
-                        self.game.map.room.tiles[5][16].unlock();
-                        self.game.map.room.tiles[0][8].unlock();
-                        self.game.map.room.tiles[10][8].unlock();
+                        self.game.current_room_mut().tiles[5][0].unlock();
+                        self.game.current_room_mut().tiles[5][16].unlock();
+                        self.game.current_room_mut().tiles[0][8].unlock();
+                        self.game.current_room_mut().tiles[10][8].unlock();
                     }
 
                     // -------------------------------------- GAMEPLAY CODE -------------------------
@@ -250,7 +252,8 @@ impl Manager {
         let mut x = 0;
         let mut y = 0;
         use tile::Walkability::*;
-        for row in &self.game.map.room.tiles {
+        // This can't be done with the current room function bc it returns a reference which messes up internal stuff
+        for row in &self.game.map.floors[0].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles {
             for t in row {
                 match t.walkability() {
                     Wall | Rock | Pit => {
@@ -306,16 +309,42 @@ impl Manager {
         // Branch for tiles that should only be called once (doors, pickups
         if self.game.player.current_frame_tile != self.game.player.prev_frame_tile {
             //TODO: Find a way to make these chain calls less crazy
-            match self.game.map.room.tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].on_walkover() {
+            match self.game.current_room().tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].on_walkover() {
                 WalkoverAction::DoNothing => (),
-                WalkoverAction::ChangeRooms => println!("Door tile walked over."),
+                WalkoverAction::ChangeRooms => {
+                    //println!("Door tile walked over.");
+                    if self.game.player.current_frame_tile.x == 0 { // LEFT DOOR
+                        // Current room one to the right
+                        self.game.cr.x -= 1;
+                        // Move player position to just outside of right door in new room
+                        self.game.player.pos = Vec2::new((LEFT_WALL + 15 * 64) as f32 + 63.0, (TOP_WALL + 5 * 64) as f32 + 40.0);
+                    }
+                    if self.game.player.current_frame_tile.x == 16 { // RIGHT DOOR
+                        // Current room one to the right
+                        self.game.cr.x += 1;
+                        // Move player position to just outside of left door in new room
+                        self.game.player.pos = Vec2::new((LEFT_WALL + 1 * 64) as f32 + 1.0, (TOP_WALL + 5 * 64) as f32 + 40.0);
+                    }
+                    if self.game.player.current_frame_tile.y == 0 { // TOP DOOR
+                        // Current room one up
+                        self.game.cr.y -= 1;
+                        // Move player position to just outside of bottom door in new room
+                        self.game.player.pos = Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 9 * 64) as f32 + 50.0);
+                    }
+                    if self.game.player.current_frame_tile.y == 10 { // BOTTOM DOOR
+                        // Current room one down
+                        self.game.cr.y += 1;
+                        // Move player position to just outside of bottom door in new room
+                        self.game.player.pos = Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 1 * 64) as f32 + 10.0);
+                    }
+                },
 
             }
         }
         // TODO: else branch for continuous tiles (spike tile)
     }
 
-        // Draw entire game state on screen.
+    // Draw entire game state on screen.
     fn draw(& mut self) -> Result<(), String> {
 
         // MOVE SOMEWHERE ELSE, TEXTURES SHOULD ONLY BE INITIALIZED ONCE
@@ -354,7 +383,7 @@ impl Manager {
 
                 let mut x = 0;
                 let mut y = 0;
-                for row in &self.game.map.room.tiles {
+                for row in &self.game.current_room().tiles {
                     for t in row {
                         match t.sprite() {
                             SpriteID::Ground => {
@@ -369,8 +398,8 @@ impl Manager {
                             }
 
                             SpriteID::Pit => {
-                                self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
-                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                //self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
+                                //self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
 
                             SpriteID::DoorLocked => {
@@ -379,8 +408,8 @@ impl Manager {
                             }
                             SpriteID::DoorUnlocked => {
                                 self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
-                                self.core.wincan.set_draw_color(Color::RGBA(0, 255, 0, 255));
-                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                //self.core.wincan.set_draw_color(Color::RGBA(0, 255, 0, 255));
+                                //self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
 
 
@@ -466,7 +495,7 @@ impl Manager {
                 self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
                 x = 0;
                 y = 0;
-                for row in &self.game.map.room.tiles {
+                for row in &self.game.current_room().tiles {
                     for t in row {
                         match t.walkability() {
 
