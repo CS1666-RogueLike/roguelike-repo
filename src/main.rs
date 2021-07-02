@@ -310,7 +310,7 @@ impl Manager {
         // Branch for tiles that should only be called once (doors, pickups
         if self.game.player.current_frame_tile != self.game.player.prev_frame_tile {
             //TODO: Find a way to make these chain calls less crazy
-            match self.game.current_room().tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].on_walkover() {
+            match self.game.map.floors[0].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].on_walkover() {
                 WalkoverAction::DoNothing => (),
                 WalkoverAction::ChangeRooms => {
                     //println!("Door tile walked over.");
@@ -339,6 +339,24 @@ impl Manager {
                         self.game.player.pos = Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 1 * 64) as f32 + 10.0);
                     }
                 },
+                WalkoverAction::GivePlayerKey => {
+                    println!("Key has been picked up!!!");
+                    self.game.player.has_key = true;
+                },
+
+                WalkoverAction::GoToNextFloor => {
+                    if self.game.player.has_key {
+                        println!("Congratulations! You made it to the next floor!!!");
+                        self.game.map.floors[0].rooms[self.game.cr.y as usize][self.game.cr.x as usize]
+                            .tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].unlock();
+                        self.game.player.has_key = false;
+                    }
+                    else {
+                        println!("You need a key to unlock this door!");
+
+                    }
+
+                }
 
             }
         }
@@ -365,7 +383,6 @@ impl Manager {
             GameActive => {
                 // Load textures
                 let bg = texture_creator.load_texture("assets/test_image.png")?;
-                let slime = texture_creator.load_texture("assets/slime_sprite.png")?;
 
                 let slime_up = texture_creator.load_texture("assets/slime_up.png")?;
                 let slime_down = texture_creator.load_texture("assets/slime_down.png")?;
@@ -374,6 +391,9 @@ impl Manager {
 
                 let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
                 let rock = texture_creator.load_texture("assets/rock.png")?;
+
+                let key = texture_creator.load_texture("assets/key_tile.png")?;
+                let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
 
                 // Draw black screen
                 self.core.wincan.set_draw_color(Color::BLACK);
@@ -413,12 +433,22 @@ impl Manager {
                                 //self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
 
+                            SpriteID::Key => {
+                                self.core.wincan.copy(&key, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                //self.core.wincan.set_draw_color(Color::RGBA(128, 255, 128, 255));
+                                //self.core.wincan.fill_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
 
+                            SpriteID::TrapdoorLocked => {
+                                self.core.wincan.copy(&td_locked, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                //self.core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
+                                //self.core.wincan.fill_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
 
-                            _ => panic!("NO MATCH FOR TILE TYPE"),
-                            // This needs to panic, otherwise the rooms won't be the right size and a bunch
-                            // of crazy buggy stuff could happen.
-
+                            SpriteID::TrapdoorUnlocked => {
+                                self.core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
                         }
                         x += 1;
                     }
@@ -463,7 +493,12 @@ impl Manager {
                 }
 
 
+                // ------------------------ DRAW UI --------------------------
 
+                // Rough key setup
+                if self.game.player.has_key {
+                    self.core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64));
+                }
 
 
 

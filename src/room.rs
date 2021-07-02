@@ -63,6 +63,9 @@ impl Room {
                     // TODO: Add code for proper handling of direction
                     'D' => tiles[y as usize].push(Box::new(Door { lock: LockState::Unlocked, position: Direction::Up })),
 
+                    'K' => tiles[y as usize].push(Box::new(Key { has_key: true, })),
+                    'T' => tiles[y as usize].push(Box::new(Trapdoor { lock: LockState::Locked })),
+
                     _ => panic!("NO MATCH FOR TILE TYPE"), // NOTE THAT THIS IS DIFFERENT FROM '_' WHICH CHECKS FOR THE UNDERSCORE CHARACTER
                     // This needs to panic if an unrecogized character is found,
                     // otherwise the rooms won't be the right size and a bunch

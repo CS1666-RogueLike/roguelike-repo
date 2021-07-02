@@ -53,4 +53,7 @@ pub enum SpriteID {
     Pit,
     DoorLocked,
     DoorUnlocked,
+    Key,
+    TrapdoorLocked,
+    TrapdoorUnlocked,
 }
