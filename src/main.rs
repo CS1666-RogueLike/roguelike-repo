@@ -7,6 +7,7 @@ mod game;
 use crate::game::*;
 
 mod player;
+mod entity;
 
 mod util;
 use crate::util::*;
@@ -27,7 +28,7 @@ use sdl2::render::Texture;
 
 use roguelike::SDLCore;
 use roguelike::Demo;
-use player::Health;
+use entity::Health;
 use player::PowerUp;
 
 //use std::cmp::min;
