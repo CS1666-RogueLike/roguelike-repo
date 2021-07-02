@@ -19,6 +19,8 @@ pub struct Player {
     pub prev_frame_tile: Vec2<i32>,
     pub current_frame_tile: Vec2<i32>,
 
+    pub has_key: bool,
+
 }
 
 pub trait PowerUp {
@@ -52,6 +54,8 @@ impl Player {
 
             prev_frame_tile: Vec2::new(8, 5),
             current_frame_tile: Vec2::new(8, 5),
+
+            has_key: false,
         }
     }
 
