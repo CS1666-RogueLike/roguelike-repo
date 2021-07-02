@@ -1,4 +1,5 @@
 use crate::util::*;
+use crate::entity::Health;
 use sdl2::rect::Rect;
 
 pub struct Player {
@@ -17,20 +18,6 @@ pub struct Player {
 
     pub prev_frame_tile: Vec2<i32>,
     pub current_frame_tile: Vec2<i32>,
-
-}
-
-pub trait Health {
-    // TODO: Add iframe setup so player can't be damaged for a bit after being damaged.
-    // Otherwise a spike tile doing half a heart of damage would kill a 3 heart player in 6 frames.
-
-    fn max_hp(&self) -> i32;  //the maximum HP the entity can have
-    fn health(&self) -> i32;    // the current HP the entity has
-    fn damage(&mut self, d: i32) -> i32;  // applying the amount of damage received
-    //fn damage_type(&self) -> i32; // the damage category
-    //fn bonus_type(&self) -> i32;    // the type of bonus dropped by enemy
-    //fn percent_damaged(&self) -> f32;
-    fn heal(&mut self, h: i32) -> i32;
 
 }
 
