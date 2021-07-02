@@ -179,6 +179,7 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
                     // Move player
                     self.game.player.update_pos(mov_vec);
+                    self.game.test_enemy.update_pos();
 
                     // Apply collision
                     self.collide();
@@ -247,6 +248,9 @@ impl Manager {
         // Outermost wall collision
         self.game.player.pos.x = self.game.player.pos.x.clamp(LEFT_WALL as f32 + (self.game.player.walkbox.x/2) as f32, RIGHT_WALL as f32 - (self.game.player.walkbox.x/2) as f32);
         self.game.player.pos.y = self.game.player.pos.y.clamp(TOP_WALL as f32 + (self.game.player.walkbox.y/2) as f32, BOT_WALL as f32 - (self.game.player.walkbox.y/2) as f32);
+
+        self.game.test_enemy.pos.x = self.game.test_enemy.pos.x.clamp(LEFT_WALL as f32 + (self.game.test_enemy.walkbox.x/2) as f32, RIGHT_WALL as f32 - (self.game.test_enemy.walkbox.x/2) as f32);
+        self.game.test_enemy.pos.y = self.game.test_enemy.pos.y.clamp(TOP_WALL as f32 + (self.game.test_enemy.walkbox.y/2) as f32, BOT_WALL as f32 - (self.game.test_enemy.walkbox.y/2) as f32);
 
 
         self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
@@ -389,6 +393,7 @@ impl Manager {
                 let slime_left = texture_creator.load_texture("assets/slime_left.png")?;
                 let slime_right = texture_creator.load_texture("assets/slime_right.png")?;
 
+                let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
                 let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
                 let rock = texture_creator.load_texture("assets/rock.png")?;
 
@@ -489,9 +494,14 @@ impl Manager {
                                 64, 64)
                             );
                     }
-
                 }
 
+                self.core.wincan.copy(&speed_idle, None,
+                    Rect::new(
+                        self.game.test_enemy.get_pos_x() - 35 + 4,
+                        self.game.test_enemy.get_pos_y() - 64 + (self.game.test_enemy.get_walkbox().height()/2) as i32,
+                        64, 64)
+                );
 
                 // ------------------------ DRAW UI --------------------------
 
@@ -499,8 +509,6 @@ impl Manager {
                 if self.game.player.has_key {
                     self.core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64));
                 }
-
-
 
                 if self.debug {
                 // Draw player collision hitbox
