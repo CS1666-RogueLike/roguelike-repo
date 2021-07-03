@@ -56,13 +56,13 @@ impl Enemy {
     pub fn new(position: Vec2<f32>, kind: EnemyKind) -> Enemy {
         Enemy {
             pos: position,
-            hitbox: Vec2::new(40, 40),
-            walkbox: Rect::new(20, 12, 40, 24),
-            speed: 4.0,
+            hitbox: Vec2::new(40, 30),
+            walkbox: Rect::new(20, 32, 40, 40),
+            speed: 2.8,
             dir: Direction::Left,
             hp: 2,
             m_hp: 2,
-            movement_vec: Vec2::new(0.5, 0.0),
+            movement_vec: Vec2::new(-1.0, 0.0),
             last_dir_update: None,
             kind: kind
         }
@@ -90,9 +90,32 @@ impl Enemy {
 
         match self.last_dir_update {
             Some(update_time) => {
-                if update_time.elapsed() >= Duration::from_secs(2) {
-                    self.movement_vec.x = -self.movement_vec.x;
-                    self.movement_vec.y = rng.gen_range(-1.0 ..= 1.0);
+                if update_time.elapsed() >= Duration::from_secs(4) {
+                    match rng.gen_range( 0 ..= 4 ) {
+                        0 => {
+                            self.movement_vec.x = 0.0;
+                            self.movement_vec.y = rng.gen_range(-1.0 ..= 0.0);
+                        },
+                        1 => {
+                            self.movement_vec.x = 0.0;
+                            self.movement_vec.y = rng.gen_range(0.0 ..= 1.0);
+                        },
+                        2 => {
+                            self.movement_vec.x = rng.gen_range(-1.0 ..= 0.0);
+                            self.movement_vec.y = 0.0;
+                        },
+                        3 => {
+                            self.movement_vec.x = rng.gen_range(0.0 ..= 1.0);
+                            self.movement_vec.y = 0.0;
+                        },
+                        4 => {
+                            self.movement_vec.x = 0.0;
+                            self.movement_vec.y = 0.0;
+                        }
+                        _ => {}
+                    }
+                    //self.movement_vec.x = -self.movement_vec.x;
+                    //self.movement_vec.y = rng.gen_range(-1.0 ..= 1.0);
                     self.last_dir_update = Some(now);
                 }
             },

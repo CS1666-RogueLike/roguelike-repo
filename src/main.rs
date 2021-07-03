@@ -249,9 +249,10 @@ impl Manager {
         self.game.player.pos.x = self.game.player.pos.x.clamp(LEFT_WALL as f32 + (self.game.player.walkbox.x/2) as f32, RIGHT_WALL as f32 - (self.game.player.walkbox.x/2) as f32);
         self.game.player.pos.y = self.game.player.pos.y.clamp(TOP_WALL as f32 + (self.game.player.walkbox.y/2) as f32, BOT_WALL as f32 - (self.game.player.walkbox.y/2) as f32);
 
-        self.game.test_enemy.pos.x = self.game.test_enemy.pos.x.clamp(LEFT_WALL as f32 + (self.game.test_enemy.walkbox.x/2) as f32, RIGHT_WALL as f32 - (self.game.test_enemy.walkbox.x/2) as f32);
-        self.game.test_enemy.pos.y = self.game.test_enemy.pos.y.clamp(TOP_WALL as f32 + (self.game.test_enemy.walkbox.y/2) as f32, BOT_WALL as f32 - (self.game.test_enemy.walkbox.y/2) as f32);
-
+        // TODO: Goal is to generalize hitbox data into a trait so that we can condense logic
+        self.game.test_enemy.pos.x = self.game.test_enemy.pos.x.clamp(LEFT_WALL as f32 + (self.game.test_enemy.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (self.game.test_enemy.walkbox.x * 4) as f32);
+        self.game.test_enemy.pos.y = self.game.test_enemy.pos.y.clamp(TOP_WALL as f32 + (self.game.test_enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (self.game.test_enemy.walkbox.y * 4) as f32);
+        
 
         self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
         let mut x = 0;
@@ -367,6 +368,20 @@ impl Manager {
         // TODO: else branch for continuous tiles (spike tile)
     }
 
+    fn draw_enemies<'r>(&mut self, textures: &Vec<Texture>) -> Result<(), String> {
+        for t in textures.into_iter() {
+            if self.game.cr.x == 3 && self.game.cr.y == 4 {
+                self.core.wincan.copy(&t, None,
+                    Rect::new(
+                        self.game.test_enemy.get_pos_x() - 35 + 4,
+                        self.game.test_enemy.get_pos_y() - 64 + (self.game.test_enemy.get_walkbox().height()/2) as i32,
+                        64, 64)
+                );
+            }
+        }
+        Ok(())
+    }
+
     // Draw entire game state on screen.
     fn draw(& mut self) -> Result<(), String> {
 
@@ -394,6 +409,10 @@ impl Manager {
                 let slime_right = texture_creator.load_texture("assets/slime_right.png")?;
 
                 let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
+
+                let mut test_vec = Vec::new();
+                test_vec.push( speed_idle );
+
                 let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
                 let rock = texture_creator.load_texture("assets/rock.png")?;
 
@@ -496,12 +515,7 @@ impl Manager {
                     }
                 }
 
-                self.core.wincan.copy(&speed_idle, None,
-                    Rect::new(
-                        self.game.test_enemy.get_pos_x() - 35 + 4,
-                        self.game.test_enemy.get_pos_y() - 64 + (self.game.test_enemy.get_walkbox().height()/2) as i32,
-                        64, 64)
-                );
+                self.draw_enemies( &test_vec );
 
                 // ------------------------ DRAW UI --------------------------
 
@@ -514,6 +528,7 @@ impl Manager {
                 // Draw player collision hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                 self.core.wincan.draw_rect(self.game.player.get_walkbox_world());
+                self.core.wincan.draw_rect(self.game.test_enemy.get_walkbox_world());
 
                 // Draw player damage hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
@@ -522,6 +537,12 @@ impl Manager {
                                                     self.game.player.get_hitbox_x(),
                                                     self.game.player.get_hitbox_y())
                                             );
+
+                self.core.wincan.draw_rect(Rect::new(self.game.test_enemy.get_pos_x() - (self.game.test_enemy.get_hitbox_x()/2) as i32,
+                        self.game.test_enemy.get_pos_y() - (self.game.test_enemy.get_hitbox_y()) as i32,
+                        self.game.test_enemy.get_hitbox_x(),
+                        self.game.test_enemy.get_hitbox_y())
+                );
 
                 // Draw null at center of player hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(255, 0, 255, 255));
