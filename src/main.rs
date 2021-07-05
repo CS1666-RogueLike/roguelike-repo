@@ -259,26 +259,39 @@ impl Manager {
         self.game.player.pos.y = self.game.player.pos.y.clamp(TOP_WALL as f32 + (self.game.player.walkbox.y/2) as f32, BOT_WALL as f32 - (self.game.player.walkbox.y/2) as f32);
 
         // TODO: Goal is to generalize hitbox data into a trait so that we can condense logic
+
+        // Maintain enemy bounds for the room. (don't let them leave the room boundaries)
         self.game.test_enemy.pos.x = self.game.test_enemy.pos.x.clamp(LEFT_WALL as f32 + (self.game.test_enemy.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (self.game.test_enemy.walkbox.x * 4) as f32);
         self.game.test_enemy.pos.y = self.game.test_enemy.pos.y.clamp(TOP_WALL as f32 + (self.game.test_enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (self.game.test_enemy.walkbox.y * 4) as f32);
         
-        if self.game.cr.x == 3 && self.game.cr.y == 4 {
+        // If the test enemy is in the current room of the player...
+        if self.game.cr.x == self.game.test_enemy.cr.x && self.game.cr.y == self.game.test_enemy.cr.y {
+            // If the test enemy's walkbox intersects with the player walkbox...
             let wb_test = self.game.test_enemy.get_walkbox_world();
             let player_test = self.game.player.get_walkbox_world();
+
+            // Then there's a collision!
             if wb_test.has_intersection(player_test) {
+                // Check to see when the player was attacked last...
                 match self.game.player.last_invincibility_time {
+                    // If there is an old invincibility time for the player, 
+                    // see if the "invincibility window" has elapsed since then...
                     Some( time ) => {
                         if time.elapsed() >= Duration::from_millis(1750) {
+                            // If so, update the invincibility time and take damage to the player.
                             self.game.player.update_invincibility_time();
                             self.game.player.damage(1);
                         }
                     },
                     None => {
+                        // Otherwise, take damage as there was
+                        // no previous "invincibility window" to account for
                         self.game.player.update_invincibility_time();
                         self.game.player.damage(1);
                     }
                 }
     
+                // If the player is dead, update to the game over menu state
                 if self.game.player.health() == 0 {
                     self.menu = MenuState::GameOver;
                 }
@@ -401,8 +414,11 @@ impl Manager {
     }
 
     fn draw_enemies<'r>(&mut self, textures: &Vec<Texture>) -> Result<(), String> {
+        // This can be updated from a vector of textures to a vector of enemies.
+        // I only needed to account for one enemy's position, so the textures are just
+        // being passed separately.
         for t in textures.into_iter() {
-            if self.game.cr.x == 3 && self.game.cr.y == 4 {
+            if self.game.cr.x == self.game.test_enemy.cr.x && self.game.cr.y == self.game.test_enemy.cr.y {
                 self.core.wincan.copy(&t, None,
                     Rect::new(
                         self.game.test_enemy.get_pos_x() - 35 + 4,
@@ -548,6 +564,7 @@ impl Manager {
                 }
 
                 self.draw_enemies( &test_vec );
+                // If the player was attacked, show a quick damage indicator ("-1" in red)
                 if self.game.player.was_attacked() {
                     self.core.wincan.copy(&hp_indicator, None, Rect::new(self.game.player.get_pos_x() as i32, self.game.player.get_pos_y() as i32, 64, 64));
                 }
