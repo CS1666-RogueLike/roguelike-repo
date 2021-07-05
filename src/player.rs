@@ -1,16 +1,20 @@
 use crate::util::*;
+use crate::entity::Health;
 use sdl2::rect::Rect;
 
 pub struct Player {
     pub pos: Vec2<f32>, // Position of middle of player.
+
+    // TODO: REWORK INTO INDIVIDUAL TRAITS SO THEY CAN BE USED WITH ENEMIES
     pub hitbox: Vec2<u32>, // Hitbox where player takes damage.
     pub walkbox: Rect, // Hitbox involved in collision with rooms.
+
     pub speed: f32,
     pub dir: Direction,
     pub hp: i32,    //store the health for player
     pub m_hp: i32,
-}
 
+<<<<<<< HEAD
 pub trait Health {
     fn max_hp(&self) -> i32;  //the maximum HP the entity can have
     fn health(&self) -> i32;    // the current HP the entity has
@@ -19,7 +23,21 @@ pub trait Health {
     //fn bonus_type(&self) -> i32;    // the type of bonus dropped by enemy
     //fn percent_damaged(&self) -> f32;
     fn heal(&mut self, h: i32) -> i32; //function to heal hitpoints
+=======
+    pub power_up_vec: Vec<i32>, //[Health, Speed, Attack]
 
+    pub prev_frame_tile: Vec2<i32>,
+    pub current_frame_tile: Vec2<i32>,
+
+    pub has_key: bool,
+>>>>>>> main
+
+}
+
+pub trait PowerUp {
+    fn plus_power_health(&mut self);
+    fn plus_power_speed(&mut self);
+    fn plus_power_attack(&mut self);
 }
 
 
@@ -31,19 +49,26 @@ pub trait Health {
                                                         self.game.player.get_walkbox_x(),
                                                         self.game.player.get_walkbox_y())
                                                         */
+
 impl Player {
     pub fn new() -> Player {
         Player {
             pos: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
             hitbox: Vec2::new(48, 52),
             walkbox: Rect::new(20, 12, 40, 24),
-            speed: 2.0,
+            speed: 3.5,
             dir: Direction::Down,
             hp: MAX_HP,
             m_hp: MAX_HP,
+
+            power_up_vec: vec![0; 3],
+
+            prev_frame_tile: Vec2::new(8, 5),
+            current_frame_tile: Vec2::new(8, 5),
+
+            has_key: false,
         }
     }
-
 
     pub fn update_pos(& mut self, mut mov_vec: Vec2<f32>) {
 
@@ -83,25 +108,58 @@ impl Player {
 }
 
 impl Health for Player {
-    fn max_hp(&self) -> i32 {
-        return self.m_hp;
-    }
-	fn health(&self) -> i32 {
-        return self.hp;
-        }
-    fn heal(&mut self, h: i32) -> i32 {
-        self.hp = self.hp + h;
-        if self.hp > self.m_hp {
-            self.hp = self.m_hp;
-        }
-        return self.hp;
-    }
+    fn max_hp(&self) -> i32 { return self.m_hp; }
+	fn health(&self) -> i32 { return self.hp; }
     fn damage(&mut self, d: i32) -> i32 {
         self.hp -= d;
         if self.hp <= 0 {
             self.hp = 0;
             }
-        return self.hp;
+        self.hp // I changed this and the next one to use rust style implicit returns
+    }
+    fn heal(&mut self, h: i32) -> i32 {
+        self.hp = self.hp + h;
+        if self.hp > self.m_hp {
+            self.hp = self.m_hp;
         }
+        self.hp
+    }
 
-	}
+}
+
+
+impl PowerUp for Player {
+    fn plus_power_health(&mut self){
+        if let Some(temp) = self.power_up_vec.get_mut(0){
+            *temp += 1;
+        }
+        if self.power_up_vec[0] == 3 {
+            if let Some(temp) = self.power_up_vec.get_mut(0){
+                *temp = 0;
+            }
+            //self.m_hp += 1; can dictate later
+        }
+    }
+    fn plus_power_speed(&mut self){
+        if let Some(temp) = self.power_up_vec.get_mut(1){
+            *temp += 1;
+        }
+        if self.power_up_vec[1] == 3 {
+            if let Some(temp) = self.power_up_vec.get_mut(1){
+                *temp = 0;
+            }
+            //self.speed += 1; can dictate later
+        }
+    }
+    fn plus_power_attack(&mut self){
+        if let Some(temp) = self.power_up_vec.get_mut(2){
+            *temp += 1;
+        }
+        if self.power_up_vec[2] == 3 {
+            if let Some(temp) = self.power_up_vec.get_mut(2){
+                *temp = 0;
+            }
+            //can dictate once attack is implemented
+        }
+    }
+}

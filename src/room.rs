@@ -1,10 +1,12 @@
-
+use crate::util::*;
 use crate::tile::*;
 
 pub const ROOM_WIDTH: i32 = 17;
 pub const ROOM_HEIGHT: i32 = 11;
 
+
 pub struct Room {
+    pub exists: bool,
     pub tiles: Vec<Vec<Box<dyn Tile>>>,
 }
 
@@ -20,7 +22,11 @@ pub struct Room {
 
 impl Room {
     // Returns a room that the developer sets every tile of manually.
-    pub fn new_test_room() -> Room {
+    pub fn non_room() -> Room {
+        Room { exists: false, tiles: Vec::new() }
+
+    }
+    pub fn new_test_room(blueprint: [[char; 17]; 11]) -> Room {
 
         // ----------------------- READ THIS!!!!!!!!!!!!!!!!! -----------------------
         // Manually defining the room array is needed, but the syntax to do that manually would be a mess.
@@ -30,25 +36,12 @@ impl Room {
 
         // KEY:
         // _ -> Ground (to make looking at it easier)
-        // w -> Wall
-        // r -> Rock
-        // p -> Pit
+        // W -> Wall
+        // R -> Rock
+        // P -> Pit
+        // D -> Door
 
-        let blueprint = [
-        //                                   MID
-        //    0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
-            ['W','W','W','W','W','W','W','W','_','W','W','W','W','W','W','W','W'], // 0
-            ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 1
-            ['W','_','R','_','R','_','_','_','_','_','R','R','R','R','R','_','W'], // 2
-            ['W','_','R','_','R','_','_','_','_','_','R','_','_','_','R','_','W'], // 3
-            ['W','_','R','_','R','_','R','_','_','_','R','_','P','_','R','_','W'], // 4
-            ['_','_','R','R','R','_','_','_','_','_','_','_','P','_','R','_','_'], // 5 MID
-            ['W','_','R','_','R','_','R','_','_','_','R','_','P','_','R','_','W'], // 6
-            ['W','_','R','_','R','_','R','_','_','_','R','_','_','_','R','_','W'], // 7
-            ['W','_','R','_','R','_','R','_','_','_','R','R','R','R','R','_','W'], // 8
-            ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 9
-            ['W','W','W','W','W','W','W','W','_','W','W','W','W','W','W','W','W'], // 10
-        ];
+        // BLUEPRINT ARRAY SHOULD BE DEFINED IN FLOOR.RS AND PASSED IN
 
         // Vec that contains actual Tile trait implementing structs
         let mut tiles: Vec<Vec<Box<dyn Tile>>> = Vec::new();
@@ -67,6 +60,11 @@ impl Room {
                     'W' => tiles[y as usize].push(Box::new(Wall {})),
                     'R' => tiles[y as usize].push(Box::new(Rock {})),
                     'P' => tiles[y as usize].push(Box::new(Pit {})),
+                    // TODO: Add code for proper handling of direction
+                    'D' => tiles[y as usize].push(Box::new(Door { lock: LockState::Unlocked, position: Direction::Up })),
+
+                    'K' => tiles[y as usize].push(Box::new(Key { has_key: true, })),
+                    'T' => tiles[y as usize].push(Box::new(Trapdoor { lock: LockState::Locked })),
 
                     _ => panic!("NO MATCH FOR TILE TYPE"), // NOTE THAT THIS IS DIFFERENT FROM '_' WHICH CHECKS FOR THE UNDERSCORE CHARACTER
                     // This needs to panic if an unrecogized character is found,
@@ -75,6 +73,7 @@ impl Room {
                 }
             }
         }
+
 
         /*
         // Debug print to make sure structure was built properly
@@ -98,6 +97,7 @@ impl Room {
 
         // Return room struct.
         Room {
+            exists: true,
             tiles: tiles,
         }
 

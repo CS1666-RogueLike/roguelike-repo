@@ -7,6 +7,7 @@ mod game;
 use crate::game::*;
 
 mod player;
+mod entity;
 
 mod util;
 use crate::util::*;
@@ -27,9 +28,10 @@ use sdl2::render::Texture;
 
 use roguelike::SDLCore;
 use roguelike::Demo;
-use player::Health;
+use entity::Health;
+use player::PowerUp;
 
-use std::cmp::min;
+//use std::cmp::min;
 use std::collections::HashSet;
 
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
@@ -72,6 +74,8 @@ impl Demo for Manager {
         println!("");
         println!("\t1\t\tTurn OFF debug graphics");
         println!("\t2\t\tTurn ON debug graphics");
+        println!("\t3\t\tLock doors");
+        println!("\t4\t\tUnlock doors");
         println!("");
         println!("\tW\t\tMove Up");
         println!("\tS\t\tMove Down");
@@ -92,6 +96,8 @@ impl Demo for Manager {
         // Hacky solution for pause menu
         let mut esc_prev = false;
         let mut esc_curr = false;
+
+        //println!("DOES THE ROOM EXIST? {}", self.game.current_room().exists);
 
         'gameloop: loop {
 
@@ -142,8 +148,22 @@ impl Demo for Manager {
                     else {
                         esc_curr = false;
                     }
+                    // Debug on/off
                     if keystate.contains(&Keycode::Num1) { self.debug = false; }
                     if keystate.contains(&Keycode::Num2) { self.debug = true; }
+                    // Lock doors
+                    if keystate.contains(&Keycode::Num3) {
+                        self.game.current_room_mut().tiles[5][0].lock();
+                        self.game.current_room_mut().tiles[5][16].lock();
+                        self.game.current_room_mut().tiles[0][8].lock();
+                        self.game.current_room_mut().tiles[10][8].lock();
+                    }
+                    if keystate.contains(&Keycode::Num4) {
+                        self.game.current_room_mut().tiles[5][0].unlock();
+                        self.game.current_room_mut().tiles[5][16].unlock();
+                        self.game.current_room_mut().tiles[0][8].unlock();
+                        self.game.current_room_mut().tiles[10][8].unlock();
+                    }
 
                     // -------------------------------------- GAMEPLAY CODE -------------------------
                     // Movement
@@ -159,16 +179,29 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
                     // Move player
                     self.game.player.update_pos(mov_vec);
+
                     // Apply collision
                     self.collide();
                     // // debugging healing and damage to a PLAYER
                     // if keystate.contains(&Keycode::H) { self.game.player.heal(2);
                     //     println!("Health is: {}", self.game.player.health());
                     // }  // heal
+                    //if keystate.contains(&Keycode::H) {
+                    //    self.game.player.plusPowerHealth();
+                    //    println!("PowerupHealth is {}", self.game.player.powerUpVec[0]);
+                    //}  // powerup
                     // if keystate.contains(&Keycode::B) { self.game.player.damage(1);
                     //     println!("Health is: {}", self.game.player.health());
                     // }  //damage
 
+                    // Set prev frame tile
+                    self.game.player.prev_frame_tile = self.game.player.current_frame_tile;
+                    // Update current fream tile
+                    self.game.player.current_frame_tile = Vec2::new((self.game.player.get_pos_x() - LEFT_WALL) / 64,
+                                                                    (self.game.player.get_pos_y() - TOP_WALL) / 64);
+                    //println!("{}, {}", self.game.player.current_frame_tile.x, self.game.player.current_frame_tile.y);
+
+                    self.walkover();
 
                     // --------------------------------- GAMEPLAY CODE END -------------------------
                 }
@@ -220,7 +253,8 @@ impl Manager {
         let mut x = 0;
         let mut y = 0;
         use tile::Walkability::*;
-        for row in &self.game.map.room.tiles {
+        // This can't be done with the current room function bc it returns a reference which messes up internal stuff
+        for row in &self.game.map.floors[0].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles {
             for t in row {
                 match t.walkability() {
                     Wall | Rock | Pit => {
@@ -272,6 +306,63 @@ impl Manager {
         }
     }
 
+    fn walkover(& mut self) {
+        // Branch for tiles that should only be called once (doors, pickups
+        if self.game.player.current_frame_tile != self.game.player.prev_frame_tile {
+            //TODO: Find a way to make these chain calls less crazy
+            match self.game.map.floors[0].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].on_walkover() {
+                WalkoverAction::DoNothing => (),
+                WalkoverAction::ChangeRooms => {
+                    //println!("Door tile walked over.");
+                    if self.game.player.current_frame_tile.x == 0 { // LEFT DOOR
+                        // Current room one to the right
+                        self.game.cr.x -= 1;
+                        // Move player position to just outside of right door in new room
+                        self.game.player.pos = Vec2::new((LEFT_WALL + 15 * 64) as f32 + 63.0, (TOP_WALL + 5 * 64) as f32 + 40.0);
+                    }
+                    if self.game.player.current_frame_tile.x == 16 { // RIGHT DOOR
+                        // Current room one to the right
+                        self.game.cr.x += 1;
+                        // Move player position to just outside of left door in new room
+                        self.game.player.pos = Vec2::new((LEFT_WALL + 1 * 64) as f32 + 1.0, (TOP_WALL + 5 * 64) as f32 + 40.0);
+                    }
+                    if self.game.player.current_frame_tile.y == 0 { // TOP DOOR
+                        // Current room one up
+                        self.game.cr.y -= 1;
+                        // Move player position to just outside of bottom door in new room
+                        self.game.player.pos = Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 9 * 64) as f32 + 50.0);
+                    }
+                    if self.game.player.current_frame_tile.y == 10 { // BOTTOM DOOR
+                        // Current room one down
+                        self.game.cr.y += 1;
+                        // Move player position to just outside of bottom door in new room
+                        self.game.player.pos = Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 1 * 64) as f32 + 10.0);
+                    }
+                },
+                WalkoverAction::GivePlayerKey => {
+                    println!("Key has been picked up!!!");
+                    self.game.player.has_key = true;
+                },
+
+                WalkoverAction::GoToNextFloor => {
+                    if self.game.player.has_key {
+                        println!("Congratulations! You made it to the next floor!!!");
+                        self.game.map.floors[0].rooms[self.game.cr.y as usize][self.game.cr.x as usize]
+                            .tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].unlock();
+                        self.game.player.has_key = false;
+                    }
+                    else {
+                        println!("You need a key to unlock this door!");
+
+                    }
+
+                }
+
+            }
+        }
+        // TODO: else branch for continuous tiles (spike tile)
+    }
+
     // Draw entire game state on screen.
     fn draw(& mut self) -> Result<(), String> {
 
@@ -292,7 +383,6 @@ impl Manager {
             GameActive => {
                 // Load textures
                 let bg = texture_creator.load_texture("assets/test_image.png")?;
-                let slime = texture_creator.load_texture("assets/slime_sprite.png")?;
 
                 let slime_up = texture_creator.load_texture("assets/slime_up.png")?;
                 let slime_down = texture_creator.load_texture("assets/slime_down.png")?;
@@ -301,6 +391,9 @@ impl Manager {
 
                 let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
                 let rock = texture_creator.load_texture("assets/rock.png")?;
+
+                let key = texture_creator.load_texture("assets/key.png")?;
+                let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
 
                 // Draw black screen
                 self.core.wincan.set_draw_color(Color::BLACK);
@@ -311,29 +404,49 @@ impl Manager {
 
                 let mut x = 0;
                 let mut y = 0;
-                for row in &self.game.map.room.tiles {
+                for row in &self.game.current_room().tiles {
                     for t in row {
-                        match t.walkability() {
-                            Walkability::Floor => {
+                        match t.sprite() {
+                            SpriteID::Ground => {
                                 self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
 
                             // Do nothing, we already drew the surrounding walls as one image.
-                            Walkability::Wall => (),
+                            SpriteID::Wall => (),
 
-                            Walkability::Rock => {
+                            SpriteID::Rock => {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                                 self.core.wincan.copy(&rock, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
 
-                            Walkability::Pit => {
-                                self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
-                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            SpriteID::Pit => {
+                                //self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
+                                //self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
 
-                            _ => panic!("NO MATCH FOR TILE TYPE"),
-                            // This needs to panic, otherwise the rooms won't be the right size and a bunch
-                            // of crazy buggy stuff could happen.
+                            SpriteID::DoorLocked => {
+                                self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
+                            SpriteID::DoorUnlocked => {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                //self.core.wincan.set_draw_color(Color::RGBA(0, 255, 0, 255));
+                                //self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
 
+                            SpriteID::Key => {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                self.core.wincan.copy(&key, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
+
+                            SpriteID::TrapdoorLocked => {
+                                self.core.wincan.copy(&td_locked, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
+
+                            SpriteID::TrapdoorUnlocked => {
+                                self.core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            }
                         }
                         x += 1;
                     }
@@ -378,7 +491,12 @@ impl Manager {
                 }
 
 
+                // ------------------------ DRAW UI --------------------------
 
+                // Rough key setup
+                if self.game.player.has_key {
+                    self.core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64));
+                }
 
 
 
@@ -411,7 +529,7 @@ impl Manager {
                 self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
                 x = 0;
                 y = 0;
-                for row in &self.game.map.room.tiles {
+                for row in &self.game.current_room().tiles {
                     for t in row {
                         match t.walkability() {
 
@@ -430,11 +548,21 @@ impl Manager {
 
                 // Draw a box over the current tile
                 self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
-                self.core.wincan.draw_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
-                                                    (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
-                                                    64,
-                                                    65,
-                                                    ));
+                    if self.game.player.current_frame_tile != self.game.player.prev_frame_tile {
+                        self.core.wincan.fill_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
+                                                             (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
+                                                             64,
+                                                             65,
+                        ));
+
+                    }
+                    else {
+                        self.core.wincan.draw_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
+                                                             (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
+                                                             64,
+                                                             65,
+                        ));
+                    }
 
                 }
 
