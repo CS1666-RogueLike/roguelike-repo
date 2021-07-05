@@ -14,23 +14,12 @@ pub struct Player {
     pub hp: i32,    //store the health for player
     pub m_hp: i32,
 
-<<<<<<< HEAD
-pub trait Health {
-    fn max_hp(&self) -> i32;  //the maximum HP the entity can have
-    fn health(&self) -> i32;    // the current HP the entity has
-    fn damage(&mut self, d: i32) -> i32;  // applying the amount of damage received
-    //fn damage_type(&self) -> i32; // the damage category
-    //fn bonus_type(&self) -> i32;    // the type of bonus dropped by enemy
-    //fn percent_damaged(&self) -> f32;
-    fn heal(&mut self, h: i32) -> i32; //function to heal hitpoints
-=======
     pub power_up_vec: Vec<i32>, //[Health, Speed, Attack]
 
     pub prev_frame_tile: Vec2<i32>,
     pub current_frame_tile: Vec2<i32>,
 
     pub has_key: bool,
->>>>>>> main
 
 }
 
