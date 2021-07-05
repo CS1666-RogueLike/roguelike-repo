@@ -34,6 +34,8 @@ use player::PowerUp;
 //use std::cmp::min;
 use std::collections::HashSet;
 
+use std::time::{Duration, Instant};
+
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
 
 // Constants to clean up SDLCore initiation
@@ -179,6 +181,7 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
                     // Move player
                     self.game.player.update_pos(mov_vec);
+                    self.game.test_enemy.update_pos();
 
                     // Apply collision
                     self.collide();
@@ -204,6 +207,13 @@ impl Demo for Manager {
                     self.walkover();
 
                     // --------------------------------- GAMEPLAY CODE END -------------------------
+                }
+
+                GameOver => {
+                    if keystate.contains(&Keycode::Space) {
+                        self.game = Game::new();
+                        self.menu = GameActive;
+                    }
                 }
 
                 GamePaused => {
@@ -248,6 +258,46 @@ impl Manager {
         self.game.player.pos.x = self.game.player.pos.x.clamp(LEFT_WALL as f32 + (self.game.player.walkbox.x/2) as f32, RIGHT_WALL as f32 - (self.game.player.walkbox.x/2) as f32);
         self.game.player.pos.y = self.game.player.pos.y.clamp(TOP_WALL as f32 + (self.game.player.walkbox.y/2) as f32, BOT_WALL as f32 - (self.game.player.walkbox.y/2) as f32);
 
+        // TODO: Goal is to generalize hitbox data into a trait so that we can condense logic
+
+        // Maintain enemy bounds for the room. (don't let them leave the room boundaries)
+        self.game.test_enemy.pos.x = self.game.test_enemy.pos.x.clamp(LEFT_WALL as f32 + (self.game.test_enemy.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (self.game.test_enemy.walkbox.x * 4) as f32);
+        self.game.test_enemy.pos.y = self.game.test_enemy.pos.y.clamp(TOP_WALL as f32 + (self.game.test_enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (self.game.test_enemy.walkbox.y * 4) as f32);
+        
+        // If the test enemy is in the current room of the player...
+        if self.game.cr.x == self.game.test_enemy.cr.x && self.game.cr.y == self.game.test_enemy.cr.y {
+            // If the test enemy's walkbox intersects with the player walkbox...
+            let wb_test = self.game.test_enemy.get_walkbox_world();
+            let player_test = self.game.player.get_walkbox_world();
+
+            // Then there's a collision!
+            if wb_test.has_intersection(player_test) {
+                // Check to see when the player was attacked last...
+                match self.game.player.last_invincibility_time {
+                    // If there is an old invincibility time for the player, 
+                    // see if the "invincibility window" has elapsed since then...
+                    Some( time ) => {
+                        if time.elapsed() >= Duration::from_millis(1750) {
+                            // If so, update the invincibility time and take damage to the player.
+                            self.game.player.update_invincibility_time();
+                            self.game.player.damage(1);
+                        }
+                    },
+                    None => {
+                        // Otherwise, take damage as there was
+                        // no previous "invincibility window" to account for
+                        self.game.player.update_invincibility_time();
+                        self.game.player.damage(1);
+                    }
+                }
+    
+                // If the player is dead, update to the game over menu state
+                if self.game.player.health() == 0 {
+                    self.menu = MenuState::GameOver;
+                }
+            }
+        }
+        
 
         self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
         let mut x = 0;
@@ -363,6 +413,23 @@ impl Manager {
         // TODO: else branch for continuous tiles (spike tile)
     }
 
+    fn draw_enemies<'r>(&mut self, textures: &Vec<Texture>) -> Result<(), String> {
+        // This can be updated from a vector of textures to a vector of enemies.
+        // I only needed to account for one enemy's position, so the textures are just
+        // being passed separately.
+        for t in textures.into_iter() {
+            if self.game.cr.x == self.game.test_enemy.cr.x && self.game.cr.y == self.game.test_enemy.cr.y {
+                self.core.wincan.copy(&t, None,
+                    Rect::new(
+                        self.game.test_enemy.get_pos_x() - 35 + 4,
+                        self.game.test_enemy.get_pos_y() - 64 + (self.game.test_enemy.get_walkbox().height()/2) as i32,
+                        64, 64)
+                );
+            }
+        }
+        Ok(())
+    }
+
     // Draw entire game state on screen.
     fn draw(& mut self) -> Result<(), String> {
 
@@ -388,6 +455,13 @@ impl Manager {
                 let slime_down = texture_creator.load_texture("assets/slime_down.png")?;
                 let slime_left = texture_creator.load_texture("assets/slime_left.png")?;
                 let slime_right = texture_creator.load_texture("assets/slime_right.png")?;
+
+                let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
+
+                let hp_indicator = texture_creator.load_texture("assets/hp.png")?;
+
+                let mut test_vec = Vec::new();
+                test_vec.push( speed_idle );
 
                 let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
                 let rock = texture_creator.load_texture("assets/rock.png")?;
@@ -487,9 +561,13 @@ impl Manager {
                                 64, 64)
                             );
                     }
-
                 }
 
+                self.draw_enemies( &test_vec );
+                // If the player was attacked, show a quick damage indicator ("-1" in red)
+                if self.game.player.was_attacked() {
+                    self.core.wincan.copy(&hp_indicator, None, Rect::new(self.game.player.get_pos_x() as i32, self.game.player.get_pos_y() as i32, 64, 64));
+                }
 
                 // ------------------------ DRAW UI --------------------------
 
@@ -498,12 +576,11 @@ impl Manager {
                     self.core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64));
                 }
 
-
-
                 if self.debug {
                 // Draw player collision hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                 self.core.wincan.draw_rect(self.game.player.get_walkbox_world());
+                self.core.wincan.draw_rect(self.game.test_enemy.get_walkbox_world());
 
                 // Draw player damage hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
@@ -512,6 +589,12 @@ impl Manager {
                                                     self.game.player.get_hitbox_x(),
                                                     self.game.player.get_hitbox_y())
                                             );
+
+                self.core.wincan.draw_rect(Rect::new(self.game.test_enemy.get_pos_x() - (self.game.test_enemy.get_hitbox_x()/2) as i32,
+                        self.game.test_enemy.get_pos_y() - (self.game.test_enemy.get_hitbox_y()) as i32,
+                        self.game.test_enemy.get_hitbox_x(),
+                        self.game.test_enemy.get_hitbox_y())
+                );
 
                 // Draw null at center of player hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(255, 0, 255, 255));
@@ -566,6 +649,11 @@ impl Manager {
 
                 }
 
+                }
+
+                GameOver => {
+                    let gameover = texture_creator.load_texture("assets/game_over.png")?;
+                    self.core.wincan.copy(&gameover, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
                 }
 
                 GamePaused => {

@@ -1,6 +1,7 @@
 use crate::util::*;
 use crate::entity::Health;
 use sdl2::rect::Rect;
+use std::time::{Duration, Instant};
 
 pub struct Player {
     pub pos: Vec2<f32>, // Position of middle of player.
@@ -20,7 +21,7 @@ pub struct Player {
     pub current_frame_tile: Vec2<i32>,
 
     pub has_key: bool,
-
+    pub last_invincibility_time: Option<Instant>,
 }
 
 pub trait PowerUp {
@@ -56,6 +57,7 @@ impl Player {
             current_frame_tile: Vec2::new(8, 5),
 
             has_key: false,
+            last_invincibility_time: None
         }
     }
 
@@ -87,6 +89,17 @@ impl Player {
                                                     self.walkbox.width(),
                                                     self.walkbox.height(),
                                                     )
+    }
+
+    pub fn update_invincibility_time(&mut self) {
+        self.last_invincibility_time = Some(Instant::now());
+    }
+
+    pub fn was_attacked(&mut self) -> bool {
+        match self.last_invincibility_time {
+            Some( time ) => time.elapsed() <= Duration::from_millis(500),
+            None => false
+        }
     }
 
     pub fn get_hitbox_x(&self) -> u32 { self.hitbox.x }
