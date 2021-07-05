@@ -10,5 +10,5 @@ version = "0.34"
 default-features = false
 features = ["ttf","image","gfx","mixer"]
 
-[dev-dependencies]
-rand = "0.8.0"
+[dependencies]
+rand = "0.8.4"
