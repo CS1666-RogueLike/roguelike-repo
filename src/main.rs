@@ -582,6 +582,12 @@ impl Manager {
                 self.core.wincan.draw_rect(self.game.player.get_walkbox_world());
                 self.core.wincan.draw_rect(self.game.test_enemy.get_walkbox_world());
 
+                // Draw attackbox??
+                self.core.wincan.set_draw_color(Color::RGBA(77, 5, 232, 1));
+                self.core.wincan.draw_rect(self.game.player.get_attackbox_world());
+
+
+
                 // Draw player damage hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
                 self.core.wincan.draw_rect(Rect::new(self.game.player.get_pos_x() - (self.game.player.get_hitbox_x()/2) as i32,
