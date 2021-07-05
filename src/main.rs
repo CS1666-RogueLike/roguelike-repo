@@ -450,7 +450,7 @@ impl Manager {
                 let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
                 let rock = texture_creator.load_texture("assets/rock.png")?;
 
-                let key = texture_creator.load_texture("assets/key_tile.png")?;
+                let key = texture_creator.load_texture("assets/key.png")?;
                 let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
 
                 // Draw black screen
@@ -473,6 +473,7 @@ impl Manager {
                             SpriteID::Wall => (),
 
                             SpriteID::Rock => {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                                 self.core.wincan.copy(&rock, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
 
@@ -492,15 +493,12 @@ impl Manager {
                             }
 
                             SpriteID::Key => {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                                 self.core.wincan.copy(&key, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
-                                //self.core.wincan.set_draw_color(Color::RGBA(128, 255, 128, 255));
-                                //self.core.wincan.fill_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
 
                             SpriteID::TrapdoorLocked => {
                                 self.core.wincan.copy(&td_locked, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
-                                //self.core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
-                                //self.core.wincan.fill_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
 
                             SpriteID::TrapdoorUnlocked => {
