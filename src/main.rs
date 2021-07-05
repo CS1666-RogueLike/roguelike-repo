@@ -34,6 +34,8 @@ use player::PowerUp;
 //use std::cmp::min;
 use std::collections::HashSet;
 
+use std::time::{Duration, Instant};
+
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
 
 // Constants to clean up SDLCore initiation
@@ -207,6 +209,13 @@ impl Demo for Manager {
                     // --------------------------------- GAMEPLAY CODE END -------------------------
                 }
 
+                GameOver => {
+                    if keystate.contains(&Keycode::Space) {
+                        self.game = Game::new();
+                        self.menu = GameActive;
+                    }
+                }
+
                 GamePaused => {
                     // Unpause Code
                     esc_prev = esc_curr;
@@ -252,6 +261,29 @@ impl Manager {
         // TODO: Goal is to generalize hitbox data into a trait so that we can condense logic
         self.game.test_enemy.pos.x = self.game.test_enemy.pos.x.clamp(LEFT_WALL as f32 + (self.game.test_enemy.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (self.game.test_enemy.walkbox.x * 4) as f32);
         self.game.test_enemy.pos.y = self.game.test_enemy.pos.y.clamp(TOP_WALL as f32 + (self.game.test_enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (self.game.test_enemy.walkbox.y * 4) as f32);
+        
+        if self.game.cr.x == 3 && self.game.cr.y == 4 {
+            let wb_test = self.game.test_enemy.get_walkbox_world();
+            let player_test = self.game.player.get_walkbox_world();
+            if wb_test.has_intersection(player_test) {
+                match self.game.player.last_invincibility_time {
+                    Some( time ) => {
+                        if time.elapsed() >= Duration::from_millis(1750) {
+                            self.game.player.update_invincibility_time();
+                            self.game.player.damage(1);
+                        }
+                    },
+                    None => {
+                        self.game.player.update_invincibility_time();
+                        self.game.player.damage(1);
+                    }
+                }
+    
+                if self.game.player.health() == 0 {
+                    self.menu = MenuState::GameOver;
+                }
+            }
+        }
         
 
         self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
@@ -410,6 +442,8 @@ impl Manager {
 
                 let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
 
+                let hp_indicator = texture_creator.load_texture("assets/hp.png")?;
+
                 let mut test_vec = Vec::new();
                 test_vec.push( speed_idle );
 
@@ -516,6 +550,9 @@ impl Manager {
                 }
 
                 self.draw_enemies( &test_vec );
+                if self.game.player.was_attacked() {
+                    self.core.wincan.copy(&hp_indicator, None, Rect::new(self.game.player.get_pos_x() as i32, self.game.player.get_pos_y() as i32, 64, 64));
+                }
 
                 // ------------------------ DRAW UI --------------------------
 
@@ -597,6 +634,11 @@ impl Manager {
 
                 }
 
+                }
+
+                GameOver => {
+                    let gameover = texture_creator.load_texture("assets/game_over.png")?;
+                    self.core.wincan.copy(&gameover, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
                 }
 
                 GamePaused => {

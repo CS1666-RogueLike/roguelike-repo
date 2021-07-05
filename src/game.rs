@@ -11,7 +11,6 @@ pub struct Game {
     pub test_enemy: Enemy,
 
     pub cr: Vec2<i32>,
-
 }
 
 impl Game {

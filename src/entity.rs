@@ -90,25 +90,41 @@ impl Enemy {
 
         match self.last_dir_update {
             Some(update_time) => {
-                if update_time.elapsed() >= Duration::from_secs(4) {
-                    match rng.gen_range( 0 ..= 4 ) {
-                        0 => {
+                if update_time.elapsed() >= Duration::from_secs(2) {
+                    match rng.gen_range( 0 ..= 15 ) {
+                        0 | 1 => {
                             self.movement_vec.x = 0.0;
-                            self.movement_vec.y = rng.gen_range(-1.0 ..= 0.0);
+                            self.movement_vec.y = -1.0;
                         },
-                        1 => {
+                        1 | 2 => {
                             self.movement_vec.x = 0.0;
-                            self.movement_vec.y = rng.gen_range(0.0 ..= 1.0);
+                            self.movement_vec.y = 1.0;
                         },
-                        2 => {
-                            self.movement_vec.x = rng.gen_range(-1.0 ..= 0.0);
+                        3 | 4 => {
+                            self.movement_vec.x = -1.0;
                             self.movement_vec.y = 0.0;
                         },
-                        3 => {
-                            self.movement_vec.x = rng.gen_range(0.0 ..= 1.0);
+                        5 | 6 => {
+                            self.movement_vec.x = 1.0;
                             self.movement_vec.y = 0.0;
                         },
-                        4 => {
+                        7 | 8 => {
+                            self.movement_vec.x = 0.7071067;
+                            self.movement_vec.y = 0.7071067;
+                        },
+                        9 | 10 => {
+                            self.movement_vec.x = -0.7071067;
+                            self.movement_vec.y = -0.7071067;
+                        },
+                        11 | 12 => {
+                            self.movement_vec.x = 0.7071067;
+                            self.movement_vec.y = -0.7071067;
+                        },
+                        13 | 14 => {
+                            self.movement_vec.x = -0.7071067;
+                            self.movement_vec.y = 0.7071067;
+                        },
+                        15 => {
                             self.movement_vec.x = 0.0;
                             self.movement_vec.y = 0.0;
                         }
