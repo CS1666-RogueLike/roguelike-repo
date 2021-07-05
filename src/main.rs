@@ -265,13 +265,16 @@ impl Manager {
         self.game.test_enemy.pos.y = self.game.test_enemy.pos.y.clamp(TOP_WALL as f32 + (self.game.test_enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (self.game.test_enemy.walkbox.y * 4) as f32);
 
         // If the test enemy is in the current room of the player...
-        if self.game.cr.x == self.game.test_enemy.cr.x && self.game.cr.y == self.game.test_enemy.cr.y {
+        if self.game.cr.x == self.game.test_enemy.cr.x && self.game.cr.y == self.game.test_enemy.cr.y && !self.game.test_enemy.death{
             // If the test enemy's walkbox intersects with the player walkbox...
             let wb_test = self.game.test_enemy.get_walkbox_world();
             let player_test = self.game.player.get_walkbox_world();
 
             // Then there's a collision!
             if wb_test.has_intersection(player_test) {
+                //Damage enemy also! For some reason
+                //println!("Collision");
+                self.game.test_enemy.damage(1);
                 // Check to see when the player was attacked last...
                 match self.game.player.last_invincibility_time {
                     // If there is an old invincibility time for the player,
@@ -418,7 +421,7 @@ impl Manager {
         // I only needed to account for one enemy's position, so the textures are just
         // being passed separately.
         for t in textures.into_iter() {
-            if self.game.cr.x == self.game.test_enemy.cr.x && self.game.cr.y == self.game.test_enemy.cr.y {
+            if self.game.cr.x == self.game.test_enemy.cr.x && self.game.cr.y == self.game.test_enemy.cr.y && !self.game.test_enemy.death{
                 self.core.wincan.copy(&t, None,
                     Rect::new(
                         self.game.test_enemy.get_pos_x() - 35 + 4,
