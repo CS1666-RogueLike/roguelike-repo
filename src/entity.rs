@@ -37,7 +37,8 @@ pub struct Enemy {
     pub movement_vec: Vec2<f32>,
     pub cr: Vec2<i32>,
     pub last_dir_update: Option< Instant >,
-    pub kind: EnemyKind
+    pub kind: EnemyKind,
+    pub death: bool,
 }
 
 impl Health for Enemy {
@@ -51,6 +52,13 @@ impl Health for Enemy {
     fn heal(&mut self, h: i32) -> i32 {
         self.hp = (self.hp + h).min(self.m_hp);
         self.hp
+    }
+
+    fn death(&mut self) -> bool {
+        if self.hp <= 0 {
+            self.death = true;
+        }
+        self.death
     }
 }
 
@@ -67,7 +75,8 @@ impl Enemy {
             cr: cr,
             movement_vec: Vec2::new(-1.0, 0.0),
             last_dir_update: None,
-            kind: kind
+            kind: kind,
+            death: false,
         }
     }
 
