@@ -46,6 +46,7 @@ impl Health for Enemy {
     fn health(&self) -> i32 { self.hp }
     fn damage(&mut self, d: i32) -> i32 {
         self.hp = (self.hp - d).max(0);
+        self.death();
         self.hp
     }
 
@@ -96,6 +97,11 @@ impl Enemy {
     }
 
     pub fn update_pos(& mut self) {
+        if(self.death) {
+            self.movement_vec.x = 0.0;
+            self.movement_vec.y = 0.0;
+            return;
+        }
         let now = Instant::now();
 
         let mut rng = rand::thread_rng();
