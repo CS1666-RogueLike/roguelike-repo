@@ -263,7 +263,7 @@ impl Manager {
         // Maintain enemy bounds for the room. (don't let them leave the room boundaries)
         self.game.test_enemy.pos.x = self.game.test_enemy.pos.x.clamp(LEFT_WALL as f32 + (self.game.test_enemy.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (self.game.test_enemy.walkbox.x * 4) as f32);
         self.game.test_enemy.pos.y = self.game.test_enemy.pos.y.clamp(TOP_WALL as f32 + (self.game.test_enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (self.game.test_enemy.walkbox.y * 4) as f32);
-        
+
         // If the test enemy is in the current room of the player...
         if self.game.cr.x == self.game.test_enemy.cr.x && self.game.cr.y == self.game.test_enemy.cr.y {
             // If the test enemy's walkbox intersects with the player walkbox...
@@ -274,7 +274,7 @@ impl Manager {
             if wb_test.has_intersection(player_test) {
                 // Check to see when the player was attacked last...
                 match self.game.player.last_invincibility_time {
-                    // If there is an old invincibility time for the player, 
+                    // If there is an old invincibility time for the player,
                     // see if the "invincibility window" has elapsed since then...
                     Some( time ) => {
                         if time.elapsed() >= Duration::from_millis(1750) {
@@ -290,14 +290,14 @@ impl Manager {
                         self.game.player.damage(1);
                     }
                 }
-    
+
                 // If the player is dead, update to the game over menu state
-                if self.game.player.health() == 0 {
+                if self.game.player.death() {
                     self.menu = MenuState::GameOver;
                 }
             }
         }
-        
+
 
         self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
         let mut x = 0;

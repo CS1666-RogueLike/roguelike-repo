@@ -17,6 +17,7 @@ pub trait Health {
     //fn bonus_type(&self) -> i32;    // the type of bonus dropped by enemy
     //fn percent_damaged(&self) -> f32;
     fn heal(&mut self, h: i32) -> i32;
+    fn death(&mut self) -> bool;
 }
 
 pub enum EnemyKind {
@@ -36,7 +37,8 @@ pub struct Enemy {
     pub movement_vec: Vec2<f32>,
     pub cr: Vec2<i32>,
     pub last_dir_update: Option< Instant >,
-    pub kind: EnemyKind
+    pub kind: EnemyKind,
+    pub death: bool,
 }
 
 impl Health for Enemy {
@@ -50,6 +52,13 @@ impl Health for Enemy {
     fn heal(&mut self, h: i32) -> i32 {
         self.hp = (self.hp + h).min(self.m_hp);
         self.hp
+    }
+
+    fn death(&mut self) -> bool {
+        if self.hp <= 0 {
+            self.death = true;
+        }
+        self.death
     }
 }
 
@@ -66,7 +75,8 @@ impl Enemy {
             cr: cr,
             movement_vec: Vec2::new(-1.0, 0.0),
             last_dir_update: None,
-            kind: kind
+            kind: kind,
+            death: false,
         }
     }
 
@@ -76,7 +86,7 @@ impl Enemy {
     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32 }
 
     pub fn get_walkbox(&self) -> Rect { self.walkbox }
-    pub fn get_walkbox_world(&self) -> Rect { 
+    pub fn get_walkbox_world(&self) -> Rect {
         Rect::new(
             self.pos.x as i32 - self.walkbox.x(),
             self.pos.y as i32 - self.walkbox.y(),
