@@ -14,6 +14,7 @@ pub trait Health {
     //fn bonus_type(&self) -> i32;    // the type of bonus dropped by enemy
     //fn percent_damaged(&self) -> f32;
     fn heal(&mut self, h: i32) -> i32;
+    fn death(&mut self) -> bool;
 }
 
 // pub struct Speed {
@@ -60,7 +61,7 @@ pub trait Health {
 //     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32 }
 
 //     pub fn get_walkbox(&self) -> Rect { self.walkbox }
-//     pub fn get_walkbox_world(&self) -> Rect { 
+//     pub fn get_walkbox_world(&self) -> Rect {
 //         Rect::new(
 //             self.pos.x as i32 - self.walkbox.x(),
 //             self.pos.y as i32 - self.walkbox.y(),

@@ -13,6 +13,7 @@ pub struct Player {
     pub dir: Direction,
     pub hp: i32,    //store the health for player
     pub m_hp: i32,
+    pub death: bool, //trying bool for death state
 
     pub power_up_vec: Vec<i32>, //[Health, Speed, Attack]
 
@@ -49,6 +50,7 @@ impl Player {
             dir: Direction::Down,
             hp: MAX_HP,
             m_hp: MAX_HP,
+            death: false,
 
             power_up_vec: vec![0; 3],
 
@@ -112,6 +114,14 @@ impl Health for Player {
             self.hp = self.m_hp;
         }
         self.hp
+    }
+    
+    //try to implement a player death
+    fn death(&mut self) -> bool {
+        if self.hp <= 0 {
+            self.death = true;
+        }
+        self.death
     }
 
 }
