@@ -25,6 +25,7 @@ pub struct Player {
     pub has_key: bool,
     pub last_invincibility_time: Option<Instant>,
 
+    pub is_attacking: bool,
     pub last_attack_time: Option<Instant>,
 
 }
@@ -51,7 +52,7 @@ impl Player {
             pos: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
             hitbox: Vec2::new(48, 52),
             walkbox: Rect::new(20, 12, 40, 24),
-            attackbox: Vec2::new(20, 32),
+            attackbox: Vec2::new(32, 48),
             speed: 3.5,
             dir: Direction::Down,
             hp: MAX_HP,
@@ -67,6 +68,7 @@ impl Player {
             last_invincibility_time: None,
 
             //timing attacks so they aren't just 'on'
+            is_attacking: false,
             last_attack_time: None,
 
         }
@@ -122,33 +124,40 @@ impl Player {
     pub fn get_attackbox_world(&self) -> Rect {
         match self.dir {
             Direction::Up => {
-                Rect::new(self.pos.x as i32 - self.attackbox.x, self.pos.y as i32 - 16 - (self.attackbox.y * 2),
+                Rect::new(self.pos.x as i32 - ( self.attackbox.x / 2 ) as i32, self.pos.y as i32 - (self.hitbox.y as i32) - (self.attackbox.y / 2 as i32) - 16,
                         self.attackbox.x as u32, self.attackbox.y as u32)
             }
             Direction::Down => {
-                Rect::new(self.pos.x as i32, self.pos.y as i32 + 16,
+                Rect::new(self.pos.x as i32 - ( self.attackbox.x / 2 ) as i32, self.pos.y as i32 + 16,
                         self.attackbox.x as u32, self.attackbox.y as u32)
             }
             Direction::Left => {
-                Rect::new(self.pos.x as i32 - 48 - self.attackbox.x, self.pos.y as i32 - 16,
+                Rect::new(self.pos.x as i32 - 48 - self.attackbox.x, self.pos.y as i32 - 32,
                         self.attackbox.y as u32, self.attackbox.x as u32)
             }
             Direction::Right => {
-                Rect::new(self.pos.x as i32 + 10 + self.attackbox.x, self.pos.y as i32 - 32,
+                Rect::new(self.pos.x as i32 + self.hitbox.x as i32 - 16, self.pos.y as i32 - 32,
                         self.attackbox.y as u32, self.attackbox.x as u32)
             }
 
         }
     }
 
-
-    pub fn update_attack_time(&mut self) {
+    pub fn signal_attack(&mut self) {
+        self.is_attacking = true;
         self.last_attack_time = Some(Instant::now());
     }
 
-    pub fn player_attack(&mut self) -> bool {
+    pub fn just_attacked(&mut self) -> bool {
         match self.last_attack_time {
-            Some( time ) => time.elapsed() <= Duration::from_millis(500),
+            Some( time ) => {
+                let res = time.elapsed() <= Duration::from_millis(500);
+                if !res {
+                    self.is_attacking = false;
+                }
+
+                res
+            },
             None => false
         }
     }
