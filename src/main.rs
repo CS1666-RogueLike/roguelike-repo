@@ -208,7 +208,6 @@ impl Demo for Manager {
                                     self.game.player.update_attack_time();
                                     // Need to check if enemy crosses attackbox
                                 }
-                                println!("{}", self.game.player.player_attack());
                             },
                             None => {
                                 // Otherwise, take damage as there was
@@ -738,18 +737,18 @@ impl Manager {
                         // Current room
                         if x == self.game.cr.x && y == self.game.cr.y {
                             self.core.wincan.set_draw_color(Color::RGBA(255, 255, 255, 255));
-                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
                         }
                         // Visited rooms
                         else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == true {
                             self.core.wincan.set_draw_color(Color::RGBA(80, 80, 80, 255));
-                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
                         }
                         // Unvisited rooms
                         else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == false &&
                             self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].exists == true {
                             self.core.wincan.set_draw_color(Color::RGBA(30, 30, 30, 255));
-                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
 
                         }
                         // Black border for separation
@@ -764,18 +763,18 @@ impl Manager {
                         // Current room
                         if x == self.game.cr.x && y == self.game.cr.y {
                             self.core.wincan.set_draw_color(Color::RGBA(255, 255, 255, 255));
-                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
                         }
                         // Visited rooms
                         else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == true {
                             self.core.wincan.set_draw_color(Color::RGBA(80, 80, 80, 255));
-                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
                         }
                         // Unvisited rooms
                         else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == false &&
                             self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].exists == true {
                             self.core.wincan.set_draw_color(Color::RGBA(30, 30, 30, 255));
-                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
 
                         }
                         // Black border for separation
