@@ -36,7 +36,8 @@ use entity::EnemyKind;
 use std::collections::HashSet;
 use std::collections::HashMap;
 
-use std::time::Duration;
+use std::time::{Duration, Instant};
+use crate::menu::MenuState::GameOver;
 
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
 
@@ -676,6 +677,32 @@ impl Manager {
                 // Rough key setup
                 if self.game.player.has_key {
                     self.core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64))?;
+                }
+
+                // Minimap
+                for x in 0..8 {
+                    for y in 0..8 {
+                        // Current room
+                        if x == self.game.cr.x && y == self.game.cr.y {
+                            self.core.wincan.set_draw_color(Color::RGBA(255, 255, 255, 255));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                        }
+                        // Visited rooms
+                        else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == true {
+                            self.core.wincan.set_draw_color(Color::RGBA(80, 80, 80, 255));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                        }
+                        // Unvisited rooms
+                        else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == false &&
+                            self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].exists == true {
+                            self.core.wincan.set_draw_color(Color::RGBA(30, 30, 30, 255));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+
+                        }
+                        // Black border for separation
+                        self.core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        self.core.wincan.draw_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                    }
                 }
 
                 if self.debug {

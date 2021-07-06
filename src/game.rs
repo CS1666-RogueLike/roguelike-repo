@@ -23,6 +23,7 @@ impl Game {
             player: Player::new(),
             map: Map::new(),
             cr: Vec2::new(3, 4),
+            cf: 0,
             enemies: enemies,
             //cr: Vec2::new(1, 3),
         }
