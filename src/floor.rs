@@ -15,7 +15,7 @@ impl Floor {
         // Fill floor with invalid roooms
         for x in 0..8 {
             rooms.push(Vec::with_capacity(8));
-            for y in 0..8 {
+            for _y in 0..8 {
                 rooms[x].push(Box::new(Room::non_room()));
             }
         }

@@ -1,7 +1,6 @@
 
 use crate::util::*;
 use sdl2::rect::Rect;
-use sdl2::render::Texture;
 use std::time::{Duration, Instant};
 
 use rand::Rng;
@@ -36,6 +35,7 @@ pub struct Enemy {
     pub m_hp: i32,
     pub movement_vec: Vec2<f32>,
     pub cr: Vec2<i32>,
+    pub cf: usize,
     pub last_dir_update: Option< Instant >,
     pub kind: EnemyKind,
     pub death: bool,
@@ -46,7 +46,7 @@ impl Health for Enemy {
     fn max_hp(&self) -> i32 { self.m_hp }
     fn health(&self) -> i32 { self.hp }
     fn damage(&mut self, d: i32) -> i32 {
-        self.hp = (self.hp - d).max(0);
+        self.hp = (self.hp - d).max(DEATH_HP);
         self.death();
         self.hp
     }
@@ -57,7 +57,7 @@ impl Health for Enemy {
     }
 
     fn death(&mut self) -> bool {
-        if self.hp <= 0 {
+        if self.hp <= DEATH_HP {
             self.death = true;
             self.power = true;
         }
@@ -66,7 +66,7 @@ impl Health for Enemy {
 }
 
 impl Enemy {
-    pub fn new(position: Vec2<f32>, kind: EnemyKind, cr: Vec2<i32>) -> Enemy {
+    pub fn new(position: Vec2<f32>, kind: EnemyKind, cr: Vec2<i32>, cf: usize) -> Enemy {
         Enemy {
             pos: position,
             hitbox: Vec2::new(40, 30),
@@ -76,6 +76,7 @@ impl Enemy {
             hp: 2,
             m_hp: 2,
             cr: cr,
+            cf: cf,
             movement_vec: Vec2::new(-1.0, 0.0),
             last_dir_update: None,
             kind: kind,
@@ -100,7 +101,7 @@ impl Enemy {
     }
 
     pub fn update_pos(& mut self) {
-        if(self.death) {
+        if self.death {
             self.movement_vec.x = 0.0;
             self.movement_vec.y = 0.0;
             return;
@@ -113,7 +114,7 @@ impl Enemy {
             Some(update_time) => {
                 if update_time.elapsed() >= Duration::from_secs(2) {
                     match rng.gen_range( 0 ..= 15 ) {
-                        0 | 1 => {
+                        0 => {
                             self.movement_vec.x = 0.0;
                             self.movement_vec.y = -1.0;
                         },
