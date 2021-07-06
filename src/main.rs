@@ -30,9 +30,11 @@ use roguelike::SDLCore;
 use roguelike::Demo;
 use entity::Health;
 use player::PowerUp;
+use entity::{Enemy, EnemyKind};
 
 //use std::cmp::min;
 use std::collections::HashSet;
+use std::collections::HashMap;
 
 use std::time::{Duration, Instant};
 
@@ -64,6 +66,7 @@ impl Demo for Manager {
         let debug = false;
         let menu = MenuState::MainMenu;
         let game = Game::new();
+        
         Ok(Manager{core, debug, menu, game})
     }
 
@@ -181,7 +184,7 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
                     // Move player
                     self.game.player.update_pos(mov_vec);
-                    for enemy in &mut self.game.enemies {
+                    for enemy in self.game.enemies.iter_mut() {
                         enemy.update_pos();
                     }
 
@@ -263,7 +266,7 @@ impl Manager {
         // TODO: Goal is to generalize hitbox data into a trait so that we can condense logic
 
         // Maintain enemy bounds for the room and check player collisions
-        for enemy in &mut self.game.enemies {
+        for enemy in self.game.enemies.iter_mut() {
             enemy.pos.x = enemy.pos.x.clamp(LEFT_WALL as f32 + (enemy.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (enemy.walkbox.x * 4) as f32);
             enemy.pos.y = enemy.pos.y.clamp(TOP_WALL as f32 + (enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (enemy.walkbox.y * 4) as f32);
 
@@ -420,30 +423,11 @@ impl Manager {
         // TODO: else branch for continuous tiles (spike tile)
     }
 
-    fn draw_enemies<'r>(&mut self, textures: &Vec<Texture>) -> Result<(), String> {
-        // This can be updated from a vector of textures to a vector of enemies.
-        // I only needed to account for one enemy's position, so the textures are just
-        // being passed separately.
+    // fn draw_enemies<'r>(&mut self, textures: Vec<Texture>) -> Result<(), String> {
+        
 
-        for enemy in &mut self.game.enemies {
-            if self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y && !enemy.death() {
-                let tex = match &enemy.kind {
-                    Attack => &textures[0],
-                    Speed => &textures[1],
-                    Health => &textures[2],
-                };
-
-                self.core.wincan.copy(&tex, None,
-                    Rect::new(
-                        enemy.get_pos_x() - 35 + 4,
-                        enemy.get_pos_y() - 64 + (enemy.get_walkbox().height()/2) as i32,
-                        64, 64)
-                );
-            }
-        }
-
-        Ok(())
-    }
+    //     Ok(())
+    // }
 
     // Draw entire game state on screen.
     fn draw(& mut self) -> Result<(), String> {
@@ -470,17 +454,12 @@ impl Manager {
                 let slime_down = texture_creator.load_texture("assets/slime_down.png")?;
                 let slime_left = texture_creator.load_texture("assets/slime_left.png")?;
                 let slime_right = texture_creator.load_texture("assets/slime_right.png")?;
-
+                
                 let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
                 let attack_idle = texture_creator.load_texture("assets/wizard_attack_enemy.png")?;
-                let health_idle = texture_creator.load_texture("assets/health_sprite_down.png")?;
+                let health_idle = texture_creator.load_texture("assets/health-sprite-down.png")?;
 
                 let hp_indicator = texture_creator.load_texture("assets/hp.png")?;
-
-                let mut test_vec = Vec::new();
-                test_vec.push( speed_idle );
-                test_vec.push( attack_idle );
-                test_vec.push( health_idle );
 
                 let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
                 let rock = texture_creator.load_texture("assets/rock.png")?;
@@ -582,7 +561,24 @@ impl Manager {
                     }
                 }
 
-                self.draw_enemies( &test_vec );
+                //self.draw_enemies(textures);
+                for enemy in self.game.enemies.iter_mut() {
+                    if self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y && !enemy.death() {
+                        let tex = match &enemy.kind {
+                            EnemyKind::Attack => &attack_idle,
+                            EnemyKind::Health => &health_idle,
+                            EnemyKind::Speed => &speed_idle
+                        };
+        
+                        self.core.wincan.copy(&tex, None,
+                            Rect::new(
+                                enemy.get_pos_x() - 35 + 4,
+                                enemy.get_pos_y() - 64 + (enemy.get_walkbox().height()/2) as i32,
+                                64, 64)
+                        )?;
+                    }
+                }
+
                 // If the player was attacked, show a quick damage indicator ("-1" in red)
                 if self.game.player.was_attacked() {
                     self.core.wincan.copy(&hp_indicator, None, Rect::new(self.game.player.get_pos_x() as i32, self.game.player.get_pos_y() as i32, 64, 64));
@@ -599,7 +595,7 @@ impl Manager {
                 // Draw player collision hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                 self.core.wincan.draw_rect(self.game.player.get_walkbox_world());
-                for enemy in &mut self.game.enemies {
+                for enemy in self.game.enemies.iter_mut() {
                     self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                     self.core.wincan.draw_rect(enemy.get_walkbox_world());
 
