@@ -35,6 +35,7 @@ use player::PowerUp;
 use std::collections::HashSet;
 
 use std::time::{Duration, Instant};
+use crate::menu::MenuState::GameOver;
 use crate::entity::EnemyKind;
 
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
@@ -336,7 +337,7 @@ impl Manager {
         let mut y = 0;
         use tile::Walkability::*;
         // This can't be done with the current room function bc it returns a reference which messes up internal stuff
-        for row in &self.game.map.floors[0].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles {
+        for row in &self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles {
             for t in row {
                 match t.walkability() {
                     Wall | Rock | Pit => {
@@ -392,7 +393,12 @@ impl Manager {
         // Branch for tiles that should only be called once (doors, pickups
         if self.game.player.current_frame_tile != self.game.player.prev_frame_tile {
             //TODO: Find a way to make these chain calls less crazy
-            match self.game.map.floors[0].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].on_walkover() {
+
+            // Set new room to visited
+            // This is done to the now previous room to avoid having to do special logic on the first room
+            self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize].visited = true;
+
+            match self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].on_walkover() {
                 WalkoverAction::DoNothing => (),
                 WalkoverAction::ChangeRooms => {
                     //println!("Door tile walked over.");
@@ -420,6 +426,7 @@ impl Manager {
                         // Move player position to just outside of bottom door in new room
                         self.game.player.pos = Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 1 * 64) as f32 + 10.0);
                     }
+
                 },
                 WalkoverAction::GivePlayerKey => {
                     println!("Key has been picked up!!!");
@@ -429,13 +436,27 @@ impl Manager {
                 WalkoverAction::GoToNextFloor => {
                     if self.game.player.has_key {
                         println!("Congratulations! You made it to the next floor!!!");
-                        self.game.map.floors[0].rooms[self.game.cr.y as usize][self.game.cr.x as usize]
+                        self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize]
                             .tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].unlock();
                         self.game.player.has_key = false;
+                        println!("{}", self.game.cf);
+                        // Temp Check for game over
+                        if self.game.cf == 1 {
+                            self.menu = GameOver;
+                        }
+                        else {
+                            self.game.cf += 1;// this should stay
+                        }
+                        println!("{}", self.game.cf);
+                        // THIS WILL NEED CHANGING
+                        self.game.cr.x = 3;
+                        self.game.cr.y = 4;
+                        self.game.player.pos.x = (LEFT_WALL + 8 * 64) as f32 + 32.0;
+                        self.game.player.pos.y = (TOP_WALL + 5 * 64) as f32 + 40.0;
+
                     }
                     else {
                         println!("You need a key to unlock this door!");
-
                     }
 
                 }
@@ -662,6 +683,32 @@ impl Manager {
                     self.core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64));
                 }
 
+                // Minimap
+                for x in 0..8 {
+                    for y in 0..8 {
+                        // Current room
+                        if x == self.game.cr.x && y == self.game.cr.y {
+                            self.core.wincan.set_draw_color(Color::RGBA(255, 255, 255, 255));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                        }
+                        // Visited rooms
+                        else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == true {
+                            self.core.wincan.set_draw_color(Color::RGBA(80, 80, 80, 255));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                        }
+                        // Unvisited rooms
+                        else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == false &&
+                            self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].exists == true {
+                            self.core.wincan.set_draw_color(Color::RGBA(30, 30, 30, 255));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+
+                        }
+                        // Black border for separation
+                        self.core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        self.core.wincan.draw_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                    }
+                }
+
                 if self.debug {
                 // Draw player collision hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
@@ -720,19 +767,13 @@ impl Manager {
                     if self.game.player.current_frame_tile != self.game.player.prev_frame_tile {
                         self.core.wincan.fill_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
                                                              (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
-                                                             64,
-                                                             65,
-                        ));
-
+                                                             64, 65, ));
                     }
                     else {
                         self.core.wincan.draw_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
                                                              (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
-                                                             64,
-                                                             65,
-                        ));
+                                                             64, 65, ));
                     }
-
                 }
 
 
