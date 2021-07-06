@@ -115,15 +115,15 @@ impl Player {
     pub fn get_attackbox_world(&self) -> Rect {
         match self.dir {
             Direction::Up => {
-                Rect::new(self.pos.x as i32 - self.attackbox.x, self.pos.y as i32 - 64 - (self.attackbox.y * 2),
+                Rect::new(self.pos.x as i32 - self.attackbox.x, self.pos.y as i32 - 16 - (self.attackbox.y * 2),
                         self.attackbox.x as u32, self.attackbox.y as u32)
             }
             Direction::Down => {
-                Rect::new(self.pos.x as i32, self.pos.y as i32,
+                Rect::new(self.pos.x as i32, self.pos.y as i32 + 16,
                         self.attackbox.x as u32, self.attackbox.y as u32)
             }
             Direction::Left => {
-                Rect::new(self.pos.x as i32 - 32 - self.attackbox.x, self.pos.y as i32,
+                Rect::new(self.pos.x as i32 - 48 - self.attackbox.x, self.pos.y as i32 - 16,
                         self.attackbox.y as u32, self.attackbox.x as u32)
             }
             Direction::Right => {
