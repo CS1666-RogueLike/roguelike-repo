@@ -266,9 +266,9 @@ impl Manager {
 
         // If the test enemy is in the current room of the player...
         if self.game.cr.x == self.game.test_enemy.cr.x && self.game.cr.y == self.game.test_enemy.cr.y && !self.game.test_enemy.death{
-            // If the test enemy's walkbox intersects with the player walkbox...
+            // If the test enemy's walkbox intersects with the player attackbox...
             let wb_test = self.game.test_enemy.get_walkbox_world();
-            let player_test = self.game.player.get_walkbox_world();
+            let player_test = self.game.player.get_attackbox_world();
 
             // Then there's a collision!
             if wb_test.has_intersection(player_test) {
