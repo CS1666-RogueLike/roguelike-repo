@@ -45,7 +45,7 @@ impl Health for Enemy {
     fn max_hp(&self) -> i32 { self.m_hp }
     fn health(&self) -> i32 { self.hp }
     fn damage(&mut self, d: i32) -> i32 {
-        self.hp = (self.hp - d).max(0);
+        self.hp = (self.hp - d).max(DEATH_HP);
         self.death();
         self.hp
     }
@@ -56,7 +56,7 @@ impl Health for Enemy {
     }
 
     fn death(&mut self) -> bool {
-        if self.hp <= 0 {
+        if self.hp <= DEATH_HP {
             self.death = true;
             self.power = true;
         }

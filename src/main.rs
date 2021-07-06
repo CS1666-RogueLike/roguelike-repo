@@ -30,13 +30,13 @@ use roguelike::SDLCore;
 use roguelike::Demo;
 use entity::Health;
 use player::PowerUp;
-use entity::{Enemy, EnemyKind};
+use entity::EnemyKind;
 
 //use std::cmp::min;
 use std::collections::HashSet;
 use std::collections::HashMap;
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
 
@@ -359,7 +359,7 @@ impl Manager {
                         // the unboxing
                         x += 1;
 
-                        let mut inter_rect = match opt {
+                        let inter_rect = match opt {
                             Some(x) => x,
                             None => continue, // If no intersection just leave function, we're done
                         };
