@@ -35,6 +35,8 @@ use player::PowerUp;
 use std::collections::HashSet;
 
 use std::time::{Duration, Instant};
+use crate::menu::MenuState::GameOver;
+use crate::entity::EnemyKind;
 
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
 
@@ -109,6 +111,19 @@ impl Demo for Manager {
             for event in self.core.event_pump.poll_iter() {
                 match event {
                     Event::Quit{..} => break 'gameloop,
+                    Event::KeyUp {keycode: Some(Keycode::H), repeat: false, ..} =>
+                        { self.game.player.plus_power_health();
+                            println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
+                            println!("Max Health is: {}", self.game.player.max_hp());
+                        },
+                    Event::KeyUp {keycode: Some(Keycode::J), repeat: false, ..} =>
+                        { self.game.player.plus_power_speed();
+                            println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
+                        },
+                    Event::KeyUp {keycode: Some(Keycode::K), repeat: false, ..} =>
+                        { self.game.player.plus_power_attack();
+                            println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
+                        },
                     _ => {},
                 }
             }
@@ -211,10 +226,10 @@ impl Demo for Manager {
                     // if keystate.contains(&Keycode::H) { self.game.player.heal(2);
                     //     println!("Health is: {}", self.game.player.health());
                     // }  // heal
-                    //if keystate.contains(&Keycode::H) {
-                    //    self.game.player.plusPowerHealth();
-                    //    println!("PowerupHealth is {}", self.game.player.powerUpVec[0]);
-                    //}  // powerup
+                    // if keystate.contains(&Keycode::H) {
+                    //    self.game.player.plus_power_health();
+                    //    println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
+                    // }  // powerup
                     // if keystate.contains(&Keycode::B) { self.game.player.damage(1);
                     //     println!("Health is: {}", self.game.player.health());
                     // }  //damage
@@ -304,8 +319,28 @@ impl Manager {
             // Then there's a collision!
             if wb_test.has_intersection(player_test) {
                 //Damage enemy also! For some reason
+<<<<<<< HEAD
 
                 //self.game.test_enemy.damage(1);
+=======
+                //println!("Collision");
+                self.game.test_enemy.damage(1);
+                //Absorb Enemy
+                if self.game.test_enemy.power == true {
+                    match self.game.test_enemy.kind {
+                        EnemyKind::Health => {self.game.player.plus_power_health();
+                                println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
+                                println!("Max Health is: {}", self.game.player.max_hp());
+                                self.game.test_enemy.power = false;},
+                        EnemyKind::Speed => {self.game.player.plus_power_speed();
+                                println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
+                                self.game.test_enemy.power = false;},
+                        EnemyKind::Attack => {self.game.player.plus_power_attack();
+                                println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
+                                self.game.test_enemy.power = false;},
+                    }
+                }
+>>>>>>> main
                 // Check to see when the player was attacked last...
                 match self.game.player.last_invincibility_time {
                     // If there is an old invincibility time for the player,
@@ -338,7 +373,7 @@ impl Manager {
         let mut y = 0;
         use tile::Walkability::*;
         // This can't be done with the current room function bc it returns a reference which messes up internal stuff
-        for row in &self.game.map.floors[0].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles {
+        for row in &self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles {
             for t in row {
                 match t.walkability() {
                     Wall | Rock | Pit => {
@@ -394,7 +429,12 @@ impl Manager {
         // Branch for tiles that should only be called once (doors, pickups
         if self.game.player.current_frame_tile != self.game.player.prev_frame_tile {
             //TODO: Find a way to make these chain calls less crazy
-            match self.game.map.floors[0].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].on_walkover() {
+
+            // Set new room to visited
+            // This is done to the now previous room to avoid having to do special logic on the first room
+            self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize].visited = true;
+
+            match self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].on_walkover() {
                 WalkoverAction::DoNothing => (),
                 WalkoverAction::ChangeRooms => {
                     //println!("Door tile walked over.");
@@ -422,6 +462,7 @@ impl Manager {
                         // Move player position to just outside of bottom door in new room
                         self.game.player.pos = Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 1 * 64) as f32 + 10.0);
                     }
+
                 },
                 WalkoverAction::GivePlayerKey => {
                     println!("Key has been picked up!!!");
@@ -431,13 +472,27 @@ impl Manager {
                 WalkoverAction::GoToNextFloor => {
                     if self.game.player.has_key {
                         println!("Congratulations! You made it to the next floor!!!");
-                        self.game.map.floors[0].rooms[self.game.cr.y as usize][self.game.cr.x as usize]
+                        self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize]
                             .tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].unlock();
                         self.game.player.has_key = false;
+                        println!("{}", self.game.cf);
+                        // Temp Check for game over
+                        if self.game.cf == 1 {
+                            self.menu = GameOver;
+                        }
+                        else {
+                            self.game.cf += 1;// this should stay
+                        }
+                        println!("{}", self.game.cf);
+                        // THIS WILL NEED CHANGING
+                        self.game.cr.x = 3;
+                        self.game.cr.y = 4;
+                        self.game.player.pos.x = (LEFT_WALL + 8 * 64) as f32 + 32.0;
+                        self.game.player.pos.y = (TOP_WALL + 5 * 64) as f32 + 40.0;
+
                     }
                     else {
                         println!("You need a key to unlock this door!");
-
                     }
 
                 }
@@ -493,6 +548,23 @@ impl Manager {
                 let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
 
                 let hp_indicator = texture_creator.load_texture("assets/hp.png")?;
+
+                //power assets
+                let p_text = texture_creator.load_texture("assets/p_text.png")?;
+                let p_text_health = texture_creator.load_texture("assets/p_text_health.png")?;
+                let p_text_speed = texture_creator.load_texture("assets/p_text_speed.png")?;
+                let p_text_attack = texture_creator.load_texture("assets/p_text_attack.png")?;
+                let p_empty = texture_creator.load_texture("assets/p_empty.png")?;
+                let p_background = texture_creator.load_texture("assets/p_background.png")?;
+                let p_blue_1 = texture_creator.load_texture("assets/p_blue_1.png")?;
+                let p_blue_2 = texture_creator.load_texture("assets/p_blue_2.png")?;
+                let p_blue_3 = texture_creator.load_texture("assets/p_blue_3.png")?;
+                let p_red_1 = texture_creator.load_texture("assets/p_red_1.png")?;
+                let p_red_2 = texture_creator.load_texture("assets/p_red_2.png")?;
+                let p_red_3 = texture_creator.load_texture("assets/p_red_3.png")?;
+                let p_yellow_1 = texture_creator.load_texture("assets/p_yellow_1.png")?;
+                let p_yellow_2 = texture_creator.load_texture("assets/p_yellow_2.png")?;
+                let p_yellow_3 = texture_creator.load_texture("assets/p_yellow_3.png")?;
 
                 let mut test_vec = Vec::new();
                 test_vec.push( speed_idle );
@@ -603,11 +675,74 @@ impl Manager {
                     self.core.wincan.copy(&hp_indicator, None, Rect::new(self.game.player.get_pos_x() as i32, self.game.player.get_pos_y() as i32, 64, 64));
                 }
 
+                //draw powerup dials
+                self.core.wincan.copy(&p_text, None, Rect::new(80,468,64,64));
+                self.core.wincan.copy(&p_text_health, None, Rect::new(0,532,64,64));
+                self.core.wincan.copy(&p_text_speed, None, Rect::new(0, 596,64,64));
+                self.core.wincan.copy(&p_text_attack, None, Rect::new(0,660,64,64));
+                self.core.wincan.copy(&p_background, None, Rect::new(80,532,64,64));
+                self.core.wincan.copy(&p_background, None, Rect::new(80,596,64,64));
+                self.core.wincan.copy(&p_background, None, Rect::new(80,660,64,64));
+
+                if self.game.player.power_image_health() == 1 {
+                    self.core.wincan.copy(&p_red_1, None, Rect::new(80,532,64,64));
+                }
+                else if self.game.player.power_image_health() == 2 {
+                    self.core.wincan.copy(&p_red_2, None, Rect::new(80,532,64,64));
+                }
+                else if self.game.player.power_image_health() == 3 {
+                    self.core.wincan.copy(&p_red_3, None, Rect::new(80,532,64,64));
+                }
+                if self.game.player.power_image_speed() == 1 {
+                    self.core.wincan.copy(&p_blue_1, None, Rect::new(80,596,64,64));
+                }
+                else if self.game.player.power_image_speed() == 2 {
+                    self.core.wincan.copy(&p_blue_2, None, Rect::new(80,596,64,64));
+                }
+                else if self.game.player.power_image_speed() == 3 {
+                    self.core.wincan.copy(&p_blue_3, None, Rect::new(80,596,64,64));
+                }
+                if self.game.player.power_image_attack() == 1 {
+                    self.core.wincan.copy(&p_yellow_1, None, Rect::new(80,660,64,64));
+                }
+                else if self.game.player.power_image_attack() == 2 {
+                    self.core.wincan.copy(&p_yellow_2, None, Rect::new(80,660,64,64));
+                }
+                else if self.game.player.power_image_attack() == 3 {
+                    self.core.wincan.copy(&p_yellow_3, None, Rect::new(80,660,64,64));
+                }
+
                 // ------------------------ DRAW UI --------------------------
 
                 // Rough key setup
                 if self.game.player.has_key {
                     self.core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64));
+                }
+
+                // Minimap
+                for x in 0..8 {
+                    for y in 0..8 {
+                        // Current room
+                        if x == self.game.cr.x && y == self.game.cr.y {
+                            self.core.wincan.set_draw_color(Color::RGBA(255, 255, 255, 255));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                        }
+                        // Visited rooms
+                        else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == true {
+                            self.core.wincan.set_draw_color(Color::RGBA(80, 80, 80, 255));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                        }
+                        // Unvisited rooms
+                        else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == false &&
+                            self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].exists == true {
+                            self.core.wincan.set_draw_color(Color::RGBA(30, 30, 30, 255));
+                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+
+                        }
+                        // Black border for separation
+                        self.core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        self.core.wincan.draw_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                    }
                 }
 
                 if self.debug {
@@ -677,20 +812,16 @@ impl Manager {
                     if self.game.player.current_frame_tile != self.game.player.prev_frame_tile {
                         self.core.wincan.fill_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
                                                              (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
-                                                             64,
-                                                             65,
-                        ));
-
+                                                             64, 65, ));
                     }
                     else {
                         self.core.wincan.draw_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
                                                              (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
-                                                             64,
-                                                             65,
-                        ));
+                                                             64, 65, ));
                     }
-
                 }
+
+
 
                 }
 
