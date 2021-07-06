@@ -9,6 +9,7 @@ pub struct Player {
     // TODO: REWORK INTO INDIVIDUAL TRAITS SO THEY CAN BE USED WITH ENEMIES
     pub hitbox: Vec2<u32>, // Hitbox where player takes damage.
     pub walkbox: Rect, // Hitbox involved in collision with rooms.
+    pub attackbox: Vec2<i32>, //Attack box where player does damage
 
     pub speed: f32,
     pub dir: Direction,
@@ -23,6 +24,9 @@ pub struct Player {
 
     pub has_key: bool,
     pub last_invincibility_time: Option<Instant>,
+
+    pub last_attack_time: Option<Instant>,
+
 }
 
 pub trait PowerUp {
@@ -47,6 +51,7 @@ impl Player {
             pos: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
             hitbox: Vec2::new(48, 52),
             walkbox: Rect::new(20, 12, 40, 24),
+            attackbox: Vec2::new(20, 32),
             speed: 3.5,
             dir: Direction::Down,
             hp: MAX_HP,
@@ -59,7 +64,11 @@ impl Player {
             current_frame_tile: Vec2::new(8, 5),
 
             has_key: false,
-            last_invincibility_time: None
+            last_invincibility_time: None,
+
+            //timing attacks so they aren't just 'on'
+            last_attack_time: None,
+
         }
     }
 
@@ -107,6 +116,43 @@ impl Player {
     pub fn get_hitbox_x(&self) -> u32 { self.hitbox.x }
     pub fn get_hitbox_y(&self) -> u32 { self.hitbox.y }
 
+    pub fn get_attackbox_x(&self) -> i32 { self.attackbox.x }
+    pub fn get_attackbox_y(&self) -> i32 { self.attackbox.y }
+
+    pub fn get_attackbox_world(&self) -> Rect {
+        match self.dir {
+            Direction::Up => {
+                Rect::new(self.pos.x as i32 - self.attackbox.x, self.pos.y as i32 - 16 - (self.attackbox.y * 2),
+                        self.attackbox.x as u32, self.attackbox.y as u32)
+            }
+            Direction::Down => {
+                Rect::new(self.pos.x as i32, self.pos.y as i32 + 16,
+                        self.attackbox.x as u32, self.attackbox.y as u32)
+            }
+            Direction::Left => {
+                Rect::new(self.pos.x as i32 - 48 - self.attackbox.x, self.pos.y as i32 - 16,
+                        self.attackbox.y as u32, self.attackbox.x as u32)
+            }
+            Direction::Right => {
+                Rect::new(self.pos.x as i32 + 10 + self.attackbox.x, self.pos.y as i32 - 32,
+                        self.attackbox.y as u32, self.attackbox.x as u32)
+            }
+
+        }
+    }
+
+
+    pub fn update_attack_time(&mut self) {
+        self.last_attack_time = Some(Instant::now());
+    }
+
+    pub fn player_attack(&mut self) -> bool {
+        match self.last_attack_time {
+            Some( time ) => time.elapsed() <= Duration::from_millis(500),
+            None => false
+        }
+    }
+
     pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }
     pub fn get_dir(& mut self) -> Direction { self.dir }
 
@@ -150,7 +196,7 @@ impl Health for Player {
         }
         self.hp
     }
-    
+
     //try to implement a player death
     fn death(&mut self) -> bool {
         if self.hp <= 0 {

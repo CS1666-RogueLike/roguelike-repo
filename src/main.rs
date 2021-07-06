@@ -103,6 +103,8 @@ impl Demo for Manager {
         let mut esc_prev = false;
         let mut esc_curr = false;
 
+
+
         //println!("DOES THE ROOM EXIST? {}", self.game.current_room().exists);
 
         'gameloop: loop {
@@ -196,6 +198,26 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Down)  { self.game.player.set_dir(Direction::Down);  }
                     if keystate.contains(&Keycode::Left)  { self.game.player.set_dir(Direction::Left);  }
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
+                    if keystate.contains(&Keycode::Space) {
+                        match self.game.player.last_attack_time {
+                            // If there is an old attack time for the player,
+                            // see if the "attack window" has elapsed since then...
+                            Some( time ) => {
+                                if time.elapsed() >= Duration::from_millis(2750) {
+                                    // If so, update the invincibility time and take damage to the player.
+                                    self.game.player.update_attack_time();
+                                    // Need to check if enemy crosses attackbox
+                                }
+                                println!("{}", self.game.player.player_attack());
+                            },
+                            None => {
+                                // Otherwise, take damage as there was
+                                // no previous "invincibility window" to account for
+                                self.game.player.update_attack_time();
+
+                            }
+                        }
+                }
                     // Move player
                     self.game.player.update_pos(mov_vec);
                     for enemy in self.game.enemies.iter_mut() {
@@ -291,6 +313,15 @@ impl Manager {
                 // If the test enemy's walkbox intersects with the player walkbox...
                 let wb_test = enemy.get_walkbox_world();
                 let player_test = self.game.player.get_walkbox_world();
+
+                // Attempt at collistion with attackbox
+                if self.game.player.player_attack(){
+                    let player_attack = self.game.player.get_attackbox_world();
+                    if wb_test.has_intersection(player_attack) {
+                        println!("Collision");
+                        enemy.damage(1);
+                    }
+                }
 
                 // Then there's a collision!
                 if wb_test.has_intersection(player_test) {
@@ -723,7 +754,7 @@ impl Manager {
                         }
                         // Black border for separation
                         self.core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
-                        self.core.wincan.draw_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                        self.core.wincan.draw_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
                     }
                 }
 
@@ -749,7 +780,7 @@ impl Manager {
                         }
                         // Black border for separation
                         self.core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
-                        self.core.wincan.draw_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14));
+                        self.core.wincan.draw_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
                     }
                 }
 
@@ -773,6 +804,15 @@ impl Manager {
                         )?;
                     }
                 }
+
+                // Draw attackbox??
+                self.core.wincan.set_draw_color(Color::RGBA(77, 5, 232, 1));
+                if self.game.player.player_attack() {
+                    self.core.wincan.draw_rect(self.game.player.get_attackbox_world())?;
+                }
+
+
+
 
                 // Draw player damage hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
