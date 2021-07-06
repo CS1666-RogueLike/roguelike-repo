@@ -101,6 +101,8 @@ impl Demo for Manager {
         let mut esc_prev = false;
         let mut esc_curr = false;
 
+
+
         //println!("DOES THE ROOM EXIST? {}", self.game.current_room().exists);
 
         'gameloop: loop {
@@ -194,6 +196,26 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Down)  { self.game.player.set_dir(Direction::Down);  }
                     if keystate.contains(&Keycode::Left)  { self.game.player.set_dir(Direction::Left);  }
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
+                    if keystate.contains(&Keycode::Space) {
+                        match self.game.player.last_attack_time {
+                            // If there is an old attack time for the player,
+                            // see if the "attack window" has elapsed since then...
+                            Some( time ) => {
+                                if time.elapsed() >= Duration::from_millis(2750) {
+                                    // If so, update the invincibility time and take damage to the player.
+                                    self.game.player.update_attack_time();
+                                    // Need to check if enemy crosses attackbox
+                                }
+                                println!("{}", self.game.player.player_attack());
+                            },
+                            None => {
+                                // Otherwise, take damage as there was
+                                // no previous "invincibility window" to account for
+                                self.game.player.update_attack_time();
+
+                            }
+                    }
+                }
                     // Move player
                     self.game.player.update_pos(mov_vec);
                     self.game.test_enemy.update_pos();
@@ -285,9 +307,21 @@ impl Manager {
             let wb_test = self.game.test_enemy.get_walkbox_world();
             let player_test = self.game.player.get_walkbox_world();
 
+            // Attempt at collistion with attackbox
+            if self.game.player.player_attack(){
+                let player_attack = self.game.player.get_attackbox_world();
+                if wb_test.has_intersection(player_attack) {
+                    println!("Collision");
+                    self.game.test_enemy.damage(1);
+                }
+            }
+
             // Then there's a collision!
             if wb_test.has_intersection(player_test) {
                 //Damage enemy also! For some reason
+
+                //self.game.test_enemy.damage(1);
+
                 //println!("Collision");
                 self.game.test_enemy.damage(1);
                 //Absorb Enemy
@@ -305,6 +339,7 @@ impl Manager {
                                 self.game.test_enemy.power = false;},
                     }
                 }
+
                 // Check to see when the player was attacked last...
                 match self.game.player.last_invincibility_time {
                     // If there is an old invincibility time for the player,
@@ -714,6 +749,15 @@ impl Manager {
                 self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                 self.core.wincan.draw_rect(self.game.player.get_walkbox_world());
                 self.core.wincan.draw_rect(self.game.test_enemy.get_walkbox_world());
+
+                // Draw attackbox??
+                self.core.wincan.set_draw_color(Color::RGBA(77, 5, 232, 1));
+                if self.game.player.player_attack() {
+                    self.core.wincan.draw_rect(self.game.player.get_attackbox_world());
+                }
+
+
+
 
                 // Draw player damage hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
