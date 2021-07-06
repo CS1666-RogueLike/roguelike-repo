@@ -35,6 +35,7 @@ use player::PowerUp;
 use std::collections::HashSet;
 
 use std::time::{Duration, Instant};
+use crate::entity::EnemyKind;
 
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
 
@@ -288,6 +289,21 @@ impl Manager {
                 //Damage enemy also! For some reason
                 //println!("Collision");
                 self.game.test_enemy.damage(1);
+                //Absorb Enemy
+                if self.game.test_enemy.power == true {
+                    match self.game.test_enemy.kind {
+                        EnemyKind::Health => {self.game.player.plus_power_health();
+                                println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
+                                println!("Max Health is: {}", self.game.player.max_hp());
+                                self.game.test_enemy.power = false;},
+                        EnemyKind::Speed => {self.game.player.plus_power_speed();
+                                println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
+                                self.game.test_enemy.power = false;},
+                        EnemyKind::Attack => {self.game.player.plus_power_attack();
+                                println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
+                                self.game.test_enemy.power = false;},
+                    }
+                }
                 // Check to see when the player was attacked last...
                 match self.game.player.last_invincibility_time {
                     // If there is an old invincibility time for the player,
@@ -603,40 +619,40 @@ impl Manager {
                 }
 
                 //draw powerup dials
-                self.core.wincan.copy(&p_text, None, Rect::new(80,64,64,64));
-                self.core.wincan.copy(&p_text_health, None, Rect::new(0,128,64,64));
-                self.core.wincan.copy(&p_text_speed, None, Rect::new(0, 192,64,64));
-                self.core.wincan.copy(&p_text_attack, None, Rect::new(0,256,64,64));
-                self.core.wincan.copy(&p_background, None, Rect::new(80,128,64,64));
-                self.core.wincan.copy(&p_background, None, Rect::new(80,192,64,64));
-                self.core.wincan.copy(&p_background, None, Rect::new(80,256,64,64));
+                self.core.wincan.copy(&p_text, None, Rect::new(80,468,64,64));
+                self.core.wincan.copy(&p_text_health, None, Rect::new(0,532,64,64));
+                self.core.wincan.copy(&p_text_speed, None, Rect::new(0, 596,64,64));
+                self.core.wincan.copy(&p_text_attack, None, Rect::new(0,660,64,64));
+                self.core.wincan.copy(&p_background, None, Rect::new(80,532,64,64));
+                self.core.wincan.copy(&p_background, None, Rect::new(80,596,64,64));
+                self.core.wincan.copy(&p_background, None, Rect::new(80,660,64,64));
 
                 if self.game.player.power_image_health() == 1 {
-                    self.core.wincan.copy(&p_red_1, None, Rect::new(80,128,64,64));
+                    self.core.wincan.copy(&p_red_1, None, Rect::new(80,532,64,64));
                 }
                 else if self.game.player.power_image_health() == 2 {
-                    self.core.wincan.copy(&p_red_2, None, Rect::new(80,128,64,64));
+                    self.core.wincan.copy(&p_red_2, None, Rect::new(80,532,64,64));
                 }
                 else if self.game.player.power_image_health() == 3 {
-                    self.core.wincan.copy(&p_red_3, None, Rect::new(80,128,64,64));
+                    self.core.wincan.copy(&p_red_3, None, Rect::new(80,532,64,64));
                 }
                 if self.game.player.power_image_speed() == 1 {
-                    self.core.wincan.copy(&p_blue_1, None, Rect::new(80,192,64,64));
+                    self.core.wincan.copy(&p_blue_1, None, Rect::new(80,596,64,64));
                 }
                 else if self.game.player.power_image_speed() == 2 {
-                    self.core.wincan.copy(&p_blue_2, None, Rect::new(80,192,64,64));
+                    self.core.wincan.copy(&p_blue_2, None, Rect::new(80,596,64,64));
                 }
                 else if self.game.player.power_image_speed() == 3 {
-                    self.core.wincan.copy(&p_blue_3, None, Rect::new(80,192,64,64));
+                    self.core.wincan.copy(&p_blue_3, None, Rect::new(80,596,64,64));
                 }
                 if self.game.player.power_image_attack() == 1 {
-                    self.core.wincan.copy(&p_yellow_1, None, Rect::new(80,256,64,64));
+                    self.core.wincan.copy(&p_yellow_1, None, Rect::new(80,660,64,64));
                 }
                 else if self.game.player.power_image_attack() == 2 {
-                    self.core.wincan.copy(&p_yellow_2, None, Rect::new(80,256,64,64));
+                    self.core.wincan.copy(&p_yellow_2, None, Rect::new(80,660,64,64));
                 }
                 else if self.game.player.power_image_attack() == 3 {
-                    self.core.wincan.copy(&p_yellow_3, None, Rect::new(80,256,64,64));
+                    self.core.wincan.copy(&p_yellow_3, None, Rect::new(80,660,64,64));
                 }
 
                 // ------------------------ DRAW UI --------------------------
