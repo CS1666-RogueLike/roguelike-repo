@@ -35,6 +35,7 @@ pub struct Enemy {
     pub m_hp: i32,
     pub movement_vec: Vec2<f32>,
     pub cr: Vec2<i32>,
+    pub cf: usize,
     pub last_dir_update: Option< Instant >,
     pub kind: EnemyKind,
     pub death: bool,
@@ -65,7 +66,7 @@ impl Health for Enemy {
 }
 
 impl Enemy {
-    pub fn new(position: Vec2<f32>, kind: EnemyKind, cr: Vec2<i32>) -> Enemy {
+    pub fn new(position: Vec2<f32>, kind: EnemyKind, cr: Vec2<i32>, cf: usize) -> Enemy {
         Enemy {
             pos: position,
             hitbox: Vec2::new(40, 30),
@@ -75,6 +76,7 @@ impl Enemy {
             hp: 2,
             m_hp: 2,
             cr: cr,
+            cf: cf,
             movement_vec: Vec2::new(-1.0, 0.0),
             last_dir_update: None,
             kind: kind,

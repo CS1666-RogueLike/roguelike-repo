@@ -199,7 +199,9 @@ impl Demo for Manager {
                     // Move player
                     self.game.player.update_pos(mov_vec);
                     for enemy in self.game.enemies.iter_mut() {
-                        enemy.update_pos();
+                        if enemy.cf == self.game.cf {
+                            enemy.update_pos();
+                        }
                     }
 
                     // Apply collision
@@ -285,7 +287,7 @@ impl Manager {
             enemy.pos.y = enemy.pos.y.clamp(TOP_WALL as f32 + (enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (enemy.walkbox.y * 4) as f32);
 
             // If the test enemy is in the current room of the player...
-            if self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y && !enemy.death() {
+            if self.game.cf == enemy.cf && self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y && !enemy.death() {
                 // If the test enemy's walkbox intersects with the player walkbox...
                 let wb_test = enemy.get_walkbox_world();
                 let player_test = self.game.player.get_walkbox_world();
@@ -634,7 +636,7 @@ impl Manager {
 
                 //self.draw_enemies(textures);
                 for enemy in self.game.enemies.iter_mut() {
-                    if self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y && !enemy.death() {
+                    if self.game.cf == enemy.cf && self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y && !enemy.death() {
                         let tex = match &enemy.kind {
                             EnemyKind::Attack => &attack_idle,
                             EnemyKind::Health => &health_idle,
@@ -756,18 +758,20 @@ impl Manager {
                 self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                 self.core.wincan.draw_rect(self.game.player.get_walkbox_world())?;
                 for enemy in self.game.enemies.iter_mut() {
-                    self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                    self.core.wincan.draw_rect(enemy.get_walkbox_world())?;
-
-                    self.core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
-                    self.core.wincan.draw_rect(
-                        Rect::new(
-                            enemy.get_pos_x() - (enemy.get_hitbox_x()/2) as i32,
-                            enemy.get_pos_y() - (enemy.get_hitbox_y()) as i32,
-                            enemy.get_hitbox_x(),
-                            enemy.get_hitbox_y()
-                        )
-                    )?;
+                    if self.game.cf == enemy.cf && self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y {
+                        self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                        self.core.wincan.draw_rect(enemy.get_walkbox_world())?;
+    
+                        self.core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
+                        self.core.wincan.draw_rect(
+                            Rect::new(
+                                enemy.get_pos_x() - (enemy.get_hitbox_x()/2) as i32,
+                                enemy.get_pos_y() - (enemy.get_hitbox_y()) as i32,
+                                enemy.get_hitbox_x(),
+                                enemy.get_hitbox_y()
+                            )
+                        )?;
+                    }
                 }
 
                 // Draw player damage hitbox
