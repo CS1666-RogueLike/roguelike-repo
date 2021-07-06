@@ -110,6 +110,19 @@ impl Demo for Manager {
             for event in self.core.event_pump.poll_iter() {
                 match event {
                     Event::Quit{..} => break 'gameloop,
+                    Event::KeyUp {keycode: Some(Keycode::H), repeat: false, ..} =>
+                        { self.game.player.plus_power_health();
+                            println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
+                            println!("Max Health is: {}", self.game.player.max_hp());
+                        },
+                    Event::KeyUp {keycode: Some(Keycode::J), repeat: false, ..} =>
+                        { self.game.player.plus_power_speed();
+                            println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
+                        },
+                    Event::KeyUp {keycode: Some(Keycode::K), repeat: false, ..} =>
+                        { self.game.player.plus_power_attack();
+                            println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
+                        },
                     _ => {},
                 }
             }
@@ -194,10 +207,10 @@ impl Demo for Manager {
                     // if keystate.contains(&Keycode::H) { self.game.player.heal(2);
                     //     println!("Health is: {}", self.game.player.health());
                     // }  // heal
-                    //if keystate.contains(&Keycode::H) {
-                    //    self.game.player.plusPowerHealth();
-                    //    println!("PowerupHealth is {}", self.game.player.powerUpVec[0]);
-                    //}  // powerup
+                    // if keystate.contains(&Keycode::H) {
+                    //    self.game.player.plus_power_health();
+                    //    println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
+                    // }  // powerup
                     // if keystate.contains(&Keycode::B) { self.game.player.damage(1);
                     //     println!("Health is: {}", self.game.player.health());
                     // }  //damage
@@ -280,7 +293,27 @@ impl Manager {
                 if wb_test.has_intersection(player_test) {
                     //Damage enemy also! For some reason
                     //println!("Collision");
-                    //self.game.test_enemy.damage(1);
+                    enemy.damage(1);
+                    //Absorb Enemy
+                    if enemy.power == true {
+                        match enemy.kind {
+                            EnemyKind::Health => {
+                                self.game.player.plus_power_health();
+                                println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
+                                println!("Max Health is: {}", self.game.player.max_hp());
+                            },
+                            EnemyKind::Speed => {
+                                self.game.player.plus_power_speed();
+                                println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
+                            },
+                            EnemyKind::Attack => {
+                                self.game.player.plus_power_attack();
+                                println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
+                            },
+                        }
+                        
+                        enemy.power = false;
+                    }
                     // Check to see when the player was attacked last...
                     match self.game.player.last_invincibility_time {
                         // If there is an old invincibility time for the player,
@@ -461,6 +494,23 @@ impl Manager {
 
                 let hp_indicator = texture_creator.load_texture("assets/hp.png")?;
 
+                //power assets
+                let p_text = texture_creator.load_texture("assets/p_text.png")?;
+                let p_text_health = texture_creator.load_texture("assets/p_text_health.png")?;
+                let p_text_speed = texture_creator.load_texture("assets/p_text_speed.png")?;
+                let p_text_attack = texture_creator.load_texture("assets/p_text_attack.png")?;
+                let p_empty = texture_creator.load_texture("assets/p_empty.png")?;
+                let p_background = texture_creator.load_texture("assets/p_background.png")?;
+                let p_blue_1 = texture_creator.load_texture("assets/p_blue_1.png")?;
+                let p_blue_2 = texture_creator.load_texture("assets/p_blue_2.png")?;
+                let p_blue_3 = texture_creator.load_texture("assets/p_blue_3.png")?;
+                let p_red_1 = texture_creator.load_texture("assets/p_red_1.png")?;
+                let p_red_2 = texture_creator.load_texture("assets/p_red_2.png")?;
+                let p_red_3 = texture_creator.load_texture("assets/p_red_3.png")?;
+                let p_yellow_1 = texture_creator.load_texture("assets/p_yellow_1.png")?;
+                let p_yellow_2 = texture_creator.load_texture("assets/p_yellow_2.png")?;
+                let p_yellow_3 = texture_creator.load_texture("assets/p_yellow_3.png")?;
+
                 let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
                 let rock = texture_creator.load_texture("assets/rock.png")?;
 
@@ -584,6 +634,43 @@ impl Manager {
                     self.core.wincan.copy(&hp_indicator, None, Rect::new(self.game.player.get_pos_x() as i32, self.game.player.get_pos_y() as i32, 64, 64));
                 }
 
+                //draw powerup dials
+                self.core.wincan.copy(&p_text, None, Rect::new(80,468,64,64));
+                self.core.wincan.copy(&p_text_health, None, Rect::new(0,532,64,64));
+                self.core.wincan.copy(&p_text_speed, None, Rect::new(0, 596,64,64));
+                self.core.wincan.copy(&p_text_attack, None, Rect::new(0,660,64,64));
+                self.core.wincan.copy(&p_background, None, Rect::new(80,532,64,64));
+                self.core.wincan.copy(&p_background, None, Rect::new(80,596,64,64));
+                self.core.wincan.copy(&p_background, None, Rect::new(80,660,64,64));
+
+                if self.game.player.power_image_health() == 1 {
+                    self.core.wincan.copy(&p_red_1, None, Rect::new(80,532,64,64));
+                }
+                else if self.game.player.power_image_health() == 2 {
+                    self.core.wincan.copy(&p_red_2, None, Rect::new(80,532,64,64));
+                }
+                else if self.game.player.power_image_health() == 3 {
+                    self.core.wincan.copy(&p_red_3, None, Rect::new(80,532,64,64));
+                }
+                if self.game.player.power_image_speed() == 1 {
+                    self.core.wincan.copy(&p_blue_1, None, Rect::new(80,596,64,64));
+                }
+                else if self.game.player.power_image_speed() == 2 {
+                    self.core.wincan.copy(&p_blue_2, None, Rect::new(80,596,64,64));
+                }
+                else if self.game.player.power_image_speed() == 3 {
+                    self.core.wincan.copy(&p_blue_3, None, Rect::new(80,596,64,64));
+                }
+                if self.game.player.power_image_attack() == 1 {
+                    self.core.wincan.copy(&p_yellow_1, None, Rect::new(80,660,64,64));
+                }
+                else if self.game.player.power_image_attack() == 2 {
+                    self.core.wincan.copy(&p_yellow_2, None, Rect::new(80,660,64,64));
+                }
+                else if self.game.player.power_image_attack() == 3 {
+                    self.core.wincan.copy(&p_yellow_3, None, Rect::new(80,660,64,64));
+                }
+
                 // ------------------------ DRAW UI --------------------------
 
                 // Rough key setup
@@ -671,6 +758,8 @@ impl Manager {
                     }
 
                 }
+
+
 
                 }
 
