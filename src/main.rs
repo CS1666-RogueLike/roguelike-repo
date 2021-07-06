@@ -319,10 +319,9 @@ impl Manager {
             // Then there's a collision!
             if wb_test.has_intersection(player_test) {
                 //Damage enemy also! For some reason
-<<<<<<< HEAD
 
                 //self.game.test_enemy.damage(1);
-=======
+
                 //println!("Collision");
                 self.game.test_enemy.damage(1);
                 //Absorb Enemy
@@ -340,7 +339,7 @@ impl Manager {
                                 self.game.test_enemy.power = false;},
                     }
                 }
->>>>>>> main
+
                 // Check to see when the player was attacked last...
                 match self.game.player.last_invincibility_time {
                     // If there is an old invincibility time for the player,
