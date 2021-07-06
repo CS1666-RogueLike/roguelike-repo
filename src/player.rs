@@ -24,6 +24,9 @@ pub struct Player {
 
     pub has_key: bool,
     pub last_invincibility_time: Option<Instant>,
+
+    pub last_attack_time: Option<Instant>,
+
 }
 
 pub trait PowerUp {
@@ -61,7 +64,11 @@ impl Player {
             current_frame_tile: Vec2::new(8, 5),
 
             has_key: false,
-            last_invincibility_time: None
+            last_invincibility_time: None,
+
+            //timing attacks so they aren't just 'on'
+            last_attack_time: None,
+
         }
     }
 
@@ -132,7 +139,18 @@ impl Player {
             }
 
         }
+    }
 
+
+    pub fn update_attack_time(&mut self) {
+        self.last_attack_time = Some(Instant::now());
+    }
+
+    pub fn player_attack(&mut self) -> bool {
+        match self.last_attack_time {
+            Some( time ) => time.elapsed() <= Duration::from_millis(500),
+            None => false
+        }
     }
 
     pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }
