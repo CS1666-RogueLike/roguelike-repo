@@ -198,25 +198,10 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Down)  { self.game.player.set_dir(Direction::Down);  }
                     if keystate.contains(&Keycode::Left)  { self.game.player.set_dir(Direction::Left);  }
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
-                    if keystate.contains(&Keycode::Space) {
-                        match self.game.player.last_attack_time {
-                            // If there is an old attack time for the player,
-                            // see if the "attack window" has elapsed since then...
-                            Some( time ) => {
-                                if time.elapsed() >= Duration::from_millis(2750) {
-                                    // If so, update the invincibility time and take damage to the player.
-                                    self.game.player.update_attack_time();
-                                    // Need to check if enemy crosses attackbox
-                                }
-                            },
-                            None => {
-                                // Otherwise, take damage as there was
-                                // no previous "invincibility window" to account for
-                                self.game.player.update_attack_time();
+                    if keystate.contains(&Keycode::Space) && !self.game.player.is_attacking {
+                        self.game.player.signal_attack();
+                    }
 
-                            }
-                        }
-                }
                     // Move player
                     self.game.player.update_pos(mov_vec);
                     for enemy in self.game.enemies.iter_mut() {
@@ -313,12 +298,33 @@ impl Manager {
                 let wb_test = enemy.get_walkbox_world();
                 let player_test = self.game.player.get_walkbox_world();
 
-                // Attempt at collistion with attackbox
-                if self.game.player.player_attack(){
+                // Attempt at collision with attackbox
+                if self.game.player.is_attacking {
                     let player_attack = self.game.player.get_attackbox_world();
                     if wb_test.has_intersection(player_attack) {
                         println!("Collision");
                         enemy.damage(1);
+
+                        //Absorb Enemy
+                        if enemy.power == true {
+                            match enemy.kind {
+                                EnemyKind::Health => {
+                                    self.game.player.plus_power_health();
+                                    println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
+                                    println!("Max Health is: {}", self.game.player.max_hp());
+                                },
+                                EnemyKind::Speed => {
+                                    self.game.player.plus_power_speed();
+                                    println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
+                                },
+                                EnemyKind::Attack => {
+                                    self.game.player.plus_power_attack();
+                                    println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
+                                },
+                            }
+                            
+                            enemy.power = false;
+                        }
                     }
                 }
 
@@ -326,27 +332,7 @@ impl Manager {
                 if wb_test.has_intersection(player_test) {
                     //Damage enemy also! For some reason
                     //println!("Collision");
-                    enemy.damage(1);
-                    //Absorb Enemy
-                    if enemy.power == true {
-                        match enemy.kind {
-                            EnemyKind::Health => {
-                                self.game.player.plus_power_health();
-                                println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
-                                println!("Max Health is: {}", self.game.player.max_hp());
-                            },
-                            EnemyKind::Speed => {
-                                self.game.player.plus_power_speed();
-                                println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
-                            },
-                            EnemyKind::Attack => {
-                                self.game.player.plus_power_attack();
-                                println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
-                            },
-                        }
-                        
-                        enemy.power = false;
-                    }
+                    //enemy.damage(1);
                     // Check to see when the player was attacked last...
                     match self.game.player.last_invincibility_time {
                         // If there is an old invincibility time for the player,
@@ -784,97 +770,92 @@ impl Manager {
                 }
 
                 if self.debug {
-                // Draw player collision hitbox
-                self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                self.core.wincan.draw_rect(self.game.player.get_walkbox_world())?;
-                for enemy in self.game.enemies.iter_mut() {
-                    if self.game.cf == enemy.cf && self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y {
-                        self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                        self.core.wincan.draw_rect(enemy.get_walkbox_world())?;
-    
-                        self.core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
-                        self.core.wincan.draw_rect(
-                            Rect::new(
-                                enemy.get_pos_x() - (enemy.get_hitbox_x()/2) as i32,
-                                enemy.get_pos_y() - (enemy.get_hitbox_y()) as i32,
-                                enemy.get_hitbox_x(),
-                                enemy.get_hitbox_y()
-                            )
-                        )?;
-                    }
-                }
-
-                // Draw attackbox??
-                self.core.wincan.set_draw_color(Color::RGBA(77, 5, 232, 1));
-                if self.game.player.player_attack() {
-                    self.core.wincan.draw_rect(self.game.player.get_attackbox_world())?;
-                }
-
-
-
-
-                // Draw player damage hitbox
-                self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
-                self.core.wincan.draw_rect(Rect::new(self.game.player.get_pos_x() - (self.game.player.get_hitbox_x()/2) as i32,
-                                                    self.game.player.get_pos_y() - (self.game.player.get_hitbox_y()) as i32 + (self.game.player.get_walkbox().height()/2) as i32,
-                                                    self.game.player.get_hitbox_x(),
-                                                    self.game.player.get_hitbox_y())
-                                            )?;
-
-
-                // Draw null at center of player hitbox
-                self.core.wincan.set_draw_color(Color::RGBA(255, 0, 255, 255));
-                self.core.wincan.draw_line(
-                    Point::new(self.game.player.get_pos_x() + 4, self.game.player.get_pos_y()),
-                    Point::new(self.game.player.get_pos_x() - 4, self.game.player.get_pos_y()),
-                )?;
-                self.core.wincan.draw_line(
-                    Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() + 4),
-                    Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() - 4),
-                )?;
-
-                // Draw collision hitboxes
-                use tile::Walkability::*;
-                self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
-                x = 0;
-                y = 0;
-                for row in &self.game.current_room().tiles {
-                    for t in row {
-                        match t.walkability() {
-
-                            Wall | Rock | Pit => {
-                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
-                            }
-
-                            _ => (),
-                            // Dont draw anything for other tiles
+                    // Draw player collision hitbox
+                    self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                    self.core.wincan.draw_rect(self.game.player.get_walkbox_world())?;
+                    for enemy in self.game.enemies.iter_mut() {
+                        if self.game.cf == enemy.cf && self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y && !enemy.death() {
+                            self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                            self.core.wincan.draw_rect(enemy.get_walkbox_world())?;
+        
+                            self.core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
+                            self.core.wincan.draw_rect(
+                                Rect::new(
+                                    enemy.get_pos_x() - (enemy.get_hitbox_x()/2) as i32,
+                                    enemy.get_pos_y() - (enemy.get_hitbox_y()) as i32,
+                                    enemy.get_hitbox_x(),
+                                    enemy.get_hitbox_y()
+                                )
+                            )?;
                         }
-                        x += 1;
                     }
-                    y += 1;
-                    x = 0;
-                }
 
-                // Draw a box over the current tile
-                self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
+                    // Draw player damage hitbox
+                    self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
+                    self.core.wincan.draw_rect(Rect::new(self.game.player.get_pos_x() - (self.game.player.get_hitbox_x()/2) as i32,
+                                                        self.game.player.get_pos_y() - (self.game.player.get_hitbox_y()) as i32 + (self.game.player.get_walkbox().height()/2) as i32,
+                                                        self.game.player.get_hitbox_x(),
+                                                        self.game.player.get_hitbox_y())
+                                                )?;
+
+
+                    // Draw null at center of player hitbox
+                    self.core.wincan.set_draw_color(Color::RGBA(255, 0, 255, 255));
+                    self.core.wincan.draw_line(
+                        Point::new(self.game.player.get_pos_x() + 4, self.game.player.get_pos_y()),
+                        Point::new(self.game.player.get_pos_x() - 4, self.game.player.get_pos_y()),
+                    )?;
+                    self.core.wincan.draw_line(
+                        Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() + 4),
+                        Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() - 4),
+                    )?;
+
+                    // Draw collision hitboxes
+                    use tile::Walkability::*;
+                    self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
+                    x = 0;
+                    y = 0;
+                    for row in &self.game.current_room().tiles {
+                        for t in row {
+                            match t.walkability() {
+
+                                Wall | Rock | Pit => {
+                                    self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                                }
+
+                                _ => (),
+                                // Dont draw anything for other tiles
+                            }
+                            x += 1;
+                        }
+                        y += 1;
+                        x = 0;
+                    }
+
+                    // Draw a box over the current tile
+                    self.core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
                     if self.game.player.current_frame_tile != self.game.player.prev_frame_tile {
                         self.core.wincan.fill_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
-                                                             (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
-                                                             64,
-                                                             65,
+                                                            (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
+                                                            64,
+                                                            65,
                         ))?;
 
                     }
                     else {
                         self.core.wincan.draw_rect(Rect::new((self.game.player.get_pos_x() - LEFT_WALL) / 64 * 64 + LEFT_WALL,
-                                                             (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
-                                                             64,
-                                                             65,
+                                                            (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
+                                                            64,
+                                                            65,
                         ))?;
                     }
                 }
 
-
+                // Draw attackbox
+                self.core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
+                if self.game.player.just_attacked() {
+                    self.core.wincan.fill_rect(self.game.player.get_attackbox_world())?;
+                }
 
                 }
 
