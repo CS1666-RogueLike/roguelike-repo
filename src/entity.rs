@@ -39,6 +39,7 @@ pub struct Enemy {
     pub last_dir_update: Option< Instant >,
     pub kind: EnemyKind,
     pub death: bool,
+    pub power: bool,
 }
 
 impl Health for Enemy {
@@ -58,6 +59,7 @@ impl Health for Enemy {
     fn death(&mut self) -> bool {
         if self.hp <= 0 {
             self.death = true;
+            self.power = true;
         }
         self.death
     }
@@ -78,6 +80,7 @@ impl Enemy {
             last_dir_update: None,
             kind: kind,
             death: false,
+            power: false,
         }
     }
 

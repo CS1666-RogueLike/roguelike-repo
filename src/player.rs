@@ -109,6 +109,28 @@ impl Player {
 
     pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }
     pub fn get_dir(& mut self) -> Direction { self.dir }
+
+    pub fn power_image_health(&mut self) -> u32 {
+        let mut ret_int = 0;
+        if let Some(temp) = self.power_up_vec.get_mut(0) {
+            ret_int += *temp as u32;
+        }
+        return ret_int;
+    }
+    pub fn power_image_speed(&mut self) -> u32 {
+        let mut ret_int = 0;
+        if let Some(temp) = self.power_up_vec.get_mut(1) {
+            ret_int += *temp as u32;
+        }
+        return ret_int;
+    }
+    pub fn power_image_attack(&mut self) -> u32 {
+        let mut ret_int = 0;
+        if let Some(temp) = self.power_up_vec.get_mut(2) {
+            ret_int += *temp as u32;
+        }
+        return ret_int;
+    }
 }
 
 impl Health for Player {
@@ -145,29 +167,29 @@ impl PowerUp for Player {
         if let Some(temp) = self.power_up_vec.get_mut(0){
             *temp += 1;
         }
-        if self.power_up_vec[0] == 3 {
+        if self.power_up_vec[0] > 3 {
             if let Some(temp) = self.power_up_vec.get_mut(0){
                 *temp = 0;
             }
-            //self.m_hp += 1; can dictate later
+            self.m_hp += 1;
         }
     }
     fn plus_power_speed(&mut self){
         if let Some(temp) = self.power_up_vec.get_mut(1){
             *temp += 1;
         }
-        if self.power_up_vec[1] == 3 {
+        if self.power_up_vec[1] > 3 {
             if let Some(temp) = self.power_up_vec.get_mut(1){
                 *temp = 0;
             }
-            //self.speed += 1; can dictate later
+            self.speed += 1 as f32;
         }
     }
     fn plus_power_attack(&mut self){
         if let Some(temp) = self.power_up_vec.get_mut(2){
             *temp += 1;
         }
-        if self.power_up_vec[2] == 3 {
+        if self.power_up_vec[2] > 3 {
             if let Some(temp) = self.power_up_vec.get_mut(2){
                 *temp = 0;
             }
