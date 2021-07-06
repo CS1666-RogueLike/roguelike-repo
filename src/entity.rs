@@ -1,7 +1,6 @@
 
 use crate::util::*;
 use sdl2::rect::Rect;
-use sdl2::render::Texture;
 use std::time::{Duration, Instant};
 
 use rand::Rng;
@@ -100,7 +99,7 @@ impl Enemy {
     }
 
     pub fn update_pos(& mut self) {
-        if(self.death) {
+        if self.death {
             self.movement_vec.x = 0.0;
             self.movement_vec.y = 0.0;
             return;
@@ -113,7 +112,7 @@ impl Enemy {
             Some(update_time) => {
                 if update_time.elapsed() >= Duration::from_secs(2) {
                     match rng.gen_range( 0 ..= 15 ) {
-                        0 | 1 => {
+                        0 => {
                             self.movement_vec.x = 0.0;
                             self.movement_vec.y = -1.0;
                         },

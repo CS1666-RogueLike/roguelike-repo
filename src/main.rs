@@ -255,7 +255,7 @@ impl Demo for Manager {
             }
 
             // Draw game state
-            self.draw();
+            self.draw()?;
         }
 
 
@@ -476,7 +476,7 @@ impl Manager {
 
             MainMenu => {
                 let main_menu = texture_creator.load_texture("assets/main_menu.png")?;
-                self.core.wincan.copy(&main_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
+                self.core.wincan.copy(&main_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
             }
 
             GameActive => {
@@ -522,7 +522,7 @@ impl Manager {
                 self.core.wincan.clear();
 
                 // Draw background of game screen
-                self.core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
+                self.core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
 
                 let mut x = 0;
                 let mut y = 0;
@@ -530,15 +530,15 @@ impl Manager {
                     for t in row {
                         match t.sprite() {
                             SpriteID::Ground => {
-                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
 
                             // Do nothing, we already drew the surrounding walls as one image.
                             SpriteID::Wall => (),
 
                             SpriteID::Rock => {
-                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
-                                self.core.wincan.copy(&rock, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                                self.core.wincan.copy(&rock, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
 
                             SpriteID::Pit => {
@@ -548,26 +548,26 @@ impl Manager {
 
                             SpriteID::DoorLocked => {
                                 self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
                             SpriteID::DoorUnlocked => {
-                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                                 //self.core.wincan.set_draw_color(Color::RGBA(0, 255, 0, 255));
                                 //self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
                             }
 
                             SpriteID::Key => {
-                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
-                                self.core.wincan.copy(&key, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                                self.core.wincan.copy(&key, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
 
                             SpriteID::TrapdoorLocked => {
-                                self.core.wincan.copy(&td_locked, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                self.core.wincan.copy(&td_locked, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
 
                             SpriteID::TrapdoorUnlocked => {
                                 self.core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
-                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
                         }
                         x += 1;
@@ -583,7 +583,7 @@ impl Manager {
                                 self.game.player.get_pos_x() - 35 + 4,
                                 self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
                                 64, 64)
-                            );
+                            )?;
                     }
                     Direction::Down => {
                         self.core.wincan.copy(&slime_down, None,
@@ -591,7 +591,7 @@ impl Manager {
                                 self.game.player.get_pos_x() - 35,
                                 self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
                                 64, 64)
-                            );
+                            )?;
                     }
                     Direction::Left => {
                         self.core.wincan.copy(&slime_left, None,
@@ -599,7 +599,7 @@ impl Manager {
                                 self.game.player.get_pos_x() - 35 + 4,
                                 self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
                                 64, 64)
-                            );
+                            )?;
                     }
                     Direction::Right => {
                         self.core.wincan.copy(&slime_right, None,
@@ -607,7 +607,7 @@ impl Manager {
                                 self.game.player.get_pos_x() - 35,
                                 self.game.player.get_pos_y() - 64 + (self.game.player.get_walkbox().height()/2) as i32,
                                 64, 64)
-                            );
+                            )?;
                     }
                 }
 
@@ -631,60 +631,60 @@ impl Manager {
 
                 // If the player was attacked, show a quick damage indicator ("-1" in red)
                 if self.game.player.was_attacked() {
-                    self.core.wincan.copy(&hp_indicator, None, Rect::new(self.game.player.get_pos_x() as i32, self.game.player.get_pos_y() as i32, 64, 64));
+                    self.core.wincan.copy(&hp_indicator, None, Rect::new(self.game.player.get_pos_x() as i32, self.game.player.get_pos_y() as i32, 64, 64))?;
                 }
 
                 //draw powerup dials
-                self.core.wincan.copy(&p_text, None, Rect::new(80,468,64,64));
-                self.core.wincan.copy(&p_text_health, None, Rect::new(0,532,64,64));
-                self.core.wincan.copy(&p_text_speed, None, Rect::new(0, 596,64,64));
-                self.core.wincan.copy(&p_text_attack, None, Rect::new(0,660,64,64));
-                self.core.wincan.copy(&p_background, None, Rect::new(80,532,64,64));
-                self.core.wincan.copy(&p_background, None, Rect::new(80,596,64,64));
-                self.core.wincan.copy(&p_background, None, Rect::new(80,660,64,64));
+                self.core.wincan.copy(&p_text, None, Rect::new(80,468,64,64))?;
+                self.core.wincan.copy(&p_text_health, None, Rect::new(0,532,64,64))?;
+                self.core.wincan.copy(&p_text_speed, None, Rect::new(0, 596,64,64))?;
+                self.core.wincan.copy(&p_text_attack, None, Rect::new(0,660,64,64))?;
+                self.core.wincan.copy(&p_background, None, Rect::new(80,532,64,64))?;
+                self.core.wincan.copy(&p_background, None, Rect::new(80,596,64,64))?;
+                self.core.wincan.copy(&p_background, None, Rect::new(80,660,64,64))?;
 
                 if self.game.player.power_image_health() == 1 {
-                    self.core.wincan.copy(&p_red_1, None, Rect::new(80,532,64,64));
+                    self.core.wincan.copy(&p_red_1, None, Rect::new(80,532,64,64))?;
                 }
                 else if self.game.player.power_image_health() == 2 {
-                    self.core.wincan.copy(&p_red_2, None, Rect::new(80,532,64,64));
+                    self.core.wincan.copy(&p_red_2, None, Rect::new(80,532,64,64))?;
                 }
                 else if self.game.player.power_image_health() == 3 {
-                    self.core.wincan.copy(&p_red_3, None, Rect::new(80,532,64,64));
+                    self.core.wincan.copy(&p_red_3, None, Rect::new(80,532,64,64))?;
                 }
                 if self.game.player.power_image_speed() == 1 {
-                    self.core.wincan.copy(&p_blue_1, None, Rect::new(80,596,64,64));
+                    self.core.wincan.copy(&p_blue_1, None, Rect::new(80,596,64,64))?;
                 }
                 else if self.game.player.power_image_speed() == 2 {
-                    self.core.wincan.copy(&p_blue_2, None, Rect::new(80,596,64,64));
+                    self.core.wincan.copy(&p_blue_2, None, Rect::new(80,596,64,64))?;
                 }
                 else if self.game.player.power_image_speed() == 3 {
-                    self.core.wincan.copy(&p_blue_3, None, Rect::new(80,596,64,64));
+                    self.core.wincan.copy(&p_blue_3, None, Rect::new(80,596,64,64))?;
                 }
                 if self.game.player.power_image_attack() == 1 {
-                    self.core.wincan.copy(&p_yellow_1, None, Rect::new(80,660,64,64));
+                    self.core.wincan.copy(&p_yellow_1, None, Rect::new(80,660,64,64))?;
                 }
                 else if self.game.player.power_image_attack() == 2 {
-                    self.core.wincan.copy(&p_yellow_2, None, Rect::new(80,660,64,64));
+                    self.core.wincan.copy(&p_yellow_2, None, Rect::new(80,660,64,64))?;
                 }
                 else if self.game.player.power_image_attack() == 3 {
-                    self.core.wincan.copy(&p_yellow_3, None, Rect::new(80,660,64,64));
+                    self.core.wincan.copy(&p_yellow_3, None, Rect::new(80,660,64,64))?;
                 }
 
                 // ------------------------ DRAW UI --------------------------
 
                 // Rough key setup
                 if self.game.player.has_key {
-                    self.core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64));
+                    self.core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64))?;
                 }
 
                 if self.debug {
                 // Draw player collision hitbox
                 self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                self.core.wincan.draw_rect(self.game.player.get_walkbox_world());
+                self.core.wincan.draw_rect(self.game.player.get_walkbox_world())?;
                 for enemy in self.game.enemies.iter_mut() {
                     self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                    self.core.wincan.draw_rect(enemy.get_walkbox_world());
+                    self.core.wincan.draw_rect(enemy.get_walkbox_world())?;
 
                     self.core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
                     self.core.wincan.draw_rect(
@@ -694,7 +694,7 @@ impl Manager {
                             enemy.get_hitbox_x(),
                             enemy.get_hitbox_y()
                         )
-                    );
+                    )?;
                 }
 
                 // Draw player damage hitbox
@@ -703,7 +703,7 @@ impl Manager {
                                                     self.game.player.get_pos_y() - (self.game.player.get_hitbox_y()) as i32 + (self.game.player.get_walkbox().height()/2) as i32,
                                                     self.game.player.get_hitbox_x(),
                                                     self.game.player.get_hitbox_y())
-                                            );
+                                            )?;
 
 
                 // Draw null at center of player hitbox
@@ -711,11 +711,11 @@ impl Manager {
                 self.core.wincan.draw_line(
                     Point::new(self.game.player.get_pos_x() + 4, self.game.player.get_pos_y()),
                     Point::new(self.game.player.get_pos_x() - 4, self.game.player.get_pos_y()),
-                );
+                )?;
                 self.core.wincan.draw_line(
                     Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() + 4),
                     Point::new(self.game.player.get_pos_x(), self.game.player.get_pos_y() - 4),
-                );
+                )?;
 
                 // Draw collision hitboxes
                 use tile::Walkability::*;
@@ -727,7 +727,7 @@ impl Manager {
                         match t.walkability() {
 
                             Wall | Rock | Pit => {
-                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
 
                             _ => (),
@@ -746,7 +746,7 @@ impl Manager {
                                                              (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
                                                              64,
                                                              65,
-                        ));
+                        ))?;
 
                     }
                     else {
@@ -754,7 +754,7 @@ impl Manager {
                                                              (self.game.player.get_pos_y() - TOP_WALL) / 64 * 64 + TOP_WALL,
                                                              64,
                                                              65,
-                        ));
+                        ))?;
                     }
 
                 }
@@ -765,7 +765,7 @@ impl Manager {
 
                 GameOver => {
                     let gameover = texture_creator.load_texture("assets/game_over.png")?;
-                    self.core.wincan.copy(&gameover, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
+                    self.core.wincan.copy(&gameover, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
                 }
 
                 GamePaused => {
@@ -773,7 +773,7 @@ impl Manager {
                     self.core.wincan.clear();
 
                     let pause_menu = texture_creator.load_texture("assets/pause_menu.png")?;
-                    self.core.wincan.copy(&pause_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
+                    self.core.wincan.copy(&pause_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
                 }
 
             }
