@@ -19,12 +19,14 @@ pub trait Health {
     fn death(&mut self) -> bool;
 }
 
+#[derive(Clone)]
 pub enum EnemyKind {
     Attack,
     Health,
     Speed
 }
 
+#[derive(Clone)]
 pub struct Enemy {
     pub pos: Vec2<f32>,
     pub hitbox: Vec2<u32>, // Hitbox where speed enemy takes damage.
@@ -34,8 +36,6 @@ pub struct Enemy {
     pub hp: i32,    //store the health for speed enemy
     pub m_hp: i32,
     pub movement_vec: Vec2<f32>,
-    pub cr: Vec2<i32>,
-    pub cf: usize,
     pub last_dir_update: Option< Instant >,
     pub kind: EnemyKind,
     pub death: bool,
@@ -66,7 +66,7 @@ impl Health for Enemy {
 }
 
 impl Enemy {
-    pub fn new(position: Vec2<f32>, kind: EnemyKind, cr: Vec2<i32>, cf: usize) -> Enemy {
+    pub fn new(position: Vec2<f32>, kind: EnemyKind) -> Enemy {
         Enemy {
             pos: position,
             hitbox: Vec2::new(40, 30),
@@ -75,8 +75,6 @@ impl Enemy {
             dir: Direction::Left,
             hp: 1,
             m_hp: 1,
-            cr: cr,
-            cf: cf,
             movement_vec: Vec2::new(-1.0, 0.0),
             last_dir_update: None,
             kind: kind,
