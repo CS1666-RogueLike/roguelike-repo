@@ -148,7 +148,7 @@ impl Player {
         self.last_attack_time = Some(Instant::now());
     }
 
-    pub fn just_attacked(&mut self) -> bool {
+    pub fn recently_attacked(&mut self) -> bool {
         match self.last_attack_time {
             Some( time ) => {
                 let res = time.elapsed() <= Duration::from_millis(500);

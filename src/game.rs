@@ -5,6 +5,8 @@ use crate::room::*;
 use crate::util::*;
 use crate::entity::*;
 
+use std::time::Instant;
+
 pub struct Game {
     pub player: Player,
     pub map: Map,
@@ -15,6 +17,7 @@ pub struct Game {
 
     // Current floor
     pub cf: usize,
+    pub init_time: Instant,
 }
 
 impl Game {
@@ -29,6 +32,7 @@ impl Game {
             cr: Vec2::new(3, 4),
             cf: 0,
             enemies: enemies,
+            init_time: Instant::now(),
             //cr: Vec2::new(1, 3),
         }
     }
