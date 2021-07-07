@@ -676,7 +676,7 @@ impl Manager {
                 }
 
                 for i in 0 .. self.game.player.hp {
-                    self.core.wincan.copy(&pl_heart, None, Rect::new(2 + (i * 63), 40, 64, 64))?;
+                    self.core.wincan.copy(&pl_heart, None, Rect::new(1 + (i * 63), 40, 64, 64))?;
                 }
 
                 //draw powerup dials
