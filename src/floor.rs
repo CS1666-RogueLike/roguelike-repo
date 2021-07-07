@@ -208,16 +208,16 @@ impl Floor {
         rooms[5][4] = Box::new(Room::new_test_room(blueprint));
 
 
-        // Print layout of rooms
-        println!();
-        println!();
-        for x in 0..8 {
-            for y in 0..8 {
-                print!("{} ", if rooms[x][y].exists {"R"} else {"_"});
+        // Print layout of rooms (debug)
+        // println!();
+        // println!();
+        // for x in 0..8 {
+        //     for y in 0..8 {
+        //         print!("{} ", if rooms[x][y].exists {"R"} else {"_"});
 
-            }
-            println!();
-        }
+        //     }
+        //     println!();
+        // }
 
 
 
@@ -230,7 +230,7 @@ impl Floor {
         // Fill floor with invalid roooms
         for x in 0..8 {
             rooms.push(Vec::with_capacity(8));
-            for y in 0..8 {
+            for _y in 0..8 {
                 rooms[x].push(Box::new(Room::non_room()));
             }
         }
@@ -423,16 +423,16 @@ impl Floor {
         // -------------- BOTTOM ROW ------------------
 
 
-        // Print layout of rooms
-        println!();
-        println!();
-        for x in 0..8 {
-            for y in 0..8 {
-                print!("{} ", if rooms[x][y].exists {"R"} else {"_"});
+        // Print layout of rooms (debug)
+        // println!();
+        // println!();
+        // for x in 0..8 {
+        //     for y in 0..8 {
+        //         print!("{} ", if rooms[x][y].exists {"R"} else {"_"});
 
-            }
-            println!();
-        }
+        //     }
+        //     println!();
+        // }
 
         Floor { rooms }
     }

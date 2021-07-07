@@ -34,9 +34,8 @@ use entity::EnemyKind;
 
 //use std::cmp::min;
 use std::collections::HashSet;
-use std::collections::HashMap;
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use crate::menu::MenuState::GameOver;
 
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
@@ -93,6 +92,7 @@ impl Demo for Manager {
         println!("\tLeft Arrow\tLook Left");
         println!("\tRight Arrow\tLook Right");
         println!("");
+        println!("\tSpace\t\tShort-range attack (cardinal directions only)");
         println!("\tEscape\t\tPause game (while in game, not menus)");
         println!("");
 
@@ -198,7 +198,8 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Down)  { self.game.player.set_dir(Direction::Down);  }
                     if keystate.contains(&Keycode::Left)  { self.game.player.set_dir(Direction::Left);  }
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
-                    if keystate.contains(&Keycode::Space) && !self.game.player.is_attacking {
+                    if keystate.contains(&Keycode::Space) && matches!(self.menu, MenuState::GameActive) && 
+                    self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
                         self.game.player.signal_attack();
                     }
 
@@ -274,10 +275,9 @@ impl Demo for Manager {
 }
 
 impl Manager {
+    // fn draw_init(& mut self) {
 
-    fn draw_init(& mut self) {
-
-    }
+    // }
 
     fn collide(& mut self) {
 
@@ -302,7 +302,7 @@ impl Manager {
                 if self.game.player.is_attacking {
                     let player_attack = self.game.player.get_attackbox_world();
                     if wb_test.has_intersection(player_attack) {
-                        println!("Collision");
+                        println!("Attack collided with enemy!");
                         enemy.damage(1);
 
                         //Absorb Enemy
@@ -468,7 +468,7 @@ impl Manager {
                         self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize]
                             .tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].unlock();
                         self.game.player.has_key = false;
-                        println!("{}", self.game.cf);
+                        //Debug: println!("{}", self.game.cf);
                         // Temp Check for game over
                         if self.game.cf == 1 {
                             self.menu = GameOver;
@@ -476,7 +476,7 @@ impl Manager {
                         else {
                             self.game.cf += 1;// this should stay
                         }
-                        println!("{}", self.game.cf);
+                        //Debug: println!("{}", self.game.cf);
                         // THIS WILL NEED CHANGING
                         self.game.cr.x = 3;
                         self.game.cr.y = 4;
@@ -538,7 +538,7 @@ impl Manager {
                 let p_text_health = texture_creator.load_texture("assets/p_text_health.png")?;
                 let p_text_speed = texture_creator.load_texture("assets/p_text_speed.png")?;
                 let p_text_attack = texture_creator.load_texture("assets/p_text_attack.png")?;
-                let p_empty = texture_creator.load_texture("assets/p_empty.png")?;
+                //let p_empty = texture_creator.load_texture("assets/p_empty.png")?;
                 let p_background = texture_creator.load_texture("assets/p_background.png")?;
                 let p_blue_1 = texture_creator.load_texture("assets/p_blue_1.png")?;
                 let p_blue_2 = texture_creator.load_texture("assets/p_blue_2.png")?;
@@ -555,6 +555,8 @@ impl Manager {
 
                 let key = texture_creator.load_texture("assets/key.png")?;
                 let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
+                
+                let pl_heart = texture_creator.load_texture("assets/playerheart16x16.png")?;
 
                 // Draw black screen
                 self.core.wincan.set_draw_color(Color::BLACK);
@@ -673,6 +675,10 @@ impl Manager {
                     self.core.wincan.copy(&hp_indicator, None, Rect::new(self.game.player.get_pos_x() as i32, self.game.player.get_pos_y() as i32, 64, 64))?;
                 }
 
+                for i in 0 .. self.game.player.hp {
+                    self.core.wincan.copy(&pl_heart, None, Rect::new(1 + (i * 63), 40, 64, 64))?;
+                }
+
                 //draw powerup dials
                 self.core.wincan.copy(&p_text, None, Rect::new(80,468,64,64))?;
                 self.core.wincan.copy(&p_text_health, None, Rect::new(0,532,64,64))?;
@@ -717,55 +723,55 @@ impl Manager {
                     self.core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64))?;
                 }
 
+                // Minimap (commented out first block as the block below does the same thing)
+                // for x in 0..8 {
+                //     for y in 0..8 {
+                //         // Current room
+                //         if x == self.game.cr.x && y == self.game.cr.y {
+                //             self.core.wincan.set_draw_color(Color::RGBA(255, 255, 255, 255));
+                //             self.core.wincan.fill_rect(Rect::new(22 + x * 20, 300 + y * 14, 20, 14))?;
+                //         }
+                //         // Visited rooms
+                //         else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == true {
+                //             self.core.wincan.set_draw_color(Color::RGBA(80, 80, 80, 255));
+                //             self.core.wincan.fill_rect(Rect::new(22 + x * 20, 300 + y * 14, 20, 14))?;
+                //         }
+                //         // Unvisited rooms
+                //         else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == false &&
+                //             self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].exists == true {
+                //             self.core.wincan.set_draw_color(Color::RGBA(30, 30, 30, 255));
+                //             self.core.wincan.fill_rect(Rect::new(22 + x * 20, 300 + y * 14, 20, 14))?;
+
+                //         }
+                //         // Black border for separation
+                //         self.core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                //         self.core.wincan.draw_rect(Rect::new(22 + x * 20, 300 + y * 14, 20, 14))?;
+                //     }
+                // }
+
                 // Minimap
                 for x in 0..8 {
                     for y in 0..8 {
                         // Current room
                         if x == self.game.cr.x && y == self.game.cr.y {
                             self.core.wincan.set_draw_color(Color::RGBA(255, 255, 255, 255));
-                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
+                            self.core.wincan.fill_rect(Rect::new(22 + x * 20, 300 + y * 14, 20, 14))?;
                         }
                         // Visited rooms
                         else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == true {
                             self.core.wincan.set_draw_color(Color::RGBA(80, 80, 80, 255));
-                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
+                            self.core.wincan.fill_rect(Rect::new(22 + x * 20, 300 + y * 14, 20, 14))?;
                         }
                         // Unvisited rooms
                         else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == false &&
                             self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].exists == true {
                             self.core.wincan.set_draw_color(Color::RGBA(30, 30, 30, 255));
-                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
+                            self.core.wincan.fill_rect(Rect::new(22 + x * 20, 300 + y * 14, 20, 14))?;
 
                         }
                         // Black border for separation
                         self.core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
-                        self.core.wincan.draw_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
-                    }
-                }
-
-                // Minimap
-                for x in 0..8 {
-                    for y in 0..8 {
-                        // Current room
-                        if x == self.game.cr.x && y == self.game.cr.y {
-                            self.core.wincan.set_draw_color(Color::RGBA(255, 255, 255, 255));
-                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
-                        }
-                        // Visited rooms
-                        else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == true {
-                            self.core.wincan.set_draw_color(Color::RGBA(80, 80, 80, 255));
-                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
-                        }
-                        // Unvisited rooms
-                        else if self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].visited == false &&
-                            self.game.map.floors[self.game.cf].rooms[y as usize][x as usize].exists == true {
-                            self.core.wincan.set_draw_color(Color::RGBA(30, 30, 30, 255));
-                            self.core.wincan.fill_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
-
-                        }
-                        // Black border for separation
-                        self.core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
-                        self.core.wincan.draw_rect(Rect::new(12 + x * 20, 300 + y * 14, 20, 14))?;
+                        self.core.wincan.draw_rect(Rect::new(22 + x * 20, 300 + y * 14, 20, 14))?;
                     }
                 }
 
@@ -853,32 +859,30 @@ impl Manager {
 
                 // Draw attackbox
                 self.core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
-                if self.game.player.just_attacked() {
+                if self.game.player.recently_attacked() {
                     self.core.wincan.fill_rect(self.game.player.get_attackbox_world())?;
-                }
-
-                }
-
-                GameOver => {
-                    let gameover = texture_creator.load_texture("assets/game_over.png")?;
-                    self.core.wincan.copy(&gameover, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
-                }
-
-                GamePaused => {
-                    self.core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
-                    self.core.wincan.clear();
-
-                    let pause_menu = texture_creator.load_texture("assets/pause_menu.png")?;
-                    self.core.wincan.copy(&pause_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
                 }
 
             }
 
-            // Tell SDL to draw everything on screen.
-            self.core.wincan.present();
+            GameOver => {
+                let gameover = texture_creator.load_texture("assets/game_over.png")?;
+                self.core.wincan.copy(&gameover, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+            }
 
-            Ok(())
+            GamePaused => {
+                self.core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                self.core.wincan.clear();
 
+                let pause_menu = texture_creator.load_texture("assets/pause_menu.png")?;
+                self.core.wincan.copy(&pause_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+            }
+
+        }
+
+        // Tell SDL to draw everything on screen.
+        self.core.wincan.present();
+
+        Ok(())
     }
-
 }
