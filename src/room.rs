@@ -41,6 +41,7 @@ impl Room {
         // R -> Rock
         // P -> Pit
         // D -> Door
+        // S -> Spike
 
         // BLUEPRINT ARRAY SHOULD BE DEFINED IN FLOOR.RS AND PASSED IN
 
@@ -61,6 +62,7 @@ impl Room {
                     'W' => tiles[y as usize].push(Box::new(Wall {})),
                     'R' => tiles[y as usize].push(Box::new(Rock {})),
                     'P' => tiles[y as usize].push(Box::new(Pit {})),
+                    'S' => tiles[y as usize].push(Box::new(Spike {})),
                     // TODO: Add code for proper handling of direction
                     'D' => tiles[y as usize].push(Box::new(Door { lock: LockState::Unlocked, position: Direction::Up })),
 

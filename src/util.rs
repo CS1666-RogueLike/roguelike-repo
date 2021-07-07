@@ -56,4 +56,5 @@ pub enum SpriteID {
     Key,
     TrapdoorLocked,
     TrapdoorUnlocked,
+    Spike,
 }

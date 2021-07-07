@@ -66,7 +66,7 @@ impl Demo for Manager {
         let debug = false;
         let menu = MenuState::MainMenu;
         let game = Game::new();
-        
+
         Ok(Manager{core, debug, menu, game})
     }
 
@@ -198,7 +198,7 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Down)  { self.game.player.set_dir(Direction::Down);  }
                     if keystate.contains(&Keycode::Left)  { self.game.player.set_dir(Direction::Left);  }
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
-                    if keystate.contains(&Keycode::Space) && matches!(self.menu, MenuState::GameActive) && 
+                    if keystate.contains(&Keycode::Space) && matches!(self.menu, MenuState::GameActive) &&
                     self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
                         self.game.player.signal_attack();
                     }
@@ -322,7 +322,7 @@ impl Manager {
                                     println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
                                 },
                             }
-                            
+
                             enemy.power = false;
                         }
                     }
@@ -462,6 +462,11 @@ impl Manager {
                     self.game.player.has_key = true;
                 },
 
+                WalkoverAction::Damage => {
+                    println!("You've stepped on spikes!");
+                    self.game.player.damage(1);
+                },
+
                 WalkoverAction::GoToNextFloor => {
                     if self.game.player.has_key {
                         println!("Congratulations! You made it to the next floor!!!");
@@ -496,7 +501,7 @@ impl Manager {
     }
 
     // fn draw_enemies<'r>(&mut self, textures: Vec<Texture>) -> Result<(), String> {
-        
+
 
     //     Ok(())
     // }
@@ -526,7 +531,7 @@ impl Manager {
                 let slime_down = texture_creator.load_texture("assets/slime_down.png")?;
                 let slime_left = texture_creator.load_texture("assets/slime_left.png")?;
                 let slime_right = texture_creator.load_texture("assets/slime_right.png")?;
-                
+
                 let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
                 let attack_idle = texture_creator.load_texture("assets/wizard_attack_enemy.png")?;
                 let health_idle = texture_creator.load_texture("assets/health-sprite-down.png")?;
@@ -555,7 +560,7 @@ impl Manager {
 
                 let key = texture_creator.load_texture("assets/key.png")?;
                 let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
-                
+
                 let pl_heart = texture_creator.load_texture("assets/playerheart16x16.png")?;
 
                 // Draw black screen
@@ -610,6 +615,11 @@ impl Manager {
                                 self.core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
                                 self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
+
+                            SpriteID::Spike => {
+                                self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            }
                         }
                         x += 1;
                     }
@@ -660,7 +670,7 @@ impl Manager {
                             EnemyKind::Health => &health_idle,
                             EnemyKind::Speed => &speed_idle
                         };
-        
+
                         self.core.wincan.copy(&tex, None,
                             Rect::new(
                                 enemy.get_pos_x() - 35 + 4,
@@ -783,7 +793,7 @@ impl Manager {
                         if self.game.cf == enemy.cf && self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y && !enemy.death() {
                             self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                             self.core.wincan.draw_rect(enemy.get_walkbox_world())?;
-        
+
                             self.core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
                             self.core.wincan.draw_rect(
                                 Rect::new(
