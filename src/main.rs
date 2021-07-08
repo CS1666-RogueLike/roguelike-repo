@@ -428,7 +428,7 @@ impl Manager {
             self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize].visited = true;
 
             match self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].on_walkover() {
-                WalkoverAction::DoNothing => (),
+                WalkoverAction::DoNothing => {self.game.player.speed_adjust(WalkoverAction::DoNothing);},
                 WalkoverAction::ChangeRooms => {
                     //println!("Door tile walked over.");
                     if self.game.player.current_frame_tile.x == 0 { // LEFT DOOR
@@ -465,6 +465,10 @@ impl Manager {
                 WalkoverAction::Damage => {
                     println!("You've stepped on spikes!");
                     self.game.player.damage(1);
+                    self.game.player.speed_adjust(WalkoverAction::Damage);
+                    if self.game.player.death() {
+                        self.menu = MenuState::GameOver;
+                    }
                 },
 
                 WalkoverAction::GoToNextFloor => {
@@ -557,6 +561,7 @@ impl Manager {
 
                 let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
                 let rock = texture_creator.load_texture("assets/rock.png")?;
+                let spike = texture_creator.load_texture("assets/spike.png")?;
 
                 let key = texture_creator.load_texture("assets/key.png")?;
                 let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
@@ -619,6 +624,7 @@ impl Manager {
                             SpriteID::Spike => {
                                 self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                                 self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                                self.core.wincan.copy(&spike, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
                         }
                         x += 1;

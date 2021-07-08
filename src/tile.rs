@@ -33,6 +33,7 @@ pub enum Walkability {
 }
 
 // what is it doing to the player/entity that is walking over it
+#[derive(Debug)]
 pub enum WalkoverAction {
     DoNothing,
     ChangeRooms,
