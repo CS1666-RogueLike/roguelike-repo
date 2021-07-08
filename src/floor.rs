@@ -1,4 +1,6 @@
 use crate::room::*;
+use crate::entity::*;
+use crate::util::*;
 
 pub struct Floor {
 
@@ -56,6 +58,9 @@ impl Floor {
             ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 10
         ];
         rooms[3][4] = Box::new(Room::new_test_room(blueprint));
+        let mut enemies_34_fl0 = Vec::new();
+        enemies_34_fl0.push(Enemy::new(Vec2::new((LEFT_WALL + 12 * 64) as f32 + 32.0, (TOP_WALL + 7 * 64) as f32 + 40.0), EnemyKind::Speed));
+        rooms[3][4].add_enemies(enemies_34_fl0);
 
         // TOP LEFT ROOM
         blueprint = [
@@ -92,8 +97,9 @@ impl Floor {
             ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 10
         ];
         rooms[3][2] = Box::new(Room::new_test_room(blueprint));
-
-
+        let mut enemies_32_fl0 = Vec::new();
+        enemies_32_fl0.push(Enemy::new( Vec2::new((LEFT_WALL + 3 * 64) as f32 + 32.0, (TOP_WALL + 6 * 64) as f32 + 40.0), EnemyKind::Attack));
+        rooms[3][2].add_enemies(enemies_32_fl0);
 
 
         // LEFT MID ROOM
@@ -223,6 +229,7 @@ impl Floor {
 
         Floor { rooms }
     }
+
     pub fn test_floor_2() -> Floor {
         // Initialize all grid spaces with None
         let mut rooms: Vec<Vec<Box<Room>>> = Vec::with_capacity(8);
@@ -397,6 +404,9 @@ impl Floor {
             ['W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W'], // 10
         ];
         rooms[4][4] = Box::new(Room::new_test_room(blueprint));
+        let mut enemies_44_fl1 = Vec::new();
+        enemies_44_fl1.push(Enemy::new(Vec2::new((LEFT_WALL + 14 * 64) as f32 + 32.0, (TOP_WALL + 9 * 64) as f32 + 40.0), EnemyKind::Health));
+        rooms[4][4].add_enemies(enemies_44_fl1);
 
         // 1 ABOVE 1 LEFT
         blueprint = [
