@@ -205,11 +205,19 @@ impl Demo for Manager {
 
                     // Move player
                     self.game.player.update_pos(mov_vec);
-                    for enemy in self.game.enemies.iter_mut() {
-                        if enemy.cf == self.game.cf {
-                            enemy.update_pos();
-                        }
+                    let mut enemies = self.game.current_room().enemies.clone();
+
+                    match &mut enemies {
+                        Some( enemy_list ) => {
+                            for enemy in enemy_list.iter_mut() {
+                                enemy.update_pos();
+                            }
+                        },
+                        None => {}
                     }
+
+                    self.game.current_room_mut().enemies = enemies;
+                    
 
                     // Apply collision
                     self.collide();
@@ -288,78 +296,86 @@ impl Manager {
         // TODO: Goal is to generalize hitbox data into a trait so that we can condense logic
 
         // Maintain enemy bounds for the room and check player collisions
-        for enemy in self.game.enemies.iter_mut() {
-            enemy.pos.x = enemy.pos.x.clamp(LEFT_WALL as f32 + (enemy.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (enemy.walkbox.x * 4) as f32);
-            enemy.pos.y = enemy.pos.y.clamp(TOP_WALL as f32 + (enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (enemy.walkbox.y * 4) as f32);
-
-            // If the test enemy is in the current room of the player...
-            if self.game.cf == enemy.cf && self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y && !enemy.death() {
-                // If the test enemy's walkbox intersects with the player walkbox...
-                let wb_test = enemy.get_walkbox_world();
-                let player_test = self.game.player.get_walkbox_world();
-
-                // Attempt at collision with attackbox
-                if self.game.player.is_attacking {
-                    let player_attack = self.game.player.get_attackbox_world();
-                    if wb_test.has_intersection(player_attack) {
-                        println!("Attack collided with enemy!");
-                        enemy.damage(1);
-
-                        //Absorb Enemy
-                        if enemy.power == true {
-                            match enemy.kind {
-                                EnemyKind::Health => {
-                                    self.game.player.plus_power_health();
-                                    println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
-                                    println!("Max Health is: {}", self.game.player.max_hp());
-                                },
-                                EnemyKind::Speed => {
-                                    self.game.player.plus_power_speed();
-                                    println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
-                                },
-                                EnemyKind::Attack => {
-                                    self.game.player.plus_power_attack();
-                                    println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
-                                },
+        let mut enemies = self.game.current_room().enemies.clone();
+                    
+        match &mut enemies {
+            Some( enemy_list ) => {
+                for enemy in enemy_list.iter_mut() {
+                    enemy.pos.x = enemy.pos.x.clamp(LEFT_WALL as f32 + (enemy.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (enemy.walkbox.x * 4) as f32);
+                    enemy.pos.y = enemy.pos.y.clamp(TOP_WALL as f32 + (enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (enemy.walkbox.y * 4) as f32);
+        
+                    // If the test enemy is in the current room of the player...
+                    if !enemy.death() {
+                        // If the test enemy's walkbox intersects with the player walkbox...
+                        let wb_test = enemy.get_walkbox_world();
+                        let player_test = self.game.player.get_walkbox_world();
+        
+                        // Attempt at collision with attackbox
+                        if self.game.player.is_attacking {
+                            let player_attack = self.game.player.get_attackbox_world();
+                            if wb_test.has_intersection(player_attack) {
+                                println!("Attack collided with enemy!");
+                                enemy.damage(1);
+        
+                                //Absorb Enemy
+                                if enemy.power == true {
+                                    match enemy.kind {
+                                        EnemyKind::Health => {
+                                            self.game.player.plus_power_health();
+                                            println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
+                                            println!("Max Health is: {}", self.game.player.max_hp());
+                                        },
+                                        EnemyKind::Speed => {
+                                            self.game.player.plus_power_speed();
+                                            println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
+                                        },
+                                        EnemyKind::Attack => {
+                                            self.game.player.plus_power_attack();
+                                            println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
+                                        },
+                                    }
+                                    
+                                    enemy.power = false;
+                                }
                             }
-
-                            enemy.power = false;
+                        }
+        
+                        // Then there's a collision!
+                        if wb_test.has_intersection(player_test) {
+                            //Damage enemy also! For some reason
+                            //println!("Collision");
+                            //enemy.damage(1);
+                            // Check to see when the player was attacked last...
+                            match self.game.player.last_invincibility_time {
+                                // If there is an old invincibility time for the player,
+                                // see if the "invincibility window" has elapsed since then...
+                                Some( time ) => {
+                                    if time.elapsed() >= Duration::from_millis(1750) {
+                                        // If so, update the invincibility time and take damage to the player.
+                                        self.game.player.update_invincibility_time();
+                                        self.game.player.damage(1);
+                                    }
+                                },
+                                None => {
+                                    // Otherwise, take damage as there was
+                                    // no previous "invincibility window" to account for
+                                    self.game.player.update_invincibility_time();
+                                    self.game.player.damage(1);
+                                }
+                            }
+        
+                            // If the player is dead, update to the game over menu state
+                            if self.game.player.death() {
+                                self.menu = MenuState::GameOver;
+                            }
                         }
                     }
                 }
-
-                // Then there's a collision!
-                if wb_test.has_intersection(player_test) {
-                    //Damage enemy also! For some reason
-                    //println!("Collision");
-                    //enemy.damage(1);
-                    // Check to see when the player was attacked last...
-                    match self.game.player.last_invincibility_time {
-                        // If there is an old invincibility time for the player,
-                        // see if the "invincibility window" has elapsed since then...
-                        Some( time ) => {
-                            if time.elapsed() >= Duration::from_millis(1750) {
-                                // If so, update the invincibility time and take damage to the player.
-                                self.game.player.update_invincibility_time();
-                                self.game.player.damage(1);
-                            }
-                        },
-                        None => {
-                            // Otherwise, take damage as there was
-                            // no previous "invincibility window" to account for
-                            self.game.player.update_invincibility_time();
-                            self.game.player.damage(1);
-                        }
-                    }
-
-                    // If the player is dead, update to the game over menu state
-                    if self.game.player.death() {
-                        self.menu = MenuState::GameOver;
-                    }
-                }
-            }
+            },
+            None => {}
         }
 
+        self.game.current_room_mut().enemies = enemies;
 
         self.core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
         let mut x = 0;
@@ -669,21 +685,27 @@ impl Manager {
                 }
 
                 //self.draw_enemies(textures);
-                for enemy in self.game.enemies.iter_mut() {
-                    if self.game.cf == enemy.cf && self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y && !enemy.death() {
-                        let tex = match &enemy.kind {
-                            EnemyKind::Attack => &attack_idle,
-                            EnemyKind::Health => &health_idle,
-                            EnemyKind::Speed => &speed_idle
-                        };
 
-                        self.core.wincan.copy(&tex, None,
-                            Rect::new(
-                                enemy.get_pos_x() - 35 + 4,
-                                enemy.get_pos_y() - 64 + (enemy.get_walkbox().height()/2) as i32,
-                                64, 64)
-                        )?;
-                    }
+                match &mut self.game.current_room_mut().enemies {
+                    Some( enemies ) => {
+                        for enemy in enemies.iter_mut()  {
+                            if !enemy.death() {
+                                let tex = match &enemy.kind {
+                                    EnemyKind::Attack => &attack_idle,
+                                    EnemyKind::Health => &health_idle,
+                                    EnemyKind::Speed => &speed_idle
+                                };
+                
+                                self.core.wincan.copy(&tex, None,
+                                    Rect::new(
+                                        enemy.get_pos_x() - 35 + 4,
+                                        enemy.get_pos_y() - 64 + (enemy.get_walkbox().height()/2) as i32,
+                                        64, 64)
+                                )?;
+                            }
+                        }
+                    },
+                    None => {}
                 }
 
                 // If the player was attacked, show a quick damage indicator ("-1" in red)
@@ -795,22 +817,29 @@ impl Manager {
                     // Draw player collision hitbox
                     self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                     self.core.wincan.draw_rect(self.game.player.get_walkbox_world())?;
-                    for enemy in self.game.enemies.iter_mut() {
-                        if self.game.cf == enemy.cf && self.game.cr.x == enemy.cr.x && self.game.cr.y == enemy.cr.y && !enemy.death() {
-                            self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                            self.core.wincan.draw_rect(enemy.get_walkbox_world())?;
-
-                            self.core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
-                            self.core.wincan.draw_rect(
-                                Rect::new(
-                                    enemy.get_pos_x() - (enemy.get_hitbox_x()/2) as i32,
-                                    enemy.get_pos_y() - (enemy.get_hitbox_y()) as i32,
-                                    enemy.get_hitbox_x(),
-                                    enemy.get_hitbox_y()
-                                )
-                            )?;
-                        }
+                  
+                    match &mut self.game.current_room_mut().enemies {
+                        Some( enemies ) => {
+                            for enemy in enemies.iter_mut() {
+                                if !enemy.death() {
+                                    self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                                    self.core.wincan.draw_rect(enemy.get_walkbox_world())?;
+                
+                                    self.core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
+                                    self.core.wincan.draw_rect(
+                                        Rect::new(
+                                            enemy.get_pos_x() - (enemy.get_hitbox_x()/2) as i32,
+                                            enemy.get_pos_y() - (enemy.get_hitbox_y()) as i32,
+                                            enemy.get_hitbox_x(),
+                                            enemy.get_hitbox_y()
+                                        )
+                                    )?;
+                                }
+                            }
+                        },
+                        None => {},                        
                     }
+                   
 
                     // Draw player damage hitbox
                     self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
