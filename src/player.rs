@@ -2,6 +2,9 @@ use crate::util::*;
 use crate::entity::Health;
 use sdl2::rect::Rect;
 use std::time::{Duration, Instant};
+use crate::tile::*;
+
+const PLAYER_SPEED: f32 = 3.5;
 
 pub struct Player {
     pub pos: Vec2<f32>, // Position of middle of player.
@@ -28,6 +31,9 @@ pub struct Player {
     pub is_attacking: bool,
     pub last_attack_time: Option<Instant>,
 
+    pub walkover_action: WalkoverAction,
+
+
 }
 
 pub trait PowerUp {
@@ -53,7 +59,7 @@ impl Player {
             hitbox: Vec2::new(48, 52),
             walkbox: Rect::new(20, 12, 40, 24),
             attackbox: Vec2::new(32, 48),
-            speed: 3.5,
+            speed: PLAYER_SPEED,
             dir: Direction::Down,
             hp: MAX_HP,
             m_hp: MAX_HP,
@@ -70,6 +76,8 @@ impl Player {
             //timing attacks so they aren't just 'on'
             is_attacking: false,
             last_attack_time: None,
+
+            walkover_action: WalkoverAction::DoNothing,
 
         }
     }
@@ -185,6 +193,24 @@ impl Player {
             ret_int += *temp as u32;
         }
         return ret_int;
+    }
+
+    // function to adjust speed based on the walkover action of tile
+    pub fn speed_adjust(&mut self, current_tile: WalkoverAction) {
+        match current_tile {
+            WalkoverAction::Damage => {
+                //println!("{:#?}", current_tile);
+                if self.speed >= PLAYER_SPEED{
+                    self.speed *= 0.6666;
+                }
+            },
+            _ => {
+                //println!("{}",self.speed);
+                if self.speed < PLAYER_SPEED{
+                    self.speed = PLAYER_SPEED;
+                }
+            },
+        }
     }
 }
 

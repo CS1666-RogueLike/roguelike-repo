@@ -29,14 +29,17 @@ pub enum Walkability {
     Pit, // A pit. Can't be walked over but can be flown over.
     Rock, // A mid room obstacle. Can't be walked over but can be flown over. Blocks projectiles.
     Wall, // Outer walls of the room. Nothing can pass over.
+    Spike, // Spike tile that causes damage when a player crosses
 }
 
 // what is it doing to the player/entity that is walking over it
+#[derive(Debug)]
 pub enum WalkoverAction {
     DoNothing,
     ChangeRooms,
     GivePlayerKey,
     GoToNextFloor,
+    Damage,
 }
 
 pub struct Ground {}
@@ -60,7 +63,6 @@ impl Tile for Rock {
     fn get_lock_state(&self) -> LockState { LockState::NA }
 }
 
-
 pub struct Wall {}
 impl Tile for Wall {
     fn sprite(&self) -> SpriteID { SpriteID::Wall }
@@ -76,6 +78,16 @@ impl Tile for Pit {
     fn sprite(&self) -> SpriteID { SpriteID::Pit }
     fn walkability(&self) -> Walkability { Walkability::Pit }
     fn on_walkover(& mut self) -> WalkoverAction { WalkoverAction::DoNothing }
+    fn lock(& mut self) {}
+    fn unlock(& mut self) {}
+    fn get_lock_state(&self) -> LockState { LockState::NA }
+}
+
+pub struct Spike {}
+impl Tile for Spike {
+    fn sprite(&self) -> SpriteID { SpriteID::Spike }
+    fn walkability(&self) -> Walkability { Walkability::Spike }
+    fn on_walkover(& mut self) -> WalkoverAction { WalkoverAction::Damage }
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }

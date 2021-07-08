@@ -66,7 +66,7 @@ impl Demo for Manager {
         let debug = false;
         let menu = MenuState::MainMenu;
         let game = Game::new();
-        
+
         Ok(Manager{core, debug, menu, game})
     }
 
@@ -198,7 +198,7 @@ impl Demo for Manager {
                     if keystate.contains(&Keycode::Down)  { self.game.player.set_dir(Direction::Down);  }
                     if keystate.contains(&Keycode::Left)  { self.game.player.set_dir(Direction::Left);  }
                     if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
-                    if keystate.contains(&Keycode::Space) && matches!(self.menu, MenuState::GameActive) && 
+                    if keystate.contains(&Keycode::Space) && matches!(self.menu, MenuState::GameActive) &&
                     self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
                         self.game.player.signal_attack();
                     }
@@ -444,7 +444,7 @@ impl Manager {
             self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize].visited = true;
 
             match self.game.map.floors[self.game.cf].rooms[self.game.cr.y as usize][self.game.cr.x as usize].tiles[self.game.player.current_frame_tile.y as usize][self.game.player.current_frame_tile.x as usize].on_walkover() {
-                WalkoverAction::DoNothing => (),
+                WalkoverAction::DoNothing => {self.game.player.speed_adjust(WalkoverAction::DoNothing);},
                 WalkoverAction::ChangeRooms => {
                     //println!("Door tile walked over.");
                     if self.game.player.current_frame_tile.x == 0 { // LEFT DOOR
@@ -476,6 +476,15 @@ impl Manager {
                 WalkoverAction::GivePlayerKey => {
                     println!("Key has been picked up!!!");
                     self.game.player.has_key = true;
+                },
+
+                WalkoverAction::Damage => {
+                    println!("You've stepped on spikes!");
+                    self.game.player.damage(1);
+                    self.game.player.speed_adjust(WalkoverAction::Damage);
+                    if self.game.player.death() {
+                        self.menu = MenuState::GameOver;
+                    }
                 },
 
                 WalkoverAction::GoToNextFloor => {
@@ -512,7 +521,7 @@ impl Manager {
     }
 
     // fn draw_enemies<'r>(&mut self, textures: Vec<Texture>) -> Result<(), String> {
-        
+
 
     //     Ok(())
     // }
@@ -542,7 +551,7 @@ impl Manager {
                 let slime_down = texture_creator.load_texture("assets/slime_down.png")?;
                 let slime_left = texture_creator.load_texture("assets/slime_left.png")?;
                 let slime_right = texture_creator.load_texture("assets/slime_right.png")?;
-                
+
                 let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
                 let attack_idle = texture_creator.load_texture("assets/wizard_attack_enemy.png")?;
                 let health_idle = texture_creator.load_texture("assets/health-sprite-down.png")?;
@@ -568,10 +577,11 @@ impl Manager {
 
                 let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
                 let rock = texture_creator.load_texture("assets/rock.png")?;
+                let spike = texture_creator.load_texture("assets/spike.png")?;
 
                 let key = texture_creator.load_texture("assets/key.png")?;
                 let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
-                
+
                 let pl_heart = texture_creator.load_texture("assets/playerheart16x16.png")?;
 
                 // Draw black screen
@@ -626,6 +636,12 @@ impl Manager {
                                 self.core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
                                 self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
+
+                            SpriteID::Spike => {
+                                self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                                self.core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                                self.core.wincan.copy(&spike, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            }
                         }
                         x += 1;
                     }
@@ -669,6 +685,7 @@ impl Manager {
                 }
 
                 //self.draw_enemies(textures);
+
                 match &mut self.game.current_room_mut().enemies {
                     Some( enemies ) => {
                         for enemy in enemies.iter_mut()  {
@@ -800,6 +817,7 @@ impl Manager {
                     // Draw player collision hitbox
                     self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                     self.core.wincan.draw_rect(self.game.player.get_walkbox_world())?;
+                  
                     match &mut self.game.current_room_mut().enemies {
                         Some( enemies ) => {
                             for enemy in enemies.iter_mut() {
