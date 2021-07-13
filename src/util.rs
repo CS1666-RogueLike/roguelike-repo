@@ -57,4 +57,15 @@ pub enum SpriteID {
     TrapdoorLocked,
     TrapdoorUnlocked,
     Spike,
+    GemRed,
+    GemBlue,
+    GemYellow,
+}
+
+#[derive(Copy, Clone, PartialEq)]
+pub enum Gem {
+    Red,
+    Blue,
+    Yellow,
+    None,
 }

@@ -245,6 +245,7 @@ impl Health for Player {
 
 impl PowerUp for Player {
     fn plus_power_health(&mut self){
+        // TODO: Refill health when not full hp and buff health permanently when at full hp
         if let Some(temp) = self.power_up_vec.get_mut(0){
             *temp += 1;
         }
