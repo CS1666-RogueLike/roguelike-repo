@@ -666,6 +666,7 @@ impl Manager {
                             }
 
                             SpriteID::Spike => {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                                 self.core.wincan.copy(&spike, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
                         }
