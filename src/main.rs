@@ -311,17 +311,31 @@ impl Manager {
                         if enemy.power == true {
                             match enemy.kind {
                                 EnemyKind::Health => {
-                                    self.game.player.plus_power_health();
-                                    println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
-                                    println!("Max Health is: {}", self.game.player.max_hp());
+                                    // Place gem on enemy's current tile
+                                    // TODO: MAKE MORE ROBUST, CURRENTLY WON'T WORK ON NON GROUND TILES
+                                    self.game.current_room_mut().tiles
+                                        [((enemy.get_pos_y() - TOP_WALL) / 64) as usize]
+                                        [((enemy.get_pos_x() - LEFT_WALL) / 64) as usize]
+                                        .place_gem(Gem::Red);
+                                    //self.game.player.plus_power_health();
+                                    //println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
+                                    //println!("Max Health is: {}", self.game.player.max_hp());
                                 },
                                 EnemyKind::Speed => {
-                                    self.game.player.plus_power_speed();
-                                    println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
+                                    self.game.current_room_mut().tiles
+                                        [((enemy.get_pos_y() - TOP_WALL) / 64) as usize]
+                                        [((enemy.get_pos_x() - LEFT_WALL) / 64) as usize]
+                                        .place_gem(Gem::Blue);
+                                    //self.game.player.plus_power_speed();
+                                    //println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
                                 },
                                 EnemyKind::Attack => {
-                                    self.game.player.plus_power_attack();
-                                    println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
+                                    self.game.current_room_mut().tiles
+                                        [((enemy.get_pos_y() - TOP_WALL) / 64) as usize]
+                                        [((enemy.get_pos_x() - LEFT_WALL) / 64) as usize]
+                                        .place_gem(Gem::Yellow);
+                                    //self.game.player.plus_power_attack();
+                                    //println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
                                 },
                             }
                             
@@ -461,6 +475,12 @@ impl Manager {
                     }
 
                 },
+
+                // Gem pickups
+                WalkoverAction::BuffDamage => { self.game.player.plus_power_attack(); }
+                WalkoverAction::BuffHealth => { self.game.player.plus_power_health(); }
+                WalkoverAction::BuffSpeed => { self.game.player.plus_power_speed(); }
+
                 WalkoverAction::GivePlayerKey => {
                     println!("Key has been picked up!!!");
                     self.game.player.has_key = true;
@@ -563,6 +583,11 @@ impl Manager {
                 let p_yellow_2 = texture_creator.load_texture("assets/p_yellow_2.png")?;
                 let p_yellow_3 = texture_creator.load_texture("assets/p_yellow_3.png")?;
 
+
+                let gem_red = texture_creator.load_texture("assets/gem_red.png")?;
+                let gem_yellow = texture_creator.load_texture("assets/gem_yellow.png")?;
+                let gem_blue = texture_creator.load_texture("assets/gem_blue.png")?;
+
                 let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
                 let rock = texture_creator.load_texture("assets/rock.png")?;
                 let spike = texture_creator.load_texture("assets/spike.png")?;
@@ -588,12 +613,27 @@ impl Manager {
                                 self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
 
+                            // GEMS
+                            SpriteID::GemRed => {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                                self.core.wincan.copy(&gem_red, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            }
+                            SpriteID::GemBlue => {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                                self.core.wincan.copy(&gem_blue, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            }
+                            SpriteID::GemYellow => {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                                self.core.wincan.copy(&gem_yellow, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            }
+
                             // Do nothing, we already drew the surrounding walls as one image.
                             SpriteID::Wall => (),
 
                             SpriteID::Rock => {
                                 self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                                 self.core.wincan.copy(&rock, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                                //self.core.wincan.copy(&gem_yellow, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
 
                             SpriteID::Pit => {
@@ -626,6 +666,7 @@ impl Manager {
                             }
 
                             SpriteID::Spike => {
+                                self.core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                                 self.core.wincan.copy(&spike, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
                             }
                         }

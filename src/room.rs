@@ -60,7 +60,10 @@ impl Room {
                     // implementations of the trait are. Because a box is essentially a pointer,
                     // it's of a size the compiler knows about. Thus, we give it a pointer to an
                     // implementation of the type, and the compiler is satisfied.
-                    '_' => tiles[y as usize].push(Box::new(Ground {})),
+                    '_' => tiles[y as usize].push(Box::new(Ground { gem: Gem::None })),
+                    'r' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Red })),
+                    'y' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Yellow })),
+                    'b' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Blue })),
                     'W' => tiles[y as usize].push(Box::new(Wall {})),
                     'R' => tiles[y as usize].push(Box::new(Rock {})),
                     'P' => tiles[y as usize].push(Box::new(Pit {})),
