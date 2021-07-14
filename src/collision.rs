@@ -39,36 +39,16 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
                         //Absorb Enemy
                         if enemy.power == true {
-                            match enemy.kind {
-                                EnemyKind::Health => {
-                                    // Place gem on enemy's current tile
-                                    // TODO: MAKE MORE ROBUST, CURRENTLY WON'T WORK ON NON GROUND TILES
-                                    game.current_room_mut().tiles
-                                        [((enemy.get_pos_y() - TOP_WALL) / 64) as usize]
-                                        [((enemy.get_pos_x() - LEFT_WALL) / 64) as usize]
-                                        .place_gem(Gem::Red);
-                                    //game.player.plus_power_health();
-                                    //println!("PowerupHealth is {}", game.player.power_up_vec[0]);
-                                    //println!("Max Health is: {}", game.player.max_hp());
-                                },
-                                EnemyKind::Speed => {
-                                    game.current_room_mut().tiles
-                                        [((enemy.get_pos_y() - TOP_WALL) / 64) as usize]
-                                        [((enemy.get_pos_x() - LEFT_WALL) / 64) as usize]
-                                        .place_gem(Gem::Blue);
-                                    //game.player.plus_power_speed();
-                                    //println!("PowerupSpeed is {}", game.player.power_up_vec[1]);
-                                },
-                                EnemyKind::Attack => {
-                                    game.current_room_mut().tiles
-                                        [((enemy.get_pos_y() - TOP_WALL) / 64) as usize]
-                                        [((enemy.get_pos_x() - LEFT_WALL) / 64) as usize]
-                                        .place_gem(Gem::Yellow);
-                                    //game.player.plus_power_attack();
-                                    //println!("PowerupAttack is {}", game.player.power_up_vec[2]);
-                                },
-                            }
-                            
+                            // Place gem on enemy's current tile.
+                            // TODO: Factor in walkability for tile that the gem drops on.
+                            game.current_room_mut()
+                                        .tile_at(enemy.get_pos_x(), enemy.get_pos_y())
+                                        .place_gem(match enemy.kind {
+                                        EnemyKind::Health => Gem::Red,
+                                        EnemyKind::Speed => Gem::Blue,
+                                        EnemyKind::Attack => Gem::Yellow,
+                                        });
+
                             enemy.power = false;
                         }
                     }
@@ -106,7 +86,6 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             }
         }
             
-
         game.current_room_mut().enemies = enemy_list;
 
         core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
