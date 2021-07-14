@@ -112,6 +112,14 @@ impl Room {
         }
     }
 
+    pub fn tile_at(&mut self, x: i32, y: i32) -> &mut Box<dyn Tile> {
+        &mut self.tiles[ ((y - TOP_WALL) / 64) as usize ][ ((x - LEFT_WALL) / 64) as usize ]
+    }
+
+    pub fn tile_at_vec2(&mut self, pos: Vec2<i32>) -> &mut Box<dyn Tile> {
+        self.tile_at( pos.x, pos.y )
+    }
+
     pub fn add_enemies(&mut self, enemies: Vec<Enemy>) {
         self.enemies = enemies;
     }

@@ -223,7 +223,7 @@ impl Health for Player {
         self.hp -= d;
         if self.hp <= 0 {
             self.hp = 0;
-            }
+        }
         self.hp // I changed this and the next one to use rust style implicit returns
     }
     fn heal(&mut self, h: i32) -> i32 {
