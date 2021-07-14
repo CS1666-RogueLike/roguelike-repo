@@ -270,7 +270,7 @@ impl PowerUp for Player {
             if let Some(temp) = self.power_up_vec.get_mut(1){
                 *temp = 0;
             }
-            self.speed += 1 as f32;
+            self.speed += 1.0;
         }
     }
     fn plus_power_attack(&mut self){

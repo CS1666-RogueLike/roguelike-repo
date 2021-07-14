@@ -582,7 +582,7 @@ impl Manager {
                 let key = texture_creator.load_texture("assets/key.png")?;
                 let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
 
-                let pl_heart = texture_creator.load_texture("assets/playerheart16x16.png")?;
+                let pl_heart = texture_creator.load_texture("assets/playerheart16x.png")?;
 
                 // Draw black screen
                 self.core.wincan.set_draw_color(Color::BLACK);
@@ -723,8 +723,22 @@ impl Manager {
                     self.core.wincan.copy(&hp_indicator, None, Rect::new(self.game.player.get_pos_x() as i32, self.game.player.get_pos_y() as i32, 64, 64))?;
                 }
 
+                let mut flip_heart = false;
+                let mut hp_offset_x = 0;
+                let mut hp_offset_y = 0;
                 for i in 0 .. self.game.player.hp {
-                    self.core.wincan.copy(&pl_heart, None, Rect::new(1 + (i * 63), 40, 64, 64))?;
+                    if i > 0 {
+                        if i % 2 == 0 {
+                            hp_offset_x += 1;
+                        }
+
+                        if i % 6 == 0 {
+                            hp_offset_x = 0;
+                            hp_offset_y += 34;
+                        }
+                    }
+                    self.core.wincan.copy_ex(&pl_heart, None, Rect::new(10 + ( i % 6 ) * 28 + hp_offset_x, 40 + hp_offset_y, 28, 48), 0.0, None, flip_heart, false)?;
+                    flip_heart = !flip_heart;
                 }
 
                 //draw powerup dials
