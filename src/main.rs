@@ -95,6 +95,10 @@ impl Demo for Manager {
         println!("\tSpace\t\tShort-range attack (cardinal directions only)");
         println!("\tEscape\t\tPause game (while in game, not menus)");
         println!("");
+        println!("\tH\t\tTest health power up");
+        println!("\tJ\t\tTest speed power up");
+        println!("\tK\t\tTest attack power up");
+        println!("");
 
         println!("Health is: {}", self.game.player.health());
         println!("Max Health is: {}", self.game.player.max_hp());
@@ -305,7 +309,8 @@ impl Manager {
                     let player_attack = self.game.player.get_attackbox_world();
                     if wb_test.has_intersection(player_attack) {
                         println!("Attack collided with enemy!");
-                        enemy.damage(1);
+                        enemy.damage(self.game.player.attack);
+                        println!("damage done was {}", self.game.player.attack);
 
                         //Absorb Enemy
                         if enemy.power == true {

@@ -19,6 +19,7 @@ pub struct Player {
     pub hp: i32,    //store the health for player
     pub m_hp: i32,
     pub death: bool, //trying bool for death state
+    pub attack: i32, // modifier for attack
 
     pub power_up_vec: Vec<i32>, //[Health, Speed, Attack]
 
@@ -64,6 +65,7 @@ impl Player {
             hp: MAX_HP,
             m_hp: MAX_HP,
             death: false,
+            attack: 1,
 
             power_up_vec: vec![0; 3],
 
@@ -245,7 +247,6 @@ impl Health for Player {
 
 impl PowerUp for Player {
     fn plus_power_health(&mut self){
-        // TODO: Refill health when not full hp and buff health permanently when at full hp
         if let Some(temp) = self.power_up_vec.get_mut(0){
             *temp += 1;
         }
@@ -253,7 +254,12 @@ impl PowerUp for Player {
             if let Some(temp) = self.power_up_vec.get_mut(0){
                 *temp = 0;
             }
-            self.m_hp += 1;
+            if self.hp != self.m_hp {
+                self.heal(1);
+            }
+            else{
+                self.m_hp += 1;
+            }
         }
     }
     fn plus_power_speed(&mut self){
@@ -275,7 +281,7 @@ impl PowerUp for Player {
             if let Some(temp) = self.power_up_vec.get_mut(2){
                 *temp = 0;
             }
-            //can dictate once attack is implemented
+            self.attack += 1;
         }
     }
 }
