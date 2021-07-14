@@ -1,3 +1,9 @@
+// Constants to clean up SDLCore initiation
+pub const TITLE: &str = "Roguelike";
+pub const VSYNC: bool = true;
+pub const WINDOW_WIDTH: u32 = 1280;
+pub const WINDOW_HEIGHT: u32 = 720;
+
 
 //these numbers pulled from photoshop to get exact pixel size for background
 pub const LEFT_WALL: i32 = 248 - 64;
