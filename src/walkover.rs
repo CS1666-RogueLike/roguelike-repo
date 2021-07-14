@@ -58,7 +58,7 @@ pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
 
             WalkoverAction::Damage => {
                 println!("You've stepped on spikes!");
-                game.player.damage(1);
+                game.player.take_damage(1, 1000);
                 game.player.speed_adjust(WalkoverAction::Damage);
                 if game.player.death() {
                     *menu = MenuState::GameOver;
