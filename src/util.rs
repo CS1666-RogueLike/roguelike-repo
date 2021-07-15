@@ -14,6 +14,8 @@ pub const BOT_WALL: i32 = 648 + 64;
 //-------------------------------Player/Creature Constants---------------------------------
 pub const MAX_HP: i32 = 3;
 pub const DEATH_HP: i32 = 0;
+pub const PLAYER_SPEED: f32 = 3.5;
+pub const INVINCIBILITY_TIME: u128 = 1750; //Time in milliseconds after the player takes damage that they are immune
 
 // ------------------------------------------- Vec2 --------------------------------------------
 #[derive(Copy, Clone, PartialEq)]

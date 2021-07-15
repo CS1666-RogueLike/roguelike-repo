@@ -78,25 +78,8 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 if wb_test.has_intersection(player_test) {
                     //Damage enemy also! For some reason
                     //println!("Collision");
-                    //enemy.damage(1);
-                    // Check to see when the player was attacked last...
-                    match game.player.last_invincibility_time {
-                        // If there is an old invincibility time for the player,
-                        // see if the "invincibility window" has elapsed since then...
-                        Some( time ) => {
-                            if time.elapsed() >= Duration::from_millis(1750) {
-                                // If so, update the invincibility time and take damage to the player.
-                                game.player.update_invincibility_time();
-                                game.player.damage(1);
-                            }
-                        },
-                        None => {
-                            // Otherwise, take damage as there was
-                            // no previous "invincibility window" to account for
-                            game.player.update_invincibility_time();
-                            game.player.damage(1);
-                        }
-                    }
+                    game.player.damage(1);
+
 
                     // If the player is dead, update to the game over menu state
                     if game.player.death() {

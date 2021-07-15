@@ -3,8 +3,9 @@ use crate::entity::Health;
 use sdl2::rect::Rect;
 use std::time::{Duration, Instant};
 use crate::tile::*;
+use std::convert::TryInto;
 
-const PLAYER_SPEED: f32 = 3.5;
+//const PLAYER_SPEED: f32 = 3.5; Moved to util
 
 pub struct Player {
     pub pos: Vec2<f32>, // Position of middle of player.
@@ -220,7 +221,26 @@ impl Health for Player {
     fn max_hp(&self) -> i32 { return self.m_hp; }
 	fn health(&self) -> i32 { return self.hp; }
     fn damage(&mut self, d: i32) -> i32 {
-        self.hp -= d;
+        match self.last_invincibility_time {
+                        // If there is an old invincibility time for the player,
+                        // see if the "invincibility window" has elapsed since then...
+                        Some( time ) => {
+                            if time.elapsed() >= Duration::from_millis(INVINCIBILITY_TIME.try_into().unwrap()) {
+                                // If so, update the invincibility time and take damage to the player.
+                                //game.player.update_invincibility_time(); Moved this into the damage function
+                                self.update_invincibility_time();
+                                self.hp -= d;
+                            }
+                        },
+                        None => {
+                            // Otherwise, take damage as there was
+                            // no previous "invincibility window" to account for
+                            
+                            //game.player.update_invincibility_time(); Moved this into the damage function
+                            self.update_invincibility_time();
+                            self.hp -= d;
+                        }
+                    }
         if self.hp <= 0 {
             self.hp = 0;
             }

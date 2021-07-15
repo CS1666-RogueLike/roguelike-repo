@@ -155,39 +155,51 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 y += 1;
                 x = 0;
             }
-
-            match game.player.get_dir() {
-                Direction::Up => {
-                    core.wincan.copy(&slime_up, None,
-                        Rect::new(
-                            game.player.get_pos_x() - 35 + 4,
-                            game.player.get_pos_y() - 64 + (game.player.get_walkbox().height()/2) as i32,
-                            64, 64)
-                        )?;
+            
+            
+            let mut time_since_ow = INVINCIBILITY_TIME + 1 as u128; //Some number that is above the invincibility time
+            match(game.player.last_invincibility_time) { //Check to make sure there is a time in here
+                Some (time) => {
+                    time_since_ow = time.elapsed().as_millis(); //If there is, assign it to time_since_ow
                 }
-                Direction::Down => {
-                    core.wincan.copy(&slime_down, None,
-                        Rect::new(
-                            game.player.get_pos_x() - 35,
-                            game.player.get_pos_y() - 64 + (game.player.get_walkbox().height()/2) as i32,
-                            64, 64)
-                        )?;
+                None => { //If not, keep the default value of 2000
+                    
                 }
-                Direction::Left => {
-                    core.wincan.copy(&slime_left, None,
-                        Rect::new(
-                            game.player.get_pos_x() - 35 + 4,
-                            game.player.get_pos_y() - 64 + (game.player.get_walkbox().height()/2) as i32,
-                            64, 64)
-                        )?;
-                }
-                Direction::Right => {
-                    core.wincan.copy(&slime_right, None,
-                        Rect::new(
-                            game.player.get_pos_x() - 35,
-                            game.player.get_pos_y() - 64 + (game.player.get_walkbox().height()/2) as i32,
-                            64, 64)
-                        )?;
+            }
+            if(time_since_ow > INVINCIBILITY_TIME || time_since_ow % 100 > 50) { //If the time_since_ow is longer than the invincibility time, no flashing. Otherwise, flashing sprite
+                match game.player.get_dir() {
+                    Direction::Up => {
+                        core.wincan.copy(&slime_up, None,
+                            Rect::new(
+                                game.player.get_pos_x() - 35 + 4,
+                                game.player.get_pos_y() - 64 + (game.player.get_walkbox().height()/2) as i32,
+                                64, 64)
+                            )?;
+                    }
+                    Direction::Down => {
+                        core.wincan.copy(&slime_down, None,
+                            Rect::new(
+                                game.player.get_pos_x() - 35,
+                                game.player.get_pos_y() - 64 + (game.player.get_walkbox().height()/2) as i32,
+                                64, 64)
+                            )?;
+                    }
+                    Direction::Left => {
+                        core.wincan.copy(&slime_left, None,
+                            Rect::new(
+                                game.player.get_pos_x() - 35 + 4,
+                                game.player.get_pos_y() - 64 + (game.player.get_walkbox().height()/2) as i32,
+                                64, 64)
+                            )?;
+                    }
+                    Direction::Right => {
+                        core.wincan.copy(&slime_right, None,
+                            Rect::new(
+                                game.player.get_pos_x() - 35,
+                                game.player.get_pos_y() - 64 + (game.player.get_walkbox().height()/2) as i32,
+                                64, 64)
+                            )?;
+                    }
                 }
             }
 
