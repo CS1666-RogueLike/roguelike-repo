@@ -214,6 +214,26 @@ impl Player {
             },
         }
     }
+
+    pub fn take_damage(&mut self, amount: i32, cooldown_window_ms: u64) {
+        match self.last_invincibility_time {
+            // If there is an old invincibility time for the player,
+            // see if the "invincibility window" has elapsed since then...
+            Some( time ) => {
+                if time.elapsed() >= Duration::from_millis(cooldown_window_ms) {
+                    // If so, update the invincibility time and take damage to the player.
+                    self.update_invincibility_time();
+                    self.damage(amount);
+                }
+            },
+            None => {
+                // Otherwise, take damage as there was
+                // no previous "invincibility window" to account for
+                self.update_invincibility_time();
+                self.damage(amount);
+            }
+        }
+    }
 }
 
 impl Health for Player {
@@ -223,7 +243,7 @@ impl Health for Player {
         self.hp -= d;
         if self.hp <= 0 {
             self.hp = 0;
-            }
+        }
         self.hp // I changed this and the next one to use rust style implicit returns
     }
     fn heal(&mut self, h: i32) -> i32 {
@@ -270,7 +290,7 @@ impl PowerUp for Player {
             if let Some(temp) = self.power_up_vec.get_mut(1){
                 *temp = 0;
             }
-            self.speed += 1 as f32;
+            self.speed += 1.0;
         }
     }
     fn plus_power_attack(&mut self){

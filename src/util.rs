@@ -12,7 +12,7 @@ pub const TOP_WALL: i32 = 72 - 64;
 pub const BOT_WALL: i32 = 648 + 64;
 
 //-------------------------------Player/Creature Constants---------------------------------
-pub const MAX_HP: i32 = 3;
+pub const MAX_HP: i32 = 6;
 pub const DEATH_HP: i32 = 0;
 
 // ------------------------------------------- Vec2 --------------------------------------------

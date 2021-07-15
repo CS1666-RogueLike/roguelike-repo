@@ -39,36 +39,16 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
                         //Absorb Enemy
                         if enemy.power == true {
-                            match enemy.kind {
-                                EnemyKind::Health => {
-                                    // Place gem on enemy's current tile
-                                    // TODO: MAKE MORE ROBUST, CURRENTLY WON'T WORK ON NON GROUND TILES
-                                    game.current_room_mut().tiles
-                                        [((enemy.get_pos_y() - TOP_WALL) / 64) as usize]
-                                        [((enemy.get_pos_x() - LEFT_WALL) / 64) as usize]
-                                        .place_gem(Gem::Red);
-                                    //game.player.plus_power_health();
-                                    //println!("PowerupHealth is {}", game.player.power_up_vec[0]);
-                                    //println!("Max Health is: {}", game.player.max_hp());
-                                },
-                                EnemyKind::Speed => {
-                                    game.current_room_mut().tiles
-                                        [((enemy.get_pos_y() - TOP_WALL) / 64) as usize]
-                                        [((enemy.get_pos_x() - LEFT_WALL) / 64) as usize]
-                                        .place_gem(Gem::Blue);
-                                    //game.player.plus_power_speed();
-                                    //println!("PowerupSpeed is {}", game.player.power_up_vec[1]);
-                                },
-                                EnemyKind::Attack => {
-                                    game.current_room_mut().tiles
-                                        [((enemy.get_pos_y() - TOP_WALL) / 64) as usize]
-                                        [((enemy.get_pos_x() - LEFT_WALL) / 64) as usize]
-                                        .place_gem(Gem::Yellow);
-                                    //game.player.plus_power_attack();
-                                    //println!("PowerupAttack is {}", game.player.power_up_vec[2]);
-                                },
-                            }
-                            
+                            // Place gem on enemy's current tile.
+                            // TODO: Factor in walkability for tile that the gem drops on.
+                            game.current_room_mut()
+                                        .tile_at(enemy.get_pos_x(), enemy.get_pos_y())
+                                        .place_gem(match enemy.kind {
+                                        EnemyKind::Health => Gem::Red,
+                                        EnemyKind::Speed => Gem::Blue,
+                                        EnemyKind::Attack => Gem::Yellow,
+                                        });
+
                             enemy.power = false;
                         }
                     }
@@ -79,24 +59,11 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     //Damage enemy also! For some reason
                     //println!("Collision");
                     //enemy.damage(1);
-                    // Check to see when the player was attacked last...
-                    match game.player.last_invincibility_time {
-                        // If there is an old invincibility time for the player,
-                        // see if the "invincibility window" has elapsed since then...
-                        Some( time ) => {
-                            if time.elapsed() >= Duration::from_millis(1750) {
-                                // If so, update the invincibility time and take damage to the player.
-                                game.player.update_invincibility_time();
-                                game.player.damage(1);
-                            }
-                        },
-                        None => {
-                            // Otherwise, take damage as there was
-                            // no previous "invincibility window" to account for
-                            game.player.update_invincibility_time();
-                            game.player.damage(1);
-                        }
-                    }
+
+                    // Update player invincibility window and take damage to the player.
+                    // Parameters: 1 is the damage amount, 1750 is the amount of ms before the cooldown window expires
+                    game.player.take_damage( 1, 1750 );
+                    
 
                     // If the player is dead, update to the game over menu state
                     if game.player.death() {
@@ -106,7 +73,6 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             }
         }
             
-
         game.current_room_mut().enemies = enemy_list;
 
         core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));

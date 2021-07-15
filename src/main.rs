@@ -285,7 +285,6 @@ impl Manager {
     // }
 
     fn collide(& mut self) {
-
         collision::base(&mut self.game, &mut self.core, &mut self.menu);
     }
 
@@ -301,7 +300,6 @@ impl Manager {
 
     // Draw entire game state on screen.
     fn draw(& mut self) -> Result<(), String> {
-
-       return draw::base(&mut self.game, &mut self.core, &mut self.menu, & self.debug);
+        draw::base(&mut self.game, &mut self.core, &mut self.menu, & self.debug)
     }
 }
