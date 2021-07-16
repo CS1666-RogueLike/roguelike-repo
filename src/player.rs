@@ -1,6 +1,7 @@
 use crate::util::*;
 use crate::entity::Health;
 use crate::boxes::*;
+use crate::boxes::Box;
 use sdl2::rect::Rect;
 use std::time::{Duration, Instant};
 use crate::tile::*;
@@ -13,10 +14,10 @@ pub struct Player {
 
     // TODO: REWORK INTO INDIVIDUAL TRAITS SO THEY CAN BE USED WITH ENEMIES
     pub hitbox: Vec2<u32>, // Hitbox where player takes damage.
-    //pub walkbox: Rect, // Hitbox involved in collision with rooms.
-    pub walkbox: HitBox, // Hitbox involved in collision with rooms.
+    pub walkbox: Rect, // Hitbox involved in collision with rooms.
+    //pub walkbox: HitBox, // Hitbox involved in collision with rooms.
     pub attackbox: Vec2<i32>, //Attack box where player does damage
-
+    pub box_es: Box,
     pub speed: f32,
     pub dir: Direction,
     pub hp: i32,    //store the health for player
@@ -36,6 +37,7 @@ pub struct Player {
     pub last_attack_time: Option<Instant>,
 
     pub walkover_action: WalkoverAction,
+
 
 
 }
@@ -61,9 +63,10 @@ impl Player {
         Player {
             pos: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
             hitbox: Vec2::new(48, 52),
-            //walkbox: Rect::new(20, 12, 40, 24),
-            walkbox: HitBox::new(),
+            walkbox: Rect::new(20, 12, 40, 24),
+            //walkbox: HitBox::new(),
             attackbox: Vec2::new(32, 48),
+            box_es: Box::new(Vec2::new(48, 52), Vec2::new(40, 24), Vec2::new(32, 48)),
             speed: PLAYER_SPEED,
             dir: Direction::Down,
             hp: MAX_HP,

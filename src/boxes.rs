@@ -12,66 +12,55 @@ pub enum BoxKind {
     Walk,
 }
 
-pub trait Box {
-    //fn box_type(&self) -> BoxKind; //return the box type being USED
-    //fn set_box(&self, x: u32, y: u32) -> Vec2<u32>;
-    fn get_box(&self, game: &mut Game) -> Rect;
+pub struct Box {
+    pub hitbox: Vec2<u32>, // Hitbox where player takes damage.
+    pub walkbox: Vec2<u32>, // Hitbox involved in collision with rooms.
+    pub attackbox: Vec2<i32>, //Attack box where player does damage
 }
 
-pub struct HitBox {
-    pub box_type: BoxKind,
-    //pub box_size: Vec2<u32>, // Box parameters
-    pub box_rect: Rect, // Box parameters
-}
-
-impl HitBox {
-    pub fn new() -> HitBox {
-        HitBox {
-            box_type: BoxKind::Hit,
-            box_rect: Rect::new(20, 12, 40, 24),
+impl Box {
+    pub fn new(hit : Vec2<u32>, walk: Vec2<u32>, attack: Vec2<i32>) -> Box {
+        Box {
+            hitbox: hit,
+            walkbox: walk,
+            attackbox: attack,
         }
     }
-    pub fn get_box(mut game : &mut Game) -> Rect { Rect::new(
-                                                    game.player.pos.x as i32 - 0,
-                                                    game.player.pos.y as i32 - 0,
-                                                    50,
-                                                    50,
-                                                    )
-    }
-}
-
-impl Box for HitBox {
-    //fn box_type(&self) -> BoxKind {self.box_type}
-    // fn set_box(&self, x: u32, y: u32) -> Vec2 {
-    //     Vec2::new(x, y);
-    // }
-    fn get_box(&self, game : &mut Game) -> Rect { Rect::new(
-                                                    game.player.pos.x as i32 - 0,
-                                                    game.player.pos.y as i32 - 0,
-                                                    50,
-                                                    50,
+    //need a function getter for each type of box
+    pub fn get_walkbox(&self, pos : Vec2<f32>) -> Rect { Rect::new(
+                                                    pos.x as i32 - (self.walkbox.x / 2) as i32,
+                                                    pos.y as i32 - (self.walkbox.y / 2) as i32,
+                                                    self.walkbox.x,
+                                                    self.walkbox.y,
                                                     )
     }
 
+    pub fn get_hitbox(&self, pos : Vec2<f32>) -> Rect { Rect::new(
+                                                    pos.x as i32 - (self.hitbox.x / 2) as i32,
+                                                    pos.y as i32 - ((self.hitbox.y / 2) as i32 + (self.walkbox.y / 2) as i32),
+                                                    self.hitbox.x,
+                                                    self.hitbox.y,
+                                                    )
+    }
+
+    pub fn get_attackbox(&self, pos : Vec2<f32>, dir : Direction) -> Rect {
+        match dir {
+            Direction::Up => {
+                Rect::new(pos.x as i32 - ( self.attackbox.x / 2 ) as i32, pos.y as i32 - (self.attackbox.y as i32) - (self.attackbox.y / 2 as i32) - 24,
+                        self.attackbox.x as u32, self.attackbox.y as u32)
+            }
+            Direction::Down => {
+                Rect::new(pos.x as i32 - ( self.attackbox.x / 2 ) as i32, pos.y as i32 + 16,
+                        self.attackbox.x as u32, self.attackbox.y as u32)
+            }
+            Direction::Left => {
+                Rect::new(pos.x as i32 - 48 - self.attackbox.x, pos.y as i32 - 32,
+                        self.attackbox.y as u32, self.attackbox.x as u32)
+            }
+            Direction::Right => {
+                Rect::new(pos.x as i32 + self.attackbox.x as i32, pos.y as i32 - 32,
+                        self.attackbox.y as u32, self.attackbox.x as u32)
+            }
+        }
+    }
 }
-
-
-// pub struct AttackBox {
-//     pub box_size: Vec2<u32>, // Box parameters
-// }
-// impl Box for AttackBox {
-//     fn box_type(&self) -> BoxKind; //return the box type being USED
-//     fn set_box(&self, box: BoxKind) -> Vec2;
-//     fn get_box(&self) -> Vec2;
-// }
-//
-//
-//
-// pub struct WalkBox {
-//     pub box_size: Vec2<u32>, // Box parameters
-// }
-// impl Box for WalkBox {
-//     fn box_type(&self) -> BoxKind; //return the box type being USED
-//     fn set_box(&self, box: BoxKind) -> Vec2;
-//     fn get_box(&self) -> Vec2;
-// }

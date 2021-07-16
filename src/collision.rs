@@ -8,6 +8,9 @@ use std::time::Duration;
 use sdl2::rect::Rect;
 use sdl2::pixels::Color;
 use roguelike::SDLCore;
+use crate::boxes::*;
+//use crate::boxes::HitBox;
+
 
 pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuState){
 // Outermost wall collision
@@ -18,7 +21,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
         // Maintain enemy bounds for the room and check player collisions
         let mut enemy_list = game.current_room().enemies.clone();
-                    
+
         for enemy in enemy_list.iter_mut() {
             enemy.pos.x = enemy.pos.x.clamp(LEFT_WALL as f32 + (enemy.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (enemy.walkbox.x * 4) as f32);
             enemy.pos.y = enemy.pos.y.clamp(TOP_WALL as f32 + (enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (enemy.walkbox.y * 4) as f32);
@@ -27,11 +30,17 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             if !enemy.death() {
                 // If the test enemy's walkbox intersects with the player walkbox...
                 let wb_test = enemy.get_walkbox_world();
-                let player_test = game.player.get_walkbox_world();
+                //let wb_test = boxes::Hitbox::get_box(self.enemy);
+                //let player_test = game.player.get_walkbox_world();
+                //let player_test = HitBox::get_box(game.player.pos);
+                let player_test = game.player.box_es.get_hitbox(game.player.pos);
+                //let player_test = HitBox::get_self(game.player.box);
+                //let player_test = game.player.get_self();
 
                 // Attempt at collision with attackbox
                 if game.player.is_attacking {
-                    let player_attack = game.player.get_attackbox_world();
+                    let player_attack = game.player.box_es.get_attackbox(game.player.pos, game.player.dir);
+                    //let player_attack = game.player.get_attackbox_world();
                     if wb_test.has_intersection(player_attack) {
                         println!("Attack collided with enemy!");
                         enemy.damage(game.player.attack);
@@ -57,13 +66,13 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 // Then there's a collision!
                 if wb_test.has_intersection(player_test) {
                     //Damage enemy also! For some reason
-                    //println!("Collision");
+                    println!("Collision Scooby");
                     //enemy.damage(1);
 
                     // Update player invincibility window and take damage to the player.
                     // Parameters: 1 is the damage amount, 1750 is the amount of ms before the cooldown window expires
                     game.player.take_damage( 1, 1750 );
-                    
+
 
                     // If the player is dead, update to the game over menu state
                     if game.player.death() {
@@ -72,7 +81,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 }
             }
         }
-            
+
         game.current_room_mut().enemies = enemy_list;
 
         core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
