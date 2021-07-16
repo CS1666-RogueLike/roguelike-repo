@@ -10,7 +10,7 @@ pub struct Room {
     pub exists: bool,
     pub visited: bool,
     pub tiles: Vec<Vec<Box<dyn Tile>>>,
-    pub enemies: Option<Vec<Enemy>>,
+    pub enemies: Vec<Enemy>,
 }
 
 /*
@@ -26,7 +26,7 @@ pub struct Room {
 impl Room {
     // Returns a room that the developer sets every tile of manually.
     pub fn non_room() -> Room {
-        Room { exists: false, visited: false, tiles: Vec::new(), enemies: None }
+        Room { exists: false, visited: false, tiles: Vec::new(), enemies: Vec::new() }
 
     }
     pub fn new_test_room(blueprint: [[char; 17]; 11]) -> Room {
@@ -60,7 +60,10 @@ impl Room {
                     // implementations of the trait are. Because a box is essentially a pointer,
                     // it's of a size the compiler knows about. Thus, we give it a pointer to an
                     // implementation of the type, and the compiler is satisfied.
-                    '_' => tiles[y as usize].push(Box::new(Ground {})),
+                    '_' => tiles[y as usize].push(Box::new(Ground { gem: Gem::None })),
+                    'r' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Red })),
+                    'y' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Yellow })),
+                    'b' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Blue })),
                     'W' => tiles[y as usize].push(Box::new(Wall {})),
                     'R' => tiles[y as usize].push(Box::new(Rock {})),
                     'P' => tiles[y as usize].push(Box::new(Pit {})),
@@ -105,11 +108,19 @@ impl Room {
             exists: true,
             visited: false,
             tiles: tiles,
-            enemies: None
+            enemies: Vec::new()
         }
     }
 
+    pub fn tile_at(&mut self, x: i32, y: i32) -> &mut Box<dyn Tile> {
+        &mut self.tiles[ ((y - TOP_WALL) / 64) as usize ][ ((x - LEFT_WALL) / 64) as usize ]
+    }
+
+    pub fn tile_at_vec2(&mut self, pos: Vec2<i32>) -> &mut Box<dyn Tile> {
+        self.tile_at( pos.x, pos.y )
+    }
+
     pub fn add_enemies(&mut self, enemies: Vec<Enemy>) {
-        self.enemies = Some(enemies);
+        self.enemies = enemies;
     }
 }

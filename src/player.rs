@@ -22,6 +22,7 @@ pub struct Player {
     pub hp: i32,    //store the health for player
     pub m_hp: i32,
     pub death: bool, //trying bool for death state
+    pub attack: i32, // modifier for attack
 
     pub power_up_vec: Vec<i32>, //[Health, Speed, Attack]
 
@@ -68,6 +69,7 @@ impl Player {
             hp: MAX_HP,
             m_hp: MAX_HP,
             death: false,
+            attack: 1,
 
             power_up_vec: vec![0; 3],
 
@@ -216,6 +218,26 @@ impl Player {
             },
         }
     }
+
+    pub fn take_damage(&mut self, amount: i32, cooldown_window_ms: u64) {
+        match self.last_invincibility_time {
+            // If there is an old invincibility time for the player,
+            // see if the "invincibility window" has elapsed since then...
+            Some( time ) => {
+                if time.elapsed() >= Duration::from_millis(cooldown_window_ms) {
+                    // If so, update the invincibility time and take damage to the player.
+                    self.update_invincibility_time();
+                    self.damage(amount);
+                }
+            },
+            None => {
+                // Otherwise, take damage as there was
+                // no previous "invincibility window" to account for
+                self.update_invincibility_time();
+                self.damage(amount);
+            }
+        }
+    }
 }
 
 impl Health for Player {
@@ -225,7 +247,7 @@ impl Health for Player {
         self.hp -= d;
         if self.hp <= 0 {
             self.hp = 0;
-            }
+        }
         self.hp // I changed this and the next one to use rust style implicit returns
     }
     fn heal(&mut self, h: i32) -> i32 {
@@ -256,7 +278,12 @@ impl PowerUp for Player {
             if let Some(temp) = self.power_up_vec.get_mut(0){
                 *temp = 0;
             }
-            self.m_hp += 1;
+            if self.hp != self.m_hp {
+                self.heal(1);
+            }
+            else{
+                self.m_hp += 1;
+            }
         }
     }
     fn plus_power_speed(&mut self){
@@ -267,7 +294,7 @@ impl PowerUp for Player {
             if let Some(temp) = self.power_up_vec.get_mut(1){
                 *temp = 0;
             }
-            self.speed += 1 as f32;
+            self.speed += 1.0;
         }
     }
     fn plus_power_attack(&mut self){
@@ -278,7 +305,7 @@ impl PowerUp for Player {
             if let Some(temp) = self.power_up_vec.get_mut(2){
                 *temp = 0;
             }
-            //can dictate once attack is implemented
+            self.attack += 1;
         }
     }
 }

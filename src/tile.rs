@@ -22,6 +22,9 @@ pub trait Tile {
     fn lock(& mut self);
     fn unlock(& mut self);
     fn get_lock_state(&self) -> LockState;
+
+    // Used for dropping the gem. Should only do something for ground tiles
+    fn place_gem(&mut self, color: Gem);
 }
 
 pub enum Walkability {
@@ -40,16 +43,42 @@ pub enum WalkoverAction {
     GivePlayerKey,
     GoToNextFloor,
     Damage,
+    BuffHealth,
+    BuffDamage,
+    BuffSpeed,
 }
 
-pub struct Ground {}
+pub struct Ground {
+    pub gem: Gem,
+}
 impl Tile for Ground {
-    fn sprite(&self) -> SpriteID { SpriteID::Ground }
+    fn sprite(&self) -> SpriteID {
+        match self.gem {
+            Gem::Red => SpriteID::GemRed,
+            Gem::Blue => SpriteID::GemBlue,
+            Gem::Yellow => SpriteID::GemYellow,
+            Gem::None => SpriteID::Ground,
+        }
+    }
     fn walkability(&self) -> Walkability { Walkability::Floor }
-    fn on_walkover(& mut self) -> WalkoverAction { WalkoverAction::DoNothing }
+    fn on_walkover(& mut self) -> WalkoverAction {
+        let ret = match self.gem {
+            Gem::Red => WalkoverAction::BuffHealth,
+            Gem::Blue => WalkoverAction::BuffSpeed,
+            Gem::Yellow => WalkoverAction::BuffDamage,
+            Gem::None => WalkoverAction::DoNothing,
+        };
+        if self.gem != Gem::None {
+            self.gem = Gem::None;
+        }
+        // Variable that stores result of match so we can change gem state
+        ret
+    }
+
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
+    fn place_gem(&mut self, color: Gem) { self.gem = color; }
 }
 
 
@@ -61,6 +90,7 @@ impl Tile for Rock {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
+    fn place_gem(&mut self, color: Gem) {}
 }
 
 pub struct Wall {}
@@ -71,6 +101,7 @@ impl Tile for Wall {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
+    fn place_gem(&mut self, color: Gem) {}
 }
 
 pub struct Pit {}
@@ -81,6 +112,7 @@ impl Tile for Pit {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
+    fn place_gem(&mut self, color: Gem) {}
 }
 
 pub struct Spike {}
@@ -91,6 +123,7 @@ impl Tile for Spike {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
+    fn place_gem(&mut self, color: Gem) {}
 }
 
 pub struct Door {
@@ -116,6 +149,7 @@ impl Tile for Door {
     fn lock(&mut self) { self.lock = LockState::Locked; }
     fn unlock(&mut self) { self.lock = LockState::Unlocked; }
     fn get_lock_state(&self) -> LockState { self.lock }
+    fn place_gem(&mut self, color: Gem) {}
 }
 
 pub struct Key {
@@ -139,6 +173,7 @@ impl Tile for Key {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
+    fn place_gem(&mut self, color: Gem) {}
 }
 
 pub struct Trapdoor {
@@ -159,4 +194,5 @@ impl Tile for Trapdoor {
     fn lock(&mut self) { self.lock = LockState::Locked; }
     fn unlock(&mut self) { self.lock = LockState::Unlocked; }
     fn get_lock_state(&self) -> LockState { self.lock }
+    fn place_gem(&mut self, color: Gem) {}
 }

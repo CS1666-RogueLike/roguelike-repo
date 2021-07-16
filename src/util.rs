@@ -1,3 +1,9 @@
+// Constants to clean up SDLCore initiation
+pub const TITLE: &str = "Roguelike";
+pub const VSYNC: bool = true;
+pub const WINDOW_WIDTH: u32 = 1280;
+pub const WINDOW_HEIGHT: u32 = 720;
+
 
 //these numbers pulled from photoshop to get exact pixel size for background
 pub const LEFT_WALL: i32 = 248 - 64;
@@ -6,7 +12,7 @@ pub const TOP_WALL: i32 = 72 - 64;
 pub const BOT_WALL: i32 = 648 + 64;
 
 //-------------------------------Player/Creature Constants---------------------------------
-pub const MAX_HP: i32 = 3;
+pub const MAX_HP: i32 = 6;
 pub const DEATH_HP: i32 = 0;
 
 // ------------------------------------------- Vec2 --------------------------------------------
@@ -57,4 +63,15 @@ pub enum SpriteID {
     TrapdoorLocked,
     TrapdoorUnlocked,
     Spike,
+    GemRed,
+    GemBlue,
+    GemYellow,
+}
+
+#[derive(Copy, Clone, PartialEq)]
+pub enum Gem {
+    Red,
+    Blue,
+    Yellow,
+    None,
 }
