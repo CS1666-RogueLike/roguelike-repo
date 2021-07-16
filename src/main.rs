@@ -16,6 +16,7 @@ mod map;
 mod floor;
 mod room;
 mod tile;
+mod boxes;
 use crate::tile::*;
 
 use sdl2::pixels::Color;
@@ -217,7 +218,7 @@ impl Demo for Manager {
                     }
 
                     self.game.current_room_mut().enemies = enemies;
-                    
+
 
                     // Apply collision
                     self.collide();
@@ -297,26 +298,26 @@ impl Manager {
 
         // Maintain enemy bounds for the room and check player collisions
         let mut enemies = self.game.current_room().enemies.clone();
-                    
+
         match &mut enemies {
             Some( enemy_list ) => {
                 for enemy in enemy_list.iter_mut() {
                     enemy.pos.x = enemy.pos.x.clamp(LEFT_WALL as f32 + (enemy.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (enemy.walkbox.x * 4) as f32);
                     enemy.pos.y = enemy.pos.y.clamp(TOP_WALL as f32 + (enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (enemy.walkbox.y * 4) as f32);
-        
+
                     // If the test enemy is in the current room of the player...
                     if !enemy.death() {
                         // If the test enemy's walkbox intersects with the player walkbox...
                         let wb_test = enemy.get_walkbox_world();
                         let player_test = self.game.player.get_walkbox_world();
-        
+
                         // Attempt at collision with attackbox
                         if self.game.player.is_attacking {
                             let player_attack = self.game.player.get_attackbox_world();
                             if wb_test.has_intersection(player_attack) {
                                 println!("Attack collided with enemy!");
                                 enemy.damage(1);
-        
+
                                 //Absorb Enemy
                                 if enemy.power == true {
                                     match enemy.kind {
@@ -334,12 +335,12 @@ impl Manager {
                                             println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
                                         },
                                     }
-                                    
+
                                     enemy.power = false;
                                 }
                             }
                         }
-        
+
                         // Then there's a collision!
                         if wb_test.has_intersection(player_test) {
                             //Damage enemy also! For some reason
@@ -363,7 +364,7 @@ impl Manager {
                                     self.game.player.damage(1);
                                 }
                             }
-        
+
                             // If the player is dead, update to the game over menu state
                             if self.game.player.death() {
                                 self.menu = MenuState::GameOver;
@@ -695,7 +696,7 @@ impl Manager {
                                     EnemyKind::Health => &health_idle,
                                     EnemyKind::Speed => &speed_idle
                                 };
-                
+
                                 self.core.wincan.copy(&tex, None,
                                     Rect::new(
                                         enemy.get_pos_x() - 35 + 4,
@@ -817,14 +818,14 @@ impl Manager {
                     // Draw player collision hitbox
                     self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                     self.core.wincan.draw_rect(self.game.player.get_walkbox_world())?;
-                  
+
                     match &mut self.game.current_room_mut().enemies {
                         Some( enemies ) => {
                             for enemy in enemies.iter_mut() {
                                 if !enemy.death() {
                                     self.core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                                     self.core.wincan.draw_rect(enemy.get_walkbox_world())?;
-                
+
                                     self.core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
                                     self.core.wincan.draw_rect(
                                         Rect::new(
@@ -837,9 +838,9 @@ impl Manager {
                                 }
                             }
                         },
-                        None => {},                        
+                        None => {},
                     }
-                   
+
 
                     // Draw player damage hitbox
                     self.core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
