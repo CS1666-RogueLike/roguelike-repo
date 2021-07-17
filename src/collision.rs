@@ -14,8 +14,8 @@ use crate::boxes::*;
 
 pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuState){
 // Outermost wall collision
-        game.player.pos.x = game.player.pos.x.clamp(LEFT_WALL as f32 + (game.player.walkbox.x/2) as f32, RIGHT_WALL as f32 - (game.player.walkbox.x/2) as f32);
-        game.player.pos.y = game.player.pos.y.clamp(TOP_WALL as f32 + (game.player.walkbox.y/2) as f32, BOT_WALL as f32 - (game.player.walkbox.y/2) as f32);
+        game.player.pos.x = game.player.pos.x.clamp(LEFT_WALL as f32 + (game.player.box_es.walkbox.x/2) as f32, RIGHT_WALL as f32 - (game.player.box_es.walkbox.x/2) as f32);
+        game.player.pos.y = game.player.pos.y.clamp(TOP_WALL as f32 + (game.player.box_es.walkbox.y/2) as f32, BOT_WALL as f32 - (game.player.box_es.walkbox.y/2) as f32);
 
         // TODO: Goal is to generalize hitbox data into a trait so that we can condense logic
 
@@ -66,7 +66,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 // Then there's a collision!
                 if wb_test.has_intersection(player_test) {
                     //Damage enemy also! For some reason
-                    println!("Collision Scooby");
+                    
                     //enemy.damage(1);
 
                     // Update player invincibility window and take damage to the player.
@@ -93,7 +93,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 match t.walkability() {
                     Walkability::Wall | Walkability::Rock | Walkability::Pit => {
                         // Hacky af block collision that needs to be changed later
-                        let opt = game.player.get_walkbox_world().intersection(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                        let opt = game.player.box_es.get_walkbox(game.player.pos).intersection(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
 
                         // increment x
                         // if we do this later it messes thing up due to the continue statement in

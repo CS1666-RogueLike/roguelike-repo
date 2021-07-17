@@ -13,10 +13,10 @@ pub struct Player {
     pub pos: Vec2<f32>, // Position of middle of player.
 
     // TODO: REWORK INTO INDIVIDUAL TRAITS SO THEY CAN BE USED WITH ENEMIES
-    pub hitbox: Vec2<u32>, // Hitbox where player takes damage.
-    pub walkbox: Rect, // Hitbox involved in collision with rooms.
+    //pub hitbox: Vec2<u32>, // Hitbox where player takes damage.
+    //pub walkbox: Rect, // Hitbox involved in collision with rooms.
     //pub walkbox: HitBox, // Hitbox involved in collision with rooms.
-    pub attackbox: Vec2<i32>, //Attack box where player does damage
+    //pub attackbox: Vec2<i32>, //Attack box where player does damage
     pub box_es: Box,
     pub speed: f32,
     pub dir: Direction,
@@ -62,10 +62,10 @@ impl Player {
     pub fn new() -> Player {
         Player {
             pos: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
-            hitbox: Vec2::new(48, 52),
-            walkbox: Rect::new(20, 12, 40, 24),
+            //hitbox: Vec2::new(48, 52),
+            //walkbox: Rect::new(20, 12, 40, 24),
             //walkbox: HitBox::new(),
-            attackbox: Vec2::new(32, 48),
+            //attackbox: Vec2::new(32, 48),
             box_es: Box::new(Vec2::new(48, 52), Vec2::new(40, 24), Vec2::new(32, 48)),
             speed: PLAYER_SPEED,
             dir: Direction::Down,
@@ -112,14 +112,14 @@ impl Player {
     pub fn get_pos_x(&self) -> i32 { self.pos.x as i32}
     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32}
 
-    pub fn get_walkbox(&self) -> Rect { self.walkbox }
-    pub fn get_walkbox_world(&self) -> Rect { Rect::new(
-                                                    self.pos.x as i32 - self.walkbox.x(),
-                                                    self.pos.y as i32 - self.walkbox.y(),
-                                                    self.walkbox.width(),
-                                                    self.walkbox.height(),
-                                                    )
-    }
+    //pub fn get_walkbox(&self) -> Rect { self.walkbox }
+    // pub fn get_walkbox_world(&self) -> Rect { Rect::new(
+    //                                                 self.pos.x as i32 - self.walkbox.x(),
+    //                                                 self.pos.y as i32 - self.walkbox.y(),
+    //                                                 self.walkbox.width(),
+    //                                                 self.walkbox.height(),
+    //                                                 )
+    // }
 
     pub fn update_invincibility_time(&mut self) {
         self.last_invincibility_time = Some(Instant::now());
@@ -132,33 +132,33 @@ impl Player {
         }
     }
 
-    pub fn get_hitbox_x(&self) -> u32 { self.hitbox.x }
-    pub fn get_hitbox_y(&self) -> u32 { self.hitbox.y }
+    // pub fn get_hitbox_x(&self) -> u32 { self.hitbox.x }
+    // pub fn get_hitbox_y(&self) -> u32 { self.hitbox.y }
 
-    pub fn get_attackbox_x(&self) -> i32 { self.attackbox.x }
-    pub fn get_attackbox_y(&self) -> i32 { self.attackbox.y }
+    // pub fn get_attackbox_x(&self) -> i32 { self.attackbox.x }
+    // pub fn get_attackbox_y(&self) -> i32 { self.attackbox.y }
 
-    pub fn get_attackbox_world(&self) -> Rect {
-        match self.dir {
-            Direction::Up => {
-                Rect::new(self.pos.x as i32 - ( self.attackbox.x / 2 ) as i32, self.pos.y as i32 - (self.hitbox.y as i32) - (self.attackbox.y / 2 as i32) - 16,
-                        self.attackbox.x as u32, self.attackbox.y as u32)
-            }
-            Direction::Down => {
-                Rect::new(self.pos.x as i32 - ( self.attackbox.x / 2 ) as i32, self.pos.y as i32 + 16,
-                        self.attackbox.x as u32, self.attackbox.y as u32)
-            }
-            Direction::Left => {
-                Rect::new(self.pos.x as i32 - 48 - self.attackbox.x, self.pos.y as i32 - 32,
-                        self.attackbox.y as u32, self.attackbox.x as u32)
-            }
-            Direction::Right => {
-                Rect::new(self.pos.x as i32 + self.hitbox.x as i32 - 16, self.pos.y as i32 - 32,
-                        self.attackbox.y as u32, self.attackbox.x as u32)
-            }
-
-        }
-    }
+    // pub fn get_attackbox_world(&self) -> Rect {
+    //     match self.dir {
+    //         Direction::Up => {
+    //             Rect::new(self.pos.x as i32 - ( self.attackbox.x / 2 ) as i32, self.pos.y as i32 - (self.hitbox.y as i32) - (self.attackbox.y / 2 as i32) - 16,
+    //                     self.attackbox.x as u32, self.attackbox.y as u32)
+    //         }
+    //         Direction::Down => {
+    //             Rect::new(self.pos.x as i32 - ( self.attackbox.x / 2 ) as i32, self.pos.y as i32 + 16,
+    //                     self.attackbox.x as u32, self.attackbox.y as u32)
+    //         }
+    //         Direction::Left => {
+    //             Rect::new(self.pos.x as i32 - 48 - self.attackbox.x, self.pos.y as i32 - 32,
+    //                     self.attackbox.y as u32, self.attackbox.x as u32)
+    //         }
+    //         Direction::Right => {
+    //             Rect::new(self.pos.x as i32 + self.hitbox.x as i32 - 16, self.pos.y as i32 - 32,
+    //                     self.attackbox.y as u32, self.attackbox.x as u32)
+    //         }
+    //
+    //     }
+    // }
 
     pub fn signal_attack(&mut self) {
         self.is_attacking = true;
