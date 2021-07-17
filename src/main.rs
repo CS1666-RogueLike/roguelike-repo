@@ -20,6 +20,7 @@ mod map;
 mod floor;
 mod room;
 mod tile;
+mod boxes;
 use crate::tile::*;
 
 use sdl2::pixels::Color;
@@ -214,7 +215,6 @@ impl Demo for Manager {
                     for enemy in self.game.current_room_mut().enemies.iter_mut() {
                         enemy.update_pos();
                     }
-                    
 
                     // Apply collision
                     self.collide();

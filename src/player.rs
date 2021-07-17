@@ -1,8 +1,11 @@
 use crate::util::*;
 use crate::entity::Health;
+use crate::boxes::*;
+use crate::boxes::Box;
 use sdl2::rect::Rect;
 use std::time::{Duration, Instant};
 use crate::tile::*;
+
 
 const PLAYER_SPEED: f32 = 3.5;
 
@@ -10,10 +13,7 @@ pub struct Player {
     pub pos: Vec2<f32>, // Position of middle of player.
 
     // TODO: REWORK INTO INDIVIDUAL TRAITS SO THEY CAN BE USED WITH ENEMIES
-    pub hitbox: Vec2<u32>, // Hitbox where player takes damage.
-    pub walkbox: Rect, // Hitbox involved in collision with rooms.
-    pub attackbox: Vec2<i32>, //Attack box where player does damage
-
+    pub box_es: Box,
     pub speed: f32,
     pub dir: Direction,
     pub hp: i32,    //store the health for player
@@ -33,6 +33,7 @@ pub struct Player {
     pub last_attack_time: Option<Instant>,
 
     pub walkover_action: WalkoverAction,
+
 
 
 }
@@ -57,9 +58,7 @@ impl Player {
     pub fn new() -> Player {
         Player {
             pos: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
-            hitbox: Vec2::new(48, 52),
-            walkbox: Rect::new(20, 12, 40, 24),
-            attackbox: Vec2::new(32, 48),
+            box_es: Box::new(Vec2::new(48, 52), Vec2::new(40, 24), Vec2::new(32, 48)),
             speed: PLAYER_SPEED,
             dir: Direction::Down,
             hp: MAX_HP,
@@ -105,15 +104,6 @@ impl Player {
     pub fn get_pos_x(&self) -> i32 { self.pos.x as i32}
     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32}
 
-    pub fn get_walkbox(&self) -> Rect { self.walkbox }
-    pub fn get_walkbox_world(&self) -> Rect { Rect::new(
-                                                    self.pos.x as i32 - self.walkbox.x(),
-                                                    self.pos.y as i32 - self.walkbox.y(),
-                                                    self.walkbox.width(),
-                                                    self.walkbox.height(),
-                                                    )
-    }
-
     pub fn update_invincibility_time(&mut self) {
         self.last_invincibility_time = Some(Instant::now());
     }
@@ -122,34 +112,6 @@ impl Player {
         match self.last_invincibility_time {
             Some( time ) => time.elapsed() <= Duration::from_millis(500),
             None => false
-        }
-    }
-
-    pub fn get_hitbox_x(&self) -> u32 { self.hitbox.x }
-    pub fn get_hitbox_y(&self) -> u32 { self.hitbox.y }
-
-    pub fn get_attackbox_x(&self) -> i32 { self.attackbox.x }
-    pub fn get_attackbox_y(&self) -> i32 { self.attackbox.y }
-
-    pub fn get_attackbox_world(&self) -> Rect {
-        match self.dir {
-            Direction::Up => {
-                Rect::new(self.pos.x as i32 - ( self.attackbox.x / 2 ) as i32, self.pos.y as i32 - (self.hitbox.y as i32) - (self.attackbox.y / 2 as i32) - 16,
-                        self.attackbox.x as u32, self.attackbox.y as u32)
-            }
-            Direction::Down => {
-                Rect::new(self.pos.x as i32 - ( self.attackbox.x / 2 ) as i32, self.pos.y as i32 + 16,
-                        self.attackbox.x as u32, self.attackbox.y as u32)
-            }
-            Direction::Left => {
-                Rect::new(self.pos.x as i32 - 48 - self.attackbox.x, self.pos.y as i32 - 32,
-                        self.attackbox.y as u32, self.attackbox.x as u32)
-            }
-            Direction::Right => {
-                Rect::new(self.pos.x as i32 + self.hitbox.x as i32 - 16, self.pos.y as i32 - 32,
-                        self.attackbox.y as u32, self.attackbox.x as u32)
-            }
-
         }
     }
 

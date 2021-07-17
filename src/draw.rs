@@ -161,7 +161,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     core.wincan.copy(&slime_up, None,
                         Rect::new(
                             game.player.get_pos_x() - 35 + 4,
-                            game.player.get_pos_y() - 64 + (game.player.get_walkbox().height()/2) as i32,
+                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32,
                             64, 64)
                         )?;
                 }
@@ -169,7 +169,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     core.wincan.copy(&slime_down, None,
                         Rect::new(
                             game.player.get_pos_x() - 35,
-                            game.player.get_pos_y() - 64 + (game.player.get_walkbox().height()/2) as i32,
+                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32,
                             64, 64)
                         )?;
                 }
@@ -177,7 +177,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     core.wincan.copy(&slime_left, None,
                         Rect::new(
                             game.player.get_pos_x() - 35 + 4,
-                            game.player.get_pos_y() - 64 + (game.player.get_walkbox().height()/2) as i32,
+                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32,
                             64, 64)
                         )?;
                 }
@@ -185,7 +185,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     core.wincan.copy(&slime_right, None,
                         Rect::new(
                             game.player.get_pos_x() - 35,
-                            game.player.get_pos_y() - 64 + (game.player.get_walkbox().height()/2) as i32,
+                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32,
                             64, 64)
                         )?;
                 }
@@ -201,11 +201,11 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                         EnemyKind::Health => &health_idle,
                         EnemyKind::Speed => &speed_idle
                     };
-    
+
                     core.wincan.copy(&tex, None,
                         Rect::new(
                             enemy.get_pos_x() - 35 + 4,
-                            enemy.get_pos_y() - 64 + (enemy.get_walkbox().height()/2) as i32,
+                            enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32,
                             64, 64)
                     )?;
                 }
@@ -333,35 +333,44 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             if debug {
                 // Draw player collision hitbox
                 core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                core.wincan.draw_rect(game.player.get_walkbox_world())?;
+                // removing previous hitbox debug for boxes.rs
+                //core.wincan.draw_rect(game.player.get_walkbox_world())?;
 
                 let enemies = &mut game.current_room_mut().enemies;
-              
+
                 for enemy in enemies.iter_mut() {
                     if !enemy.death() {
                         core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                        core.wincan.draw_rect(enemy.get_walkbox_world())?;
-    
+                        core.wincan.draw_rect(enemy.box_es.get_walkbox(enemy.pos))?;
+
                         core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
                         core.wincan.draw_rect(
                             Rect::new(
-                                enemy.get_pos_x() - (enemy.get_hitbox_x()/2) as i32,
-                                enemy.get_pos_y() - (enemy.get_hitbox_y()) as i32,
-                                enemy.get_hitbox_x(),
-                                enemy.get_hitbox_y()
+                                enemy.get_pos_x() - (enemy.box_es.hitbox.x/2) as i32,
+                                enemy.get_pos_y() - (enemy.box_es.hitbox.y) as i32,
+                                enemy.box_es.hitbox.x,
+                                enemy.box_es.hitbox.y
                             )
                         )?;
                     }
                 }
 
                 // Draw player damage hitbox
-                core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
-                core.wincan.draw_rect(Rect::new(game.player.get_pos_x() - (game.player.get_hitbox_x()/2) as i32,
-                                                    game.player.get_pos_y() - (game.player.get_hitbox_y()) as i32 + (game.player.get_walkbox().height()/2) as i32,
-                                                    game.player.get_hitbox_x(),
-                                                    game.player.get_hitbox_y())
+                //core.wincan.set_draw_color(Color::RGBA(128, 128, 255, 255));
+                // core.wincan.draw_rect(Rect::new(game.player.get_pos_x() - (game.player.get_hitbox_x()/2) as i32,
+                //                                     game.player.get_pos_y() - (game.player.get_hitbox_y()) as i32 + (game.player.get_walkbox().height()/2) as i32,
+                //                                     game.player.get_hitbox_x(),
+                //                                     game.player.get_hitbox_y())
+                //                             )?;
+                // Draw debug of walkbox from boxes.rs for testing
+                core.wincan.set_draw_color(Color::RGBA(128, 0, 128, 255));
+                core.wincan.draw_rect(game.player.box_es.get_walkbox(game.player.pos)
                                             )?;
 
+                // Draw debug of hitbox from boxes.rs for testing
+                core.wincan.set_draw_color(Color::RGBA(0, 128, 128, 255));
+                core.wincan.draw_rect(game.player.box_es.get_hitbox(game.player.pos)
+                                            )?;
 
                 // Draw null at center of player hitbox
                 core.wincan.set_draw_color(Color::RGBA(255, 0, 255, 255));
@@ -417,7 +426,8 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             // Draw attackbox
             core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
             if game.player.recently_attacked() {
-                core.wincan.fill_rect(game.player.get_attackbox_world())?;
+                //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
+                core.wincan.fill_rect(game.player.box_es.get_attackbox(game.player.pos, game.player.dir))?;
             }
 
         }
@@ -442,4 +452,3 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
     Ok(())
 }
-
