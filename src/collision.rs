@@ -66,9 +66,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 // Then there's a collision!
                 if wb_test.has_intersection(player_test) {
                     //Damage enemy also! For some reason
-                    
                     //enemy.damage(1);
-
                     // Update player invincibility window and take damage to the player.
                     // Parameters: 1 is the damage amount, 1750 is the amount of ms before the cooldown window expires
                     game.player.take_damage( 1, 1750 );

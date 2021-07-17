@@ -14,7 +14,7 @@ pub enum BoxKind {
 
 pub struct Box {
     pub hitbox: Vec2<u32>, // Hitbox where player takes damage.
-    pub walkbox: Vec2<u32>, // Hitbox involved in collision with rooms.
+    pub walkbox: Vec2<u32>, // walkbox involved in collision with rooms.
     pub attackbox: Vec2<i32>, //Attack box where player does damage
 }
 
@@ -34,7 +34,7 @@ impl Box {
                                                     self.walkbox.y,
                                                     )
     }
-
+    // function to get the hitbox
     pub fn get_hitbox(&self, pos : Vec2<f32>) -> Rect { Rect::new(
                                                     pos.x as i32 - (self.hitbox.x / 2) as i32,
                                                     pos.y as i32 - ((self.hitbox.y / 2) as i32 + (self.walkbox.y / 2) as i32),
@@ -42,7 +42,7 @@ impl Box {
                                                     self.hitbox.y,
                                                     )
     }
-
+    //function to get the attackbox based on direction
     pub fn get_attackbox(&self, pos : Vec2<f32>, dir : Direction) -> Rect {
         match dir {
             Direction::Up => {
