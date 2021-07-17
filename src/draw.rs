@@ -205,7 +205,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     core.wincan.copy(&tex, None,
                         Rect::new(
                             enemy.get_pos_x() - 35 + 4,
-                            enemy.get_pos_y() - 64 + (enemy.get_walkbox().height()/2) as i32,
+                            enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32,
                             64, 64)
                     )?;
                 }
@@ -341,15 +341,15 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 for enemy in enemies.iter_mut() {
                     if !enemy.death() {
                         core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                        core.wincan.draw_rect(enemy.get_walkbox_world())?;
+                        core.wincan.draw_rect(enemy.box_es.get_walkbox(enemy.pos))?;
 
                         core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
                         core.wincan.draw_rect(
                             Rect::new(
-                                enemy.get_pos_x() - (enemy.get_hitbox_x()/2) as i32,
-                                enemy.get_pos_y() - (enemy.get_hitbox_y()) as i32,
-                                enemy.get_hitbox_x(),
-                                enemy.get_hitbox_y()
+                                enemy.get_pos_x() - (enemy.box_es.hitbox.x/2) as i32,
+                                enemy.get_pos_y() - (enemy.box_es.hitbox.y) as i32,
+                                enemy.box_es.hitbox.x,
+                                enemy.box_es.hitbox.y
                             )
                         )?;
                     }

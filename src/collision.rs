@@ -9,7 +9,6 @@ use sdl2::rect::Rect;
 use sdl2::pixels::Color;
 use roguelike::SDLCore;
 use crate::boxes::*;
-//use crate::boxes::HitBox;
 
 
 pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuState){
@@ -23,19 +22,14 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
         let mut enemy_list = game.current_room().enemies.clone();
 
         for enemy in enemy_list.iter_mut() {
-            enemy.pos.x = enemy.pos.x.clamp(LEFT_WALL as f32 + (enemy.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (enemy.walkbox.x * 4) as f32);
-            enemy.pos.y = enemy.pos.y.clamp(TOP_WALL as f32 + (enemy.walkbox.y * 4) as f32, BOT_WALL as f32 - (enemy.walkbox.y * 4) as f32);
+            enemy.pos.x = enemy.pos.x.clamp(LEFT_WALL as f32 + (enemy.box_es.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (enemy.box_es.walkbox.x * 4) as f32);
+            enemy.pos.y = enemy.pos.y.clamp(TOP_WALL as f32 + (enemy.box_es.walkbox.y * 4) as f32, BOT_WALL as f32 - (enemy.box_es.walkbox.y * 4) as f32);
 
             // If the test enemy is in the current room of the player...
             if !enemy.death() {
                 // If the test enemy's walkbox intersects with the player walkbox...
-                let wb_test = enemy.get_walkbox_world();
-                //let wb_test = boxes::Hitbox::get_box(self.enemy);
-                //let player_test = game.player.get_walkbox_world();
-                //let player_test = HitBox::get_box(game.player.pos);
+                let wb_test = enemy.box_es.get_walkbox(enemy.pos);
                 let player_test = game.player.box_es.get_hitbox(game.player.pos);
-                //let player_test = HitBox::get_self(game.player.box);
-                //let player_test = game.player.get_self();
 
                 // Attempt at collision with attackbox
                 if game.player.is_attacking {

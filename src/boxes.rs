@@ -12,6 +12,7 @@ pub enum BoxKind {
     Walk,
 }
 
+#[derive(Clone)]
 pub struct Box {
     pub hitbox: Vec2<u32>, // Hitbox where player takes damage.
     pub walkbox: Vec2<u32>, // walkbox involved in collision with rooms.

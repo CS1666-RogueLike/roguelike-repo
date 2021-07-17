@@ -2,6 +2,7 @@
 use crate::util::*;
 use sdl2::rect::Rect;
 use std::time::{Duration, Instant};
+use crate::boxes::*;
 
 use rand::Rng;
 
@@ -29,8 +30,7 @@ pub enum EnemyKind {
 #[derive(Clone)]
 pub struct Enemy {
     pub pos: Vec2<f32>,
-    pub hitbox: Vec2<u32>, // Hitbox where speed enemy takes damage.
-    pub walkbox: Rect, // Hitbox involved in collision with rooms.
+    pub box_es: Box,
     pub speed: f32,
     pub dir: Direction,
     pub hp: i32,    //store the health for speed enemy
@@ -69,8 +69,7 @@ impl Enemy {
     pub fn new(position: Vec2<f32>, kind: EnemyKind) -> Enemy {
         Enemy {
             pos: position,
-            hitbox: Vec2::new(40, 30),
-            walkbox: Rect::new(20, 32, 40, 40),
+            box_es: Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(0, 0)),
             speed: 2.8,
             dir: Direction::Left,
             hp: 1,
@@ -87,16 +86,6 @@ impl Enemy {
 
     pub fn get_pos_x(&self) -> i32 { self.pos.x as i32 }
     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32 }
-
-    pub fn get_walkbox(&self) -> Rect { self.walkbox }
-    pub fn get_walkbox_world(&self) -> Rect {
-        Rect::new(
-            self.pos.x as i32 - self.walkbox.x(),
-            self.pos.y as i32 - self.walkbox.y(),
-            self.walkbox.width(),
-            self.walkbox.height(),
-        )
-    }
 
     pub fn update_pos(& mut self) {
         if self.death {
@@ -164,9 +153,6 @@ impl Enemy {
         self.pos.x += self.movement_vec.x * self.speed;
         self.pos.y += self.movement_vec.y * self.speed;
     }
-
-    pub fn get_hitbox_x(&self) -> u32 { self.hitbox.x }
-    pub fn get_hitbox_y(&self) -> u32 { self.hitbox.y }
 
     pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }
     pub fn get_dir(& mut self) -> Direction { self.dir }
