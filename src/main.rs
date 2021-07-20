@@ -37,11 +37,15 @@ use entity::Health;
 use player::PowerUp;
 use entity::EnemyKind;
 
+
 //use std::cmp::min;
 use std::collections::HashSet;
 
 use std::time::Duration;
 use crate::menu::MenuState::GameOver;
+use crate::game::GameState::Gameplay;
+
+use std::thread::sleep;
 
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
 
@@ -163,82 +167,94 @@ impl Demo for Manager {
 
                 GameActive => {
 
-                    // Pause Code
-                    esc_prev = esc_curr;
-                    if keystate.contains(&Keycode::Escape) && esc_prev == false {
-                        esc_curr = true;
-                        self.menu = GamePaused;
-                    }
-                    else if keystate.contains(&Keycode::Escape) && esc_prev == true {
-                        esc_curr = true;
-                    }
-                    else {
-                        esc_curr = false;
-                    }
-                    // Debug on/off
-                    if keystate.contains(&Keycode::Num1) { self.debug = false; }
-                    if keystate.contains(&Keycode::Num2) { self.debug = true; }
-                    // Lock doors
-                    if keystate.contains(&Keycode::Num3) {
-                        self.game.current_room_mut().tiles[5][0].lock();
-                        self.game.current_room_mut().tiles[5][16].lock();
-                        self.game.current_room_mut().tiles[0][8].lock();
-                        self.game.current_room_mut().tiles[10][8].lock();
-                    }
-                    if keystate.contains(&Keycode::Num4) {
-                        self.game.current_room_mut().tiles[5][0].unlock();
-                        self.game.current_room_mut().tiles[5][16].unlock();
-                        self.game.current_room_mut().tiles[0][8].unlock();
-                        self.game.current_room_mut().tiles[10][8].unlock();
-                    }
+                    match self.game.game_state {
+                        GameState::BetweenRooms => {
+                            //sleep(Duration::new(0, 500_000_000)); // 500 mil is half second
+                            if self.game.transition_start.elapsed().as_millis() > 400 {
+                                self.game.game_state = GameState::Gameplay;
+                            }
+                        }
 
-                    // -------------------------------------- GAMEPLAY CODE -------------------------
-                    // Movement
-                    if keystate.contains(&Keycode::W) { mov_vec.y -= 1.0; }
-                    if keystate.contains(&Keycode::S) { mov_vec.y += 1.0; }
-                    if keystate.contains(&Keycode::A) { mov_vec.x -= 1.0; }
-                    if keystate.contains(&Keycode::D) { mov_vec.x += 1.0; }
-                    // Direction (will eventually be attacks)
-                    // TODO: FIX SO THAT NEW KEY OVERRIDES OLD ONE INSTEAD OF HAVING SET PRIORITY
-                    if keystate.contains(&Keycode::Up)    { self.game.player.set_dir(Direction::Up);    }
-                    if keystate.contains(&Keycode::Down)  { self.game.player.set_dir(Direction::Down);  }
-                    if keystate.contains(&Keycode::Left)  { self.game.player.set_dir(Direction::Left);  }
-                    if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
-                    if keystate.contains(&Keycode::Space) && matches!(self.menu, MenuState::GameActive) &&
-                    self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
-                        self.game.player.signal_attack();
+                        GameState::Gameplay => {
+                            // Pause Code
+                            esc_prev = esc_curr;
+                            if keystate.contains(&Keycode::Escape) && esc_prev == false {
+                                esc_curr = true;
+                                self.menu = GamePaused;
+                            }
+                            else if keystate.contains(&Keycode::Escape) && esc_prev == true {
+                                esc_curr = true;
+                            }
+                            else {
+                                esc_curr = false;
+                            }
+                            // Debug on/off
+                            if keystate.contains(&Keycode::Num1) { self.debug = false; }
+                            if keystate.contains(&Keycode::Num2) { self.debug = true; }
+                            // Lock doors
+                            if keystate.contains(&Keycode::Num3) {
+                                self.game.current_room_mut().tiles[5][0].lock();
+                                self.game.current_room_mut().tiles[5][16].lock();
+                                self.game.current_room_mut().tiles[0][8].lock();
+                                self.game.current_room_mut().tiles[10][8].lock();
+                            }
+                            if keystate.contains(&Keycode::Num4) {
+                                self.game.current_room_mut().tiles[5][0].unlock();
+                                self.game.current_room_mut().tiles[5][16].unlock();
+                                self.game.current_room_mut().tiles[0][8].unlock();
+                                self.game.current_room_mut().tiles[10][8].unlock();
+                            }
+
+                            // -------------------------------------- GAMEPLAY CODE -------------------------
+                            // Movement
+                            if keystate.contains(&Keycode::W) { mov_vec.y -= 1.0; }
+                            if keystate.contains(&Keycode::S) { mov_vec.y += 1.0; }
+                            if keystate.contains(&Keycode::A) { mov_vec.x -= 1.0; }
+                            if keystate.contains(&Keycode::D) { mov_vec.x += 1.0; }
+                            // Direction (will eventually be attacks)
+                            // TODO: FIX SO THAT NEW KEY OVERRIDES OLD ONE INSTEAD OF HAVING SET PRIORITY
+                            if keystate.contains(&Keycode::Up)    { self.game.player.set_dir(Direction::Up);    }
+                            if keystate.contains(&Keycode::Down)  { self.game.player.set_dir(Direction::Down);  }
+                            if keystate.contains(&Keycode::Left)  { self.game.player.set_dir(Direction::Left);  }
+                            if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
+                            if keystate.contains(&Keycode::Space) && matches!(self.menu, MenuState::GameActive) &&
+                                self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
+                                self.game.player.signal_attack();
+                            }
+
+                            // Move player
+                            self.game.player.update_pos(mov_vec);
+
+                            for enemy in self.game.current_room_mut().enemies.iter_mut() {
+                                enemy.update_pos();
+                            }
+
+                            // Apply collision
+                            self.collide();
+                            // // debugging healing and damage to a PLAYER
+                            // if keystate.contains(&Keycode::H) { self.game.player.heal(2);
+                            //     println!("Health is: {}", self.game.player.health());
+                            // }  // heal
+                            // if keystate.contains(&Keycode::H) {
+                            //    self.game.player.plus_power_health();
+                            //    println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
+                            // }  // powerup
+                            // if keystate.contains(&Keycode::B) { self.game.player.damage(1);
+                            //     println!("Health is: {}", self.game.player.health());
+                            // }  //damage
+
+                            // Set prev frame tile
+                            self.game.player.prev_frame_tile = self.game.player.current_frame_tile;
+                            // Update current fream tile
+                            self.game.player.current_frame_tile = Vec2::new((self.game.player.get_pos_x() - LEFT_WALL) / 64,
+                                                                            (self.game.player.get_pos_y() - TOP_WALL) / 64);
+                            //println!("{}, {}", self.game.player.current_frame_tile.x, self.game.player.current_frame_tile.y);
+
+                            self.walkover();
+
+                        }
+
                     }
-
-                    // Move player
-                    self.game.player.update_pos(mov_vec);
-
-                    for enemy in self.game.current_room_mut().enemies.iter_mut() {
-                        enemy.update_pos();
-                    }
-
-                    // Apply collision
-                    self.collide();
-                    // // debugging healing and damage to a PLAYER
-                    // if keystate.contains(&Keycode::H) { self.game.player.heal(2);
-                    //     println!("Health is: {}", self.game.player.health());
-                    // }  // heal
-                    // if keystate.contains(&Keycode::H) {
-                    //    self.game.player.plus_power_health();
-                    //    println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
-                    // }  // powerup
-                    // if keystate.contains(&Keycode::B) { self.game.player.damage(1);
-                    //     println!("Health is: {}", self.game.player.health());
-                    // }  //damage
-
-                    // Set prev frame tile
-                    self.game.player.prev_frame_tile = self.game.player.current_frame_tile;
-                    // Update current fream tile
-                    self.game.player.current_frame_tile = Vec2::new((self.game.player.get_pos_x() - LEFT_WALL) / 64,
-                                                                    (self.game.player.get_pos_y() - TOP_WALL) / 64);
-                    //println!("{}, {}", self.game.player.current_frame_tile.x, self.game.player.current_frame_tile.y);
-
-                    self.walkover();
-
                     // --------------------------------- GAMEPLAY CODE END -------------------------
                 }
 
