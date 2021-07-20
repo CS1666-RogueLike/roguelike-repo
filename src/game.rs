@@ -15,6 +15,12 @@ pub struct Game {
 
     // Current floor
     pub cf: usize,
+
+    // Used to handle transitions
+    pub game_state: GameState,
+    pub transition_start: Instant,
+    pub trans_dir: Direction,
+
     pub init_time: Instant,
 }
 
@@ -25,6 +31,9 @@ impl Game {
             map: Map::new(),
             cr: Vec2::new(3, 4),
             cf: 0,
+            game_state: GameState::Gameplay,
+            transition_start: Instant::now(),
+            trans_dir: Direction::Up,
             init_time: Instant::now(),
             //cr: Vec2::new(1, 3),
         }
@@ -39,4 +48,9 @@ impl Game {
         // & is to return ref, * is to unbox
         &mut*self.map.floors[self.cf].rooms[self.cr.y as usize][self.cr.x as usize]
     }
+}
+
+pub enum GameState {
+    Gameplay,
+    BetweenRooms,
 }

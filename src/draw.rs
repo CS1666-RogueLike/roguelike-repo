@@ -5,6 +5,7 @@ use crate::menu::*;
 use crate::player::PowerUp;
 use crate::entity::*;
 use roguelike::SDLCore;
+use std::time::Duration;
 
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
@@ -81,73 +82,227 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             core.wincan.set_draw_color(Color::BLACK);
             core.wincan.clear();
 
-            // Draw background of game screen
-            core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+            let mut yo = 0;
+            let mut xo = 0;
+            let mut x_dir = 0.0;
+            let mut y_dir = 0.0;
+
+            match game.game_state {
+                GameState::Gameplay => {
+                    // Draw background of game screen
+                    core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+                }
+                GameState::BetweenRooms => {
+                    // Transition duration
+                    let dur = Duration::new(0, 400_000_000); // Half billion = half second
+
+                    // 0.0 to 1.0 value to scale transition by
+                    let scale = (game.transition_start.elapsed().as_millis() as f64 / dur.as_millis() as f64);
+
+                    // Scales values to make proper directions
+                    x_dir = match game.trans_dir {
+                        Direction::Right => -1.0,
+                        Direction::Left => 1.0,
+                        _ => 0.0,
+                    };
+
+                    y_dir = match game.trans_dir {
+                        Direction::Up => 1.0,
+                        Direction::Down => -1.0,
+                        _ => 0.0,
+                    };
+
+                    yo = (scale * y_dir * 720.0) as i32;
+                    xo = (scale * x_dir * 1280.0) as i32;
+
+                    // Draw backround tiles
+                    core.wincan.copy(&bg, None, Rect::new(xo, yo, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+                    core.wincan.copy(&bg, None, Rect::new(xo + x_dir as i32 * -1280, yo + y_dir as i32 * -720, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+
+                    let mut x = 0;
+                    let mut y = 0;
+                    let rmx = game.cr.x + match game.trans_dir {
+                        Direction::Right => -1,
+                        Direction::Left => 1,
+                        _ => 0,
+                    };
+                    let rmy = game.cr.y + match game.trans_dir {
+                        Direction::Up => 1,
+                        Direction::Down => -1,
+                        _ => 0,
+                    };
+
+                    // THIS DRAWS THE PREVIOUS ROOM
+                    let mut x = 0;
+                    let mut y = 0;
+                    for row in &game.map.floors[game.cf].rooms[rmy as usize][rmx as usize].tiles {
+                        for t in row {
+                            let x_val =
+                                if xo != 0 {
+                                    LEFT_WALL + x * 64 + xo + x_dir as i32
+                                }
+                                else {
+                                    LEFT_WALL + x * 64
+                                };
+
+                            let y_val =
+                                if yo != 0 {
+                                    TOP_WALL + y * 64 + yo + y_dir as i32
+                                }
+                                else {
+                                    TOP_WALL + y * 64
+                                };
+
+                            match t.sprite() {
+                                SpriteID::Ground => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+
+                                // GEMS
+                                SpriteID::GemRed => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&gem_red, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+                                SpriteID::GemBlue => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&gem_blue, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+                                SpriteID::GemYellow => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&gem_yellow, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+
+                                // Do nothing, we already drew the surrounding walls as one image.
+                                SpriteID::Wall => (),
+
+                                SpriteID::Rock => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&rock, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    //core.wincan.copy(&gem_yellow, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+
+                                SpriteID::Pit => {
+                                    //core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
+                                    //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
+                                }
+
+                                SpriteID::DoorLocked => {
+                                    core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                                    core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
+                                }
+                                SpriteID::DoorUnlocked => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    //core.wincan.set_draw_color(Color::RGBA(0, 255, 0, 255));
+                                    //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
+                                }
+
+                                SpriteID::Key => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&key, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+
+                                SpriteID::TrapdoorLocked => {
+                                    core.wincan.copy(&td_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+
+                                SpriteID::TrapdoorUnlocked => {
+                                    core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
+                                    core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
+                                }
+
+                                SpriteID::Spike => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&spike, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+                            }
+                            x += 1;
+                        }
+                        y += 1;
+                        x = 0;
+                    }
+                }
+            }
 
             let mut x = 0;
             let mut y = 0;
             for row in &game.current_room().tiles {
                 for t in row {
+                    let x_val =
+                    if xo != 0 {
+                        LEFT_WALL + x * 64 + xo + x_dir as i32 * -1280
+                    }
+                    else {
+                        LEFT_WALL + x * 64
+                    };
+
+                    let y_val =
+                        if yo != 0 {
+                            TOP_WALL + y * 64 + yo + y_dir as i32 * - 720
+                        }
+                        else {
+                            TOP_WALL + y * 64
+                        };
+
                     match t.sprite() {
                         SpriteID::Ground => {
-                            core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
                         }
 
                         // GEMS
                         SpriteID::GemRed => {
-                            core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
-                            core.wincan.copy(&gem_red, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&gem_red, None, Rect::new(x_val, y_val, 64, 64))?;
                         }
                         SpriteID::GemBlue => {
-                            core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
-                            core.wincan.copy(&gem_blue, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&gem_blue, None, Rect::new(x_val, y_val, 64, 64))?;
                         }
                         SpriteID::GemYellow => {
-                            core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
-                            core.wincan.copy(&gem_yellow, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&gem_yellow, None, Rect::new(x_val, y_val, 64, 64))?;
                         }
 
                         // Do nothing, we already drew the surrounding walls as one image.
                         SpriteID::Wall => (),
 
                         SpriteID::Rock => {
-                            core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
-                            core.wincan.copy(&rock, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
-                            //core.wincan.copy(&gem_yellow, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&rock, None, Rect::new(x_val, y_val, 64, 64))?;
+                            //core.wincan.copy(&gem_yellow, None, Rect::new(x_val, y_val, 64, 64))?;
                         }
 
                         SpriteID::Pit => {
                             //core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
-                            //core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
                         }
 
                         SpriteID::DoorLocked => {
                             core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                            core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
                         }
                         SpriteID::DoorUnlocked => {
-                            core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
                             //core.wincan.set_draw_color(Color::RGBA(0, 255, 0, 255));
-                            //core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                            //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
                         }
 
                         SpriteID::Key => {
-                            core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
-                            core.wincan.copy(&key, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&key, None, Rect::new(x_val, y_val, 64, 64))?;
                         }
 
                         SpriteID::TrapdoorLocked => {
-                            core.wincan.copy(&td_locked, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            core.wincan.copy(&td_locked, None, Rect::new(x_val, y_val, 64, 64))?;
                         }
 
                         SpriteID::TrapdoorUnlocked => {
                             core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
-                            core.wincan.draw_rect(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
                         }
 
                         SpriteID::Spike => {
-                            core.wincan.copy(&bricks, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
-                            core.wincan.copy(&spike, None, Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64))?;
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&spike, None, Rect::new(x_val, y_val, 64, 64))?;
                         }
                     }
                     x += 1;
@@ -156,36 +311,51 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 x = 0;
             }
 
+            let x_val =
+                if xo != 0 {
+                    xo + x_dir as i32 * -1280
+                }
+                else {
+                    0
+                };
+
+            let y_val =
+                if yo != 0 {
+                    yo + y_dir as i32 * - 720
+                }
+                else {
+                    0
+                };
             match game.player.get_dir() {
                 Direction::Up => {
                     core.wincan.copy(&slime_up, None,
                         Rect::new(
-                            game.player.get_pos_x() - 35 + 4,
-                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32,
+                            game.player.get_pos_x() - 35 + 4 + x_val,
+                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
                             64, 64)
                         )?;
                 }
                 Direction::Down => {
                     core.wincan.copy(&slime_down, None,
                         Rect::new(
-                            game.player.get_pos_x() - 35,
-                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32,
+                            game.player.get_pos_x() - 35 + x_val,
+                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
                             64, 64)
                         )?;
                 }
                 Direction::Left => {
                     core.wincan.copy(&slime_left, None,
                         Rect::new(
-                            game.player.get_pos_x() - 35 + 4,
-                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32,
+                            game.player.get_pos_x() - 35 + 4 + x_val,
+                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
                             64, 64)
                         )?;
                 }
                 Direction::Right => {
                     core.wincan.copy(&slime_right, None,
                         Rect::new(
-                            game.player.get_pos_x() - 35,
-                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32,
+                            game.player.get_pos_x() - 35 + x_val,
+                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
                             64, 64)
                         )?;
                 }
@@ -204,8 +374,8 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
                     core.wincan.copy(&tex, None,
                         Rect::new(
-                            enemy.get_pos_x() - 35 + 4,
-                            enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32,
+                            enemy.get_pos_x() - 35 + 4 + x_val,
+                            enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
                             64, 64)
                     )?;
                 }
@@ -243,6 +413,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             core.wincan.copy(&p_background, None, Rect::new(80,596,64,64))?;
             core.wincan.copy(&p_background, None, Rect::new(80,660,64,64))?;
 
+            // TODO: REWORK INTO MATCH STATEMENT BECAUSE THIS IS A MESS
             if game.player.power_image_health() == 1 {
                 core.wincan.copy(&p_red_1, None, Rect::new(80,532,64,64))?;
             }
