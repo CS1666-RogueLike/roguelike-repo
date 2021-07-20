@@ -10,6 +10,39 @@ use sdl2::pixels::Color;
 use roguelike::SDLCore;
 use crate::boxes::*;
 
+pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
+    let intersection = enemy.box_es.get_walkbox(enemy.pos).intersection(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+
+    let inter_rect = match intersection {
+        Some(x) => x,
+        None => return,
+    };
+
+    let mut x_offset = inter_rect.width() as i32;
+    let mut y_offset = inter_rect.height() as i32;
+
+    if enemy.pos.x < inter_rect.x() as f32 {
+        // TO THE LEFT OF ROCK
+        y_offset = 0;
+    }
+    if enemy.pos.x > (inter_rect.x() + inter_rect.width() as i32) as f32 {
+        // TO THE RIGHT OF ROCK
+        x_offset *= -1;
+        y_offset = 0;
+    }
+    if enemy.pos.y < inter_rect.y() as f32 {
+        // ABOVE ROCK
+        x_offset = 0;
+    }
+    if enemy.pos.y > (inter_rect.y() + inter_rect.height() as i32) as f32 {
+        // BELOW ROCK
+        x_offset = 0;
+        y_offset *= -1;
+    }
+
+    enemy.pos.x -= x_offset as f32;
+    enemy.pos.y -= y_offset as f32;
+}
 
 pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuState){
 // Outermost wall collision
@@ -74,8 +107,6 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             }
         }
 
-        game.current_room_mut().enemies = enemy_list;
-
         core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
         let mut x = 0;
         let mut y = 0;
@@ -86,7 +117,12 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     Walkability::Wall | Walkability::Rock | Walkability::Pit => {
                         // Hacky af block collision that needs to be changed later
                         let opt = game.player.box_es.get_walkbox(game.player.pos).intersection(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
-
+                        for enemy in enemy_list.iter_mut() {
+                            match enemy.kind {
+                                EnemyKind::Speed => {},
+                                _ => enemy_collision(enemy, &x, &y)
+                            }
+                        }
                         // increment x
                         // if we do this later it messes thing up due to the continue statement in
                         // the unboxing
@@ -130,4 +166,6 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             y += 1;
             x = 0;
         }
+
+        game.current_room_mut().enemies = enemy_list;
     }
