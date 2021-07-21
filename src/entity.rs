@@ -59,7 +59,6 @@ impl Health for Enemy {
     fn death(&mut self) -> bool {
         if self.hp <= DEATH_HP {
             self.death = true;
-            self.power = true;
         }
         self.death
     }

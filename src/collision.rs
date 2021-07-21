@@ -54,16 +54,23 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
         // Maintain enemy bounds for the room and check player collisions
         let mut enemy_list = game.current_room().enemies.clone();
 
+        let mut live_count = 0;
+        for enemy in enemy_list.iter_mut() {
+            if enemy.death == false{
+                live_count += 1;
+            }
+        }
+
         for enemy in enemy_list.iter_mut() {
             enemy.pos.x = enemy.pos.x.clamp(LEFT_WALL as f32 + (enemy.box_es.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (enemy.box_es.walkbox.x * 4) as f32);
             enemy.pos.y = enemy.pos.y.clamp(TOP_WALL as f32 + (enemy.box_es.walkbox.y * 4) as f32, BOT_WALL as f32 - (enemy.box_es.walkbox.y * 4) as f32);
 
             // If the test enemy is in the current room of the player...
+
             if !enemy.death() {
                 // If the test enemy's walkbox intersects with the player walkbox...
                 let wb_test = enemy.box_es.get_walkbox(enemy.pos);
                 let player_test = game.player.box_es.get_hitbox(game.player.pos);
-
                 // Attempt at collision with attackbox
                 if game.player.is_attacking {
                     let player_attack = game.player.box_es.get_attackbox(game.player.pos, game.player.dir);
@@ -72,8 +79,10 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                         println!("Attack collided with enemy!");
                         enemy.damage(game.player.attack);
                         println!("damage done was {}", game.player.attack);
-
-                        //Absorb Enemy
+                        if enemy.death == true && live_count == 1
+                        {
+                            enemy.power = true;
+                        }
                         if enemy.power == true {
                             // Place gem on enemy's current tile.
                             // TODO: Factor in walkability for tile that the gem drops on.
