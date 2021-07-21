@@ -107,7 +107,7 @@ impl Enemy {
                     //Make a new attack projectile every time the enemy moves. For test things
                     let newAtk = AtkProjectile::new(self.pos, self.movement_vec, &self.kind);
                     self.atkList.push(newAtk);
-                    
+
                     match rng.gen_range( 0 ..= 15 ) {
                         0 => {
                             self.movement_vec.x = 0.0;
@@ -161,9 +161,26 @@ impl Enemy {
         self.pos.x += self.movement_vec.x * self.speed;
         self.pos.y += self.movement_vec.y * self.speed;
 
+        //Moves all the attacks that this enemy shot
+
+        let mut index = 0;
+        let mut toRemove = Vec::new();
         for mut atk in &mut self.atkList {
             atk.pos.x += atk.movement_vec.x * atk.speed;
             atk.pos.y += atk.movement_vec.y * atk.speed;
+
+            //If the attack is off screen, remove it from the atk vector
+
+            if(atk.pos.x < 0.0 || atk.pos.y < 0.0 || atk.pos.x > WINDOW_WIDTH as f32|| atk.pos.y > WINDOW_HEIGHT as f32)
+            {
+                toRemove.push(index);
+            }
+            index+=1;
+        }
+
+        for rmv in &mut toRemove {
+            self.atkList.remove(*rmv);
+            println!("Bullet Removed");
         }
     }
 

@@ -60,13 +60,13 @@ fn getBoxes(enemy_kind : & EnemyKind) -> Box {
 	let mut box_es;
     match enemy_kind {
 		EnemyKind::Health => {
-			box_es = Box::new(Vec2::new(20, 20), Vec2::new(20, 20), Vec2::new(20, 20));
+			box_es = Box::new(Vec2::new(30, 30), Vec2::new(30, 30), Vec2::new(30, 30));
 		}
 		EnemyKind::Speed =>{
 			box_es = Box::new(Vec2::new(10, 10), Vec2::new(10, 10), Vec2::new(10, 10));
 		}
 		EnemyKind::Attack => {
-			box_es = Box::new(Vec2::new(16, 16), Vec2::new(16, 16), Vec2::new(16, 16));
+			box_es = Box::new(Vec2::new(20, 20), Vec2::new(20, 20), Vec2::new(20, 20));
 		}
 	}
 	return box_es;

@@ -46,6 +46,8 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             let health_idle = texture_creator.load_texture("assets/health-sprite-down.png")?;
 
             let health_atk = texture_creator.load_texture("assets/health-projectile.png")?;
+            let speed_atk = texture_creator.load_texture("assets/speed-projectile.png")?;
+            let attack_atk = texture_creator.load_texture("assets/attack-projectile.png")?;
 
             let hp_indicator = texture_creator.load_texture("assets/hp.png")?;
 
@@ -367,8 +369,14 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
             let enemies = &mut game.current_room_mut().enemies;
             for enemy in enemies.iter_mut()  {
+                    let texA = match &enemy.kind {
+                        EnemyKind::Attack => &attack_atk,
+                        EnemyKind::Health => &health_atk,
+                        EnemyKind::Speed => &speed_atk
+                    };
+
                 for atk in &enemy.atkList {
-                    core.wincan.copy(&health_atk, None,
+                    core.wincan.copy(&texA, None,
                         Rect::new(
                                 atk.pos.x as i32 - (atk.box_es.hitbox.x/2) as i32,
                                 atk.pos.y as i32 - (atk.box_es.hitbox.y) as i32,
