@@ -241,6 +241,7 @@ impl PowerUp for Player {
             }
             else{
                 self.m_hp += 1;
+                self.heal(1);
             }
         }
     }
