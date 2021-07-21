@@ -1,4 +1,4 @@
-
+use crate::attack::*;
 use crate::util::*;
 use sdl2::rect::Rect;
 use std::time::{Duration, Instant};
@@ -19,6 +19,7 @@ pub trait Health {
     fn heal(&mut self, h: i32) -> i32;
     fn death(&mut self) -> bool;
 }
+
 
 #[derive(Clone)]
 pub enum EnemyKind {
