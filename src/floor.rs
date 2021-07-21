@@ -102,7 +102,7 @@ impl Floor {
         ];
         rooms[3][2] = Box::new(Room::new_test_room(blueprint));
         let mut enemies_32_fl0 = Vec::new();
-        enemies_32_fl0.push(Enemy::new( Vec2::new((LEFT_WALL + 3 * 64) as f32 + 32.0, (TOP_WALL + 6 * 64) as f32 + 40.0), EnemyKind::Attack));
+        enemies_32_fl0.push(Enemy::new( Vec2::new((LEFT_WALL + 1 * 64) as f32 + 32.0, (TOP_WALL + 6 * 64) as f32 + 40.0), EnemyKind::Attack));
         rooms[3][2].add_enemies(enemies_32_fl0);
 
 
