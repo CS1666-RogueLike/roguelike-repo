@@ -45,6 +45,14 @@ impl Floor {
         // y -> yellow gem
         // b -> blue gem
 
+
+        //messing with cellular automata
+        // double for loop that starts 1 out from each wall.  we have each permutation inspect its neighborhood
+        //which will consist of its 8 surrounding blocks.  It will match its neighborhood with a preset
+        //ruleset that will determine if it is a rock or not(aka a 1 or 0).  There will be an initial layout to
+        //determine the specific room, the layout will be iterated over while checking all neigbors for each
+        //iteration.  This will store a result in a seperate array that will be the final rock placement array.
+
         // TOP RIGHT ROOM
         let mut blueprint = [
             //                                   MID
