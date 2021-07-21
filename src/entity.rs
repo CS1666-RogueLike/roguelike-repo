@@ -41,6 +41,7 @@ pub struct Enemy {
     pub kind: EnemyKind,
     pub death: bool,
     pub power: bool,
+    pub atkList: Vec<AtkProjectile>,
 }
 
 impl Health for Enemy {
@@ -79,6 +80,7 @@ impl Enemy {
             kind: kind,
             death: false,
             power: false,
+            atkList: Vec::new(),
         }
     }
 
@@ -93,6 +95,7 @@ impl Enemy {
             self.movement_vec.y = 0.0;
             return;
         }
+
         let now = Instant::now();
 
         let mut rng = rand::thread_rng();
@@ -100,6 +103,11 @@ impl Enemy {
         match self.last_dir_update {
             Some(update_time) => {
                 if update_time.elapsed() >= Duration::from_secs(2) {
+
+                    //Make a new attack projectile every time the enemy moves. For test things
+                    let newAtk = AtkProjectile::new(self.pos, self.movement_vec, &self.kind);
+                    self.atkList.push(newAtk);
+                    
                     match rng.gen_range( 0 ..= 15 ) {
                         0 => {
                             self.movement_vec.x = 0.0;
@@ -152,6 +160,11 @@ impl Enemy {
         // Update position using movement vector and speed
         self.pos.x += self.movement_vec.x * self.speed;
         self.pos.y += self.movement_vec.y * self.speed;
+
+        for mut atk in &mut self.atkList {
+            atk.pos.x += atk.movement_vec.x * atk.speed;
+            atk.pos.y += atk.movement_vec.y * atk.speed;
+        }
     }
 
     pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }

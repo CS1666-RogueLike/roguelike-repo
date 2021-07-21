@@ -3,7 +3,7 @@ use crate::boxes::Box;
 use crate::util::*;
 use crate::entity::*;
 
-
+#[derive(Clone)]
 pub struct AtkProjectile {
 	pub pos: Vec2<f32>,
 	pub box_es: Box,
@@ -13,13 +13,13 @@ pub struct AtkProjectile {
 }
 
 impl AtkProjectile {
-    pub fn new(pos : Vec2<f32>, movement_vec : Vec2<f32>, enemy_kind : EnemyKind) -> AtkProjectile {
+    pub fn new(pos : Vec2<f32>, movement_vec : Vec2<f32>, enemy_kind : &EnemyKind) -> AtkProjectile {
         AtkProjectile {
-        	pos : pos,
-        	movement_vec : movement_vec,
-        	speed : getSpeed(&enemy_kind),
-        	damage : getDamage(&enemy_kind),
-        	box_es : getBoxes(&enemy_kind),
+        	pos : pos, //Where the attack is
+        	movement_vec : movement_vec, //What direction its moving
+        	speed : getSpeed(enemy_kind), //How fast it is
+        	damage : getDamage(enemy_kind), //How much it will damage the player when collided with
+        	box_es : getBoxes(enemy_kind), //The hitbox of it
         }
     }
 }

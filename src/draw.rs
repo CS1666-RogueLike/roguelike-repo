@@ -45,6 +45,8 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             let attack_idle = texture_creator.load_texture("assets/wizard_attack_enemy.png")?;
             let health_idle = texture_creator.load_texture("assets/health-sprite-down.png")?;
 
+            let health_atk = texture_creator.load_texture("assets/health-projectile.png")?;
+
             let hp_indicator = texture_creator.load_texture("assets/hp.png")?;
 
             //power assets
@@ -365,6 +367,15 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
             let enemies = &mut game.current_room_mut().enemies;
             for enemy in enemies.iter_mut()  {
+                for atk in &enemy.atkList {
+                    core.wincan.copy(&health_atk, None,
+                        Rect::new(
+                                atk.pos.x as i32 - (atk.box_es.hitbox.x/2) as i32,
+                                atk.pos.y as i32 - (atk.box_es.hitbox.y) as i32,
+                                atk.box_es.hitbox.x,
+                                atk.box_es.hitbox.y)
+                    )?;
+                }
                 if !enemy.death() {
                     let tex = match &enemy.kind {
                         EnemyKind::Attack => &attack_idle,
@@ -521,6 +532,18 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                                 enemy.get_pos_y() - (enemy.box_es.hitbox.y) as i32,
                                 enemy.box_es.hitbox.x,
                                 enemy.box_es.hitbox.y
+                            )
+                        )?;
+                    }
+
+                    for atk in &enemy.atkList {
+                        core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
+                        core.wincan.draw_rect(
+                            Rect::new(
+                                atk.pos.x as i32 - (atk.box_es.hitbox.x/2) as i32,
+                                atk.pos.y as i32 - (atk.box_es.hitbox.y) as i32,
+                                atk.box_es.hitbox.x,
+                                atk.box_es.hitbox.y
                             )
                         )?;
                     }
