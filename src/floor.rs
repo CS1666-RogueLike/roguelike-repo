@@ -1,6 +1,8 @@
 use crate::room::*;
 use crate::entity::*;
 use crate::util::*;
+use rand::random;
+use rand::Rng;
 
 pub struct Floor {
 
@@ -52,11 +54,102 @@ impl Floor {
         //ruleset that will determine if it is a rock or not(aka a 1 or 0).  There will be an initial layout to
         //determine the specific room, the layout will be iterated over while checking all neigbors for each
         //iteration.  This will store a result in a seperate array that will be the final rock placement array.
+        let mut read = [
+         // 0
+            ['_','_','_','_','_','_','_','_','_','_','_','_','_','_','_'], // 0
+            ['_','_','_','_','_','_','_','_','_','R','_','_','_','_','_'], // 1
+            ['_','_','R','_','_','R','_','_','_','_','_','R','R','_','_'], // 2
+            ['_','_','R','_','_','_','_','R','_','R','_','_','_','_','_'], // 3
+            ['_','_','_','R','_','_','_','_','_','_','_','_','_','_','_'], // 4 MID
+            ['_','_','_','_','_','_','_','R','_','_','_','_','_','_','_'], // 5
+            ['_','_','R','_','R','_','_','R','_','_','_','_','R','R','_'], // 6
+            ['_','_','_','_','_','_','_','_','_','_','_','_','R','_','_'], // 7
+            ['_','_','_','_','_','_','_','_','_','_','_','_','_','_','_'], // 8
+        ];
+        let mut write = [
+
+            ['_','_','_','_','_','_','_','_','_','_','_','_','_','_','_'], // 0
+            ['_','_','_','_','_','_','_','_','_','R','_','_','_','_','_'], // 1
+            ['_','_','R','_','_','_','_','_','_','_','_','R','_','_','_'], // 2
+            ['_','_','_','_','_','_','_','R','_','_','_','_','_','_','_'], // 3
+            ['_','_','_','_','_','_','_','_','_','_','_','_','_','_','_'], // 4 MID
+            ['_','_','_','_','_','_','_','_','_','_','_','_','_','_','_'], // 5
+            ['_','_','_','_','R','_','_','R','_','_','_','_','_','_','_'], // 6
+            ['_','_','_','_','_','_','_','_','_','_','_','_','R','_','_'], // 7
+            ['_','_','_','_','_','_','_','_','_','_','_','_','_','_','_'], // 8
+        ];
+        let mut count = 0;
+        let mut rng = rand::thread_rng();
+        while count < 4 {
+            for rows in 1..8 {
+                for cols in 1..14 {
+                    let mut blank = 0;
+                    let mut rock = 0;
+                    let mut spike = 0;
+                    let mut pit = 0;
+                    let mut neighborhood = Vec::new();
+                    neighborhood.push(read[rows - 1][cols - 1]);
+                    neighborhood.push(read[rows - 1][cols]);
+                    neighborhood.push(read[rows - 1][cols + 1]);
+                    neighborhood.push(read[rows][cols - 1]);
+                    neighborhood.push(read[rows][cols]);
+                    neighborhood.push(read[rows][cols + 1]);
+                    neighborhood.push(read[rows + 1][cols - 1]);
+                    neighborhood.push(read[rows + 1][cols]);
+                    neighborhood.push(read[rows + 1][cols + 1]);
+                    for i in neighborhood {
+                        match i {
+                            '_' => blank += 1,
+                            'R' => rock += 1,
+                            'S' => spike += 1,
+                            _ => blank += 1,
+                        };
+                    }
+                    if blank > 8 {
+                        let randomNum = rng.gen_range(0 ..= 2);
+                        println!("RanNum is {}",randomNum);
+                        if randomNum == 0 || randomNum == 1
+                        {
+                            write[rows][cols] = '_';
+                        }
+                        else {
+                            write[rows][cols] = 'R';
+                        }
+                    }
+                    else if (rock+pit+spike) > 4 {
+                        write[rows][cols] = '_';
+                    }
+                    // else if rock < 3 && read[rows][cols] != 'R' {
+                    //     write[rows][cols] = 'R';
+                    // }
+                    else if rock == 3 {
+                        write[rows][cols] = 'P';
+                    }
+                    else {
+                        write[rows][cols] = '_';
+                    }
+                }
+            }
+            println!("Write array");
+            for rows in 0..9 {
+                println!("");
+                for cols in 0..15 {
+                    print!("{}", write[rows][cols]);// = write[rows-2][cols-2];
+                }
+            }
+            println!("");
+            //rooms[4][3]
+            read = write.clone();
+            count+=1;
+        }
+
+
+
 
         // TOP RIGHT ROOM
         let mut blueprint = [
             //                                   MID
-            //    0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
+        //    0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
             ['W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W'], // 0
             ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 1
             ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 2
@@ -135,7 +228,7 @@ impl Floor {
         // MID ROOM
         blueprint = [
             //                                   MID
-            //    0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
+        //    0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
             ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 0
             ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 1
             ['W','_','R','R','_','_','_','_','_','_','_','_','_','R','R','_','W'], // 2
@@ -148,6 +241,14 @@ impl Floor {
             ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 9
             ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 10
         ];
+        for rows in 2..9{
+            println!("");
+            for cols in 2..15{
+                print!("{}",blueprint[rows][cols]);// = write[rows-2][cols-2];
+                blueprint[rows][cols] = write[rows-1][cols-1];
+            }
+        }
+        println!("");
         rooms[4][3] = Box::new(Room::new_test_room(blueprint));
 
         // RIGHT MID ROOM
