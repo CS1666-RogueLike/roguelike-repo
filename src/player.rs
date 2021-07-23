@@ -237,11 +237,11 @@ impl PowerUp for Player {
                 *temp = 0;
             }
             if self.hp != self.m_hp {
-                self.heal(1);
+                self.heal(self.m_hp);
             }
             else{
-                self.m_hp += 1;
-                self.heal(1);
+                self.m_hp += 2;
+                self.heal(self.m_hp);
             }
         }
     }

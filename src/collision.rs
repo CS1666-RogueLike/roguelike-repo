@@ -114,6 +114,18 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     }
                 }
             }
+            for atk in &enemy.atkList{
+                let wb_test = atk.box_es.get_hitbox(atk.pos);
+                let player_test = game.player.box_es.get_hitbox(game.player.pos);
+
+                if wb_test.has_intersection(player_test){
+                    game.player.take_damage(atk.damage, 1750);
+                    if game.player.death() {
+                        *menu = MenuState::GameOver;
+                    }
+                }
+
+            }
         }
 
         core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));

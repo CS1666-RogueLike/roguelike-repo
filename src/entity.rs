@@ -1,4 +1,4 @@
-
+use crate::attack::*;
 use crate::util::*;
 use sdl2::rect::Rect;
 use std::time::{Duration, Instant};
@@ -20,6 +20,7 @@ pub trait Health {
     fn death(&mut self) -> bool;
 }
 
+
 #[derive(Clone)]
 pub enum EnemyKind {
     Attack,
@@ -40,6 +41,7 @@ pub struct Enemy {
     pub kind: EnemyKind,
     pub death: bool,
     pub power: bool,
+    pub atkList: Vec<AtkProjectile>,
 }
 
 impl Health for Enemy {
@@ -78,6 +80,7 @@ impl Enemy {
             kind: kind,
             death: false,
             power: false,
+            atkList: Vec::new(),
         }
     }
 
@@ -92,6 +95,7 @@ impl Enemy {
             self.movement_vec.y = 0.0;
             return;
         }
+
         let now = Instant::now();
 
         let mut rng = rand::thread_rng();
@@ -99,6 +103,11 @@ impl Enemy {
         match self.last_dir_update {
             Some(update_time) => {
                 if update_time.elapsed() >= Duration::from_secs(2) {
+
+                    //Make a new attack projectile every time the enemy moves. For test things
+                    let newAtk = AtkProjectile::new(self.pos, self.movement_vec, &self.kind);
+                    self.atkList.push(newAtk);
+
                     match rng.gen_range( 0 ..= 15 ) {
                         0 => {
                             self.movement_vec.x = 0.0;
@@ -151,6 +160,28 @@ impl Enemy {
         // Update position using movement vector and speed
         self.pos.x += self.movement_vec.x * self.speed;
         self.pos.y += self.movement_vec.y * self.speed;
+
+        //Moves all the attacks that this enemy shot
+
+        let mut index = 0;
+        let mut toRemove = Vec::new();
+        for mut atk in &mut self.atkList {
+            atk.pos.x += atk.movement_vec.x * atk.speed;
+            atk.pos.y += atk.movement_vec.y * atk.speed;
+
+            //If the attack is off screen, remove it from the atk vector
+
+            if(atk.pos.x < 0.0 || atk.pos.y < 0.0 || atk.pos.x > WINDOW_WIDTH as f32|| atk.pos.y > WINDOW_HEIGHT as f32)
+            {
+                toRemove.push(index);
+            }
+            index+=1;
+        }
+
+        for rmv in &mut toRemove {
+            self.atkList.remove(*rmv);
+            println!("Bullet Removed");
+        }
     }
 
     pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }

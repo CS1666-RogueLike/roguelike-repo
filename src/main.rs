@@ -9,6 +9,7 @@ use crate::game::*;
 
 mod player;
 mod entity;
+mod attack;
 
 mod util;
 use crate::util::*;
