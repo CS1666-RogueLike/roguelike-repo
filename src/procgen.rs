@@ -21,7 +21,7 @@ struct RecursiveBacktracker {
 
 impl RecursiveBacktracker {
     pub fn new() -> RecursiveBacktracker {
-        let mut cells : [Vec<Rc<RefCell<Node>>>; GRID_SIZE as usize] = [Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new()];
+        let mut cells : [Vec<Rc<RefCell<Node>>>; GRID_SIZE as usize] = Default::default();
         for y in 0 .. GRID_SIZE {
             for x in 0 .. GRID_SIZE {
                 cells[ y ].push( Rc::new( RefCell::new( Node::new( x as i32, y as i32 ) ) ) );
@@ -34,10 +34,11 @@ impl RecursiveBacktracker {
         x < self.cells.len() as i32 && y < self.cells.len() as i32 && x >= 0 && y >= 0
     }
 
-    pub fn carve_path( &self, x: i32, y: i32 ) {
+    pub fn carve_path( &self, x: i32, y: i32, path: &mut Vec<(i32, i32)> ) {
         println!( "Cell at {}, {} is now visited", x, y );
         let cell = &self.cells[ y as usize ][ x as usize ];
         cell.borrow_mut().visited = true;
+        path.push( (x, y) );
 
         let mut rng = rand::thread_rng();
         let mut directions = vec![ (0, -1), (1, 0), (0, 1), (-1, 0) ];
@@ -47,7 +48,7 @@ impl RecursiveBacktracker {
             if self.valid_cell( new_loc.0, new_loc.1 ) {
                 let next_cell = &self.cells[ new_loc.1 as usize ][ new_loc.0 as usize ];
                 if !next_cell.borrow_mut().visited {
-                    self.carve_path( new_loc.0, new_loc.1 );
+                    self.carve_path( new_loc.0, new_loc.1, path );
                 }
             }
         }
@@ -57,8 +58,19 @@ impl RecursiveBacktracker {
 
     pub fn run( &self ) {
         println!( "Starting Recursive Backtracking" );
-        self.carve_path( 0, 0 );
-        println!( "Done" )
+        let mut path = Vec::new();
+        self.carve_path( 0, 0, &mut path );
+        println!( "Done" );
+
+        print!( "Path: " );
+        for p in path.iter() {
+            if p.0 == 0 && p.1 == 0 {
+                print!( "[Start] -> " );
+            } else {
+                print!( "[{}, {}] -> ", p.0, p.1 );
+            }
+        }
+        println!( "[End]" )
     }
 }
 
