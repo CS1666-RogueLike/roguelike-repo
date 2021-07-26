@@ -21,6 +21,7 @@ pub trait Health {
 }
 
 
+
 #[derive(Clone)]
 pub enum EnemyKind {
     Attack,
@@ -48,7 +49,7 @@ impl Health for Enemy {
     fn max_hp(&self) -> i32 { self.m_hp }
     fn health(&self) -> i32 { self.hp }
     fn damage(&mut self, d: i32) -> i32 {
-        self.hp = (self.hp - d).max(DEATH_HP);
+        self.hp = (self.hp - d).max(P_DEATH_HP);
         self.death();
         self.hp
     }
@@ -59,7 +60,7 @@ impl Health for Enemy {
     }
 
     fn death(&mut self) -> bool {
-        if self.hp <= DEATH_HP {
+        if self.hp <= P_DEATH_HP {
             self.death = true;
         }
         self.death
@@ -95,6 +96,7 @@ impl Enemy {
             self.movement_vec.y = 0.0;
             return;
         }
+        
 
         let now = Instant::now();
 

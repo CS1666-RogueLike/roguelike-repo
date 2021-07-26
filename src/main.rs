@@ -225,7 +225,7 @@ impl Demo for Manager {
 
                             // Move player
                             self.game.player.update_pos(mov_vec);
-
+                            //Update enemy
                             for enemy in self.game.current_room_mut().enemies.iter_mut() {
                                 enemy.update_pos();
                             }
@@ -247,8 +247,10 @@ impl Demo for Manager {
                             // Set prev frame tile
                             self.game.player.prev_frame_tile = self.game.player.current_frame_tile;
                             // Update current fream tile
-                            self.game.player.current_frame_tile = Vec2::new((self.game.player.get_pos_x() - LEFT_WALL) / 64,
-                                                                            (self.game.player.get_pos_y() - TOP_WALL) / 64);
+                            self.game.player.current_frame_tile = Vec2::new(
+                                (self.game.player.get_pos_x() - LEFT_WALL) / TILE_WIDTH,
+                                (self.game.player.get_pos_y() - TOP_WALL) / TILE_WIDTH
+                            );
                             //println!("{}, {}", self.game.player.current_frame_tile.x, self.game.player.current_frame_tile.y);
 
                             self.walkover();

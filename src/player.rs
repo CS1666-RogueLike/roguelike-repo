@@ -61,8 +61,8 @@ impl Player {
             box_es: Box::new(Vec2::new(48, 52), Vec2::new(40, 24), Vec2::new(32, 48)),
             speed: PLAYER_SPEED,
             dir: Direction::Down,
-            hp: MAX_HP,
-            m_hp: MAX_HP,
+            hp: P_MAX_HP,
+            m_hp: P_MAX_HP,
             death: false,
             attack: 1,
 

@@ -25,28 +25,40 @@ pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
                     // Current room one to the right
                     game.cr.x -= 1;
                     // Move player position to just outside of right door in new room
-                    game.player.pos = Vec2::new((LEFT_WALL + 15 * 64) as f32 + 63.0, (TOP_WALL + 5 * 64) as f32 + 40.0);
+                    game.player.pos = Vec2::new(
+                        (LEFT_WALL + 15 * TILE_WIDTH) as f32 + (TILE_WIDTH-1) as f32,
+                        (TOP_WALL + 5 * TILE_WIDTH) as f32 + 40.0
+                    );
                     game.trans_dir = Direction::Left;
                 }
                 if game.player.current_frame_tile.x == 16 { // RIGHT DOOR
                     // Current room one to the right
                     game.cr.x += 1;
                     // Move player position to just outside of left door in new room
-                    game.player.pos = Vec2::new((LEFT_WALL + 1 * 64) as f32 + 1.0, (TOP_WALL + 5 * 64) as f32 + 40.0);
+                    game.player.pos = Vec2::new(
+                        (LEFT_WALL+1 * TILE_WIDTH) as f32 + 1.0, 
+                        (TOP_WALL + 5 * TILE_WIDTH) as f32 + 40.0
+                    );
                     game.trans_dir = Direction::Right;
                 }
                 if game.player.current_frame_tile.y == 0 { // TOP DOOR
                     // Current room one up
                     game.cr.y -= 1;
                     // Move player position to just outside of bottom door in new room
-                    game.player.pos = Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 9 * 64) as f32 + 50.0);
+                    game.player.pos = Vec2::new(
+                        (LEFT_WALL + 8 * TILE_WIDTH) as f32 + 32.0, 
+                        (TOP_WALL + 9 * TILE_WIDTH) as f32 + 50.0
+                    );
                     game.trans_dir = Direction::Up;
                 }
                 if game.player.current_frame_tile.y == 10 { // BOTTOM DOOR
                     // Current room one down
                     game.cr.y += 1;
                     // Move player position to just outside of bottom door in new room
-                    game.player.pos = Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 1 * 64) as f32 + 10.0);
+                    game.player.pos = Vec2::new(
+                        (LEFT_WALL + 8 * TILE_WIDTH) as f32 + 32.0, 
+                        (TOP_WALL + 1 * TILE_WIDTH) as f32 + 10.0
+                    );
                     game.trans_dir = Direction::Down;
                 }
 
@@ -68,7 +80,7 @@ pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
 
             WalkoverAction::Damage => {
                 println!("You've stepped on spikes!");
-                game.player.take_damage(1, 1000);
+                game.player.take_damage(1, P_INVINCIBILITY_TIME);
                 game.player.speed_adjust(WalkoverAction::Damage);
                 if game.player.death() {
                     *menu = MenuState::GameOver;
@@ -93,8 +105,8 @@ pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
                     // THIS WILL NEED CHANGING
                     game.cr.x = 3;
                     game.cr.y = 4;
-                    game.player.pos.x = (LEFT_WALL + 8 * 64) as f32 + 32.0;
-                    game.player.pos.y = (TOP_WALL + 5 * 64) as f32 + 40.0;
+                    game.player.pos.x = (LEFT_WALL + 8 * TILE_WIDTH) as f32 + 32.0;
+                    game.player.pos.y = (TOP_WALL + 5 * TILE_WIDTH) as f32 + 40.0;
 
                 }
                 else {
