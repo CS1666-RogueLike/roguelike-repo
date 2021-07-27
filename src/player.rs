@@ -26,6 +26,9 @@ pub struct Player {
     pub prev_frame_tile: Vec2<i32>,
     pub current_frame_tile: Vec2<i32>,
 
+    pub has_bomb: bool,
+    pub using_bomb: bool,
+    last_bomb_time: Option<Instant>,
     pub has_key: bool,
     pub last_invincibility_time: Option<Instant>,
 
@@ -71,6 +74,9 @@ impl Player {
             prev_frame_tile: Vec2::new(8, 5),
             current_frame_tile: Vec2::new(8, 5),
 
+            has_bomb: false,
+            using_bomb: false,
+            last_bomb_time: None,
             has_key: false,
             last_invincibility_time: None,
 
@@ -126,6 +132,19 @@ impl Player {
                 let res = time.elapsed() <= Duration::from_millis(500);
                 if !res {
                     self.is_attacking = false;
+                }
+
+                res
+            },
+            None => false
+        }
+    }
+    pub fn recently_bombed(&mut self) -> bool {
+        match self.last_bomb_time {
+            Some( time ) => {
+                let res = time.elapsed() <= Duration::from_millis(500);
+                if !res {
+                    self.using_bomb = false;
                 }
 
                 res
@@ -195,6 +214,12 @@ impl Player {
                 self.damage(amount);
             }
         }
+    }
+
+    pub fn use_bomb(&mut self) {
+        self.has_bomb = false;
+        self.using_bomb = true;
+        self.last_bomb_time = Some(Instant::now());
     }
 }
 

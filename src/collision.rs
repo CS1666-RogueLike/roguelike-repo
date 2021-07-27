@@ -87,17 +87,42 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                             // Place gem on enemy's current tile.
                             // TODO: Factor in walkability for tile that the gem drops on.
                             game.current_room_mut()
-                                        .tile_at(enemy.get_pos_x(), enemy.get_pos_y())
-                                        .place_gem(match enemy.kind {
-                                        EnemyKind::Health => Gem::Red,
-                                        EnemyKind::Speed => Gem::Blue,
-                                        EnemyKind::Attack => Gem::Yellow,
-                                        });
+                                .tile_at(enemy.get_pos_x(), enemy.get_pos_y())
+                                .place_gem(match enemy.kind {
+                                    EnemyKind::Health => Gem::Red,
+                                    EnemyKind::Speed => Gem::Blue,
+                                    EnemyKind::Attack => Gem::Yellow,
+                                });
+                            enemy.power = false;
+                        }
+                    }
+                }
+                if game.player.using_bomb {
+                    let player_bomb = game.player.box_es.get_bombbox(game.player.pos, game.player.dir);
+                    if wb_test.has_intersection(player_bomb) {
+                        println!("Bomb collided with enemy!");
+                        enemy.damage(3); //Bomb deals 3 damage
+                        println!("damage done was 3 from bomb");
+                        if enemy.death == true && live_count == 1
+                        {
+                            enemy.power = true;
+                        }
+                        if enemy.power == true {
+                            // Place gem on enemy's current tile.
+                            // TODO: Factor in walkability for tile that the gem drops on.
+                            game.current_room_mut()
+                                .tile_at(enemy.get_pos_x(), enemy.get_pos_y())
+                                .place_gem(match enemy.kind {
+                                    EnemyKind::Health => Gem::Red,
+                                    EnemyKind::Speed => Gem::Blue,
+                                    EnemyKind::Attack => Gem::Yellow,
+                                });
 
                             enemy.power = false;
                         }
                     }
                 }
+
 
                 // Then there's a collision!
                 if wb_test.has_intersection(player_test) {

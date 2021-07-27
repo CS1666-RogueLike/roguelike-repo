@@ -50,6 +50,13 @@ pub enum LockState {
     NA,
 }
 
+// #[derive(Copy, Clone)]
+// pub enum BombState {
+//     Set,
+//     Explode,
+//     NA,
+// }
+
 
 //#[derive(Copy, Clone)]
 pub enum SpriteID {
@@ -66,6 +73,8 @@ pub enum SpriteID {
     GemRed,
     GemBlue,
     GemYellow,
+    Bomb,
+    Explosion,
 }
 
 #[derive(Copy, Clone, PartialEq)]

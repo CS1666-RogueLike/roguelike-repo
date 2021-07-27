@@ -25,6 +25,9 @@ pub trait Tile {
 
     // Used for dropping the gem. Should only do something for ground tiles
     fn place_gem(&mut self, color: Gem);
+
+    //Used for blowing up bomb
+    fn explode(& mut self);
 }
 
 pub enum Walkability {
@@ -41,6 +44,7 @@ pub enum WalkoverAction {
     DoNothing,
     ChangeRooms,
     GivePlayerKey,
+    GivePlayerBomb,
     GoToNextFloor,
     Damage,
     BuffHealth,
@@ -50,6 +54,7 @@ pub enum WalkoverAction {
 
 pub struct Ground {
     pub gem: Gem,
+    //pub bomb: Bomb,
 }
 impl Tile for Ground {
     fn sprite(&self) -> SpriteID {
@@ -74,11 +79,11 @@ impl Tile for Ground {
         // Variable that stores result of match so we can change gem state
         ret
     }
-
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, color: Gem) { self.gem = color; }
+    fn explode(& mut self) {}
 }
 
 
@@ -91,6 +96,7 @@ impl Tile for Rock {
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, color: Gem) {}
+    fn explode(& mut self) {}
 }
 
 pub struct Wall {}
@@ -102,6 +108,7 @@ impl Tile for Wall {
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, color: Gem) {}
+    fn explode(& mut self) {}
 }
 
 pub struct Pit {}
@@ -113,6 +120,7 @@ impl Tile for Pit {
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, color: Gem) {}
+    fn explode(& mut self) {}
 }
 
 pub struct Spike {}
@@ -124,6 +132,7 @@ impl Tile for Spike {
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, color: Gem) {}
+    fn explode(& mut self) {}
 }
 
 pub struct Door {
@@ -145,10 +154,42 @@ impl Tile for Door {
             LockState::NA => panic!("Locking tile shouldn't have NA!!!")
         }
     }
+    fn explode(& mut self) {}
     fn on_walkover(& mut self) -> WalkoverAction { WalkoverAction::ChangeRooms }
     fn lock(&mut self) { self.lock = LockState::Locked; }
     fn unlock(&mut self) { self.lock = LockState::Unlocked; }
     fn get_lock_state(&self) -> LockState { self.lock }
+    fn place_gem(&mut self, color: Gem) {}
+}
+
+pub struct Bomb {
+    pub(crate) has_bomb: bool,
+    //pub(crate) bomb: BombState,
+}
+impl Tile for Bomb {
+    fn sprite(&self) -> SpriteID {
+        if self.has_bomb { SpriteID::Bomb }
+        else            { SpriteID::Ground }
+        // match self.bomb {
+        //     BombState::Set => SpriteID::Bomb,
+        //     BombState::Explode => SpriteID::Explosion,
+        //     BombState::NA => panic!("Locking tile shouldn't have NA!!!")
+        // }
+    }
+    fn walkability(&self) -> Walkability { Walkability::Floor }
+    fn on_walkover(& mut self) -> WalkoverAction {
+        if self.has_bomb {
+            self.has_bomb = false;
+            WalkoverAction::GivePlayerBomb
+        }
+        else {
+            WalkoverAction::DoNothing
+        }
+    }
+    fn explode(& mut self) {}
+    fn lock(& mut self) {}
+    fn unlock(& mut self) {}
+    fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, color: Gem) {}
 }
 
@@ -170,6 +211,7 @@ impl Tile for Key {
             WalkoverAction::DoNothing
         }
     }
+    fn explode(& mut self) {}
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
@@ -187,6 +229,7 @@ impl Tile for Trapdoor {
             LockState::NA => panic!("Locking tile shouldn't have NA!!!")
         }
     }
+    fn explode(& mut self) {}
     fn walkability(&self) -> Walkability { Walkability::Floor }
     fn on_walkover(&mut self) -> WalkoverAction {
         WalkoverAction::GoToNextFloor
