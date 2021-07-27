@@ -59,6 +59,7 @@ pub struct Enemy {
     pub state: State,
     pub is_attacking: bool,
     pub last_attack_time: Option<Instant>,
+    pub current_frame_tile: Vec2<i32>,
 }
 
 impl Health for Enemy {
@@ -100,6 +101,8 @@ impl Enemy {
             atkList: Vec::new(),
             state: State::Idle,
             
+            current_frame_tile: Vec2::new(0,0),
+            
             //timing attacks so they aren't just 'on'
             is_attacking: false,
             last_attack_time: None,
@@ -107,7 +110,10 @@ impl Enemy {
     }
     
     pub fn update(& mut self, blackboard: &BlackBoard) {
-        
+        self.current_frame_tile = Vec2::new(
+            (self.get_pos_x() - LEFT_WALL) / TILE_WIDTH,
+            (self.get_pos_y() - TOP_WALL) / TILE_WIDTH
+        );
         match self.kind {
             EnemyKind::Health => {
             }
@@ -119,7 +125,7 @@ impl Enemy {
         }
     }
     // Using Connor's player implementation for this design:
-    
+
     pub fn type_eq(a: EnemyKind, b: EnemyKind) -> bool{
         let num1 = Enemy::assignNum(a);
         let num2 = Enemy::assignNum(b);

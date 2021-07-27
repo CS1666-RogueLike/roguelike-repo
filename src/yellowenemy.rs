@@ -42,18 +42,9 @@ pub fn update(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
-    enemy.pos.x += 1.0;
+    
     enemy.signal_attack();
-    /*if(blackboard.playerpos.x < 400.0)
-    {
-        enemy.state = State::Idle;
-        //println!("{:?}", blackboard.typesInRoom);
-        //println!("{}", blackboard.enemyQuantity);
-        //println!("{}", blackboard.playerHealth);
-        //println!("{:?}", blackboard.playerpos);
-        //enemy.signal_attack();
-        //let enemy_attack = enemy.box_es.get_attackbox(enemy.pos, enemy.dir);
-    }*/
+
 }
 
 pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
