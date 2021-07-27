@@ -204,8 +204,8 @@ impl Demo for Manager {
                                     self.menu = MenuState::GameOver;
                                 } else {
                                     self.game.cf += 1;
-                                    self.game.cr.x = 3;
-                                    self.game.cr.y = 4;
+                                    self.game.cr.x = START_X;
+                                    self.game.cr.y = START_Y;
                                     self.game.player.pos.x = (LEFT_WALL + 8 * 64) as f32 + 32.0;
                                     self.game.player.pos.y = (TOP_WALL + 5 * 64) as f32 + 40.0;
                                     self.game.changed_floors = true;
