@@ -1,8 +1,11 @@
+use crate::player::*;
 use crate::attack::*;
 use crate::util::*;
 use sdl2::rect::Rect;
 use std::time::{Duration, Instant};
 use crate::boxes::*;
+use crate::yellowenemy::*;
+use crate::blackboard::*;
 
 use rand::Rng;
 
@@ -20,13 +23,23 @@ pub trait Health {
     fn death(&mut self) -> bool;
 }
 
-
-
+#[derive(Debug)]
+#[derive (Copy)]
 #[derive(Clone)]
 pub enum EnemyKind {
     Attack,
     Health,
     Speed
+}
+
+#[derive(Clone)]
+pub enum State{
+    Attack,
+    Retreat,
+    TakeCover,
+    Chase,
+    Heal,
+    Idle,
 }
 
 #[derive(Clone)]
@@ -43,6 +56,9 @@ pub struct Enemy {
     pub death: bool,
     pub power: bool,
     pub atkList: Vec<AtkProjectile>,
+    pub state: State,
+    pub is_attacking: bool,
+    pub last_attack_time: Option<Instant>,
 }
 
 impl Health for Enemy {
@@ -71,9 +87,9 @@ impl Enemy {
     pub fn new(position: Vec2<f32>, kind: EnemyKind) -> Enemy {
         Enemy {
             pos: position,
-            box_es: Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(0, 0)),
+            box_es: Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(40, 30)),
             speed: 2.8,
-            dir: Direction::Left,
+            dir: Direction::Right,
             hp: 1,
             m_hp: 1,
             movement_vec: Vec2::new(-1.0, 0.0),
@@ -82,11 +98,90 @@ impl Enemy {
             death: false,
             power: false,
             atkList: Vec::new(),
+            state: State::Idle,
+            
+            //timing attacks so they aren't just 'on'
+            is_attacking: false,
+            last_attack_time: None,
         }
     }
-
+    
+    pub fn update(& mut self, blackboard: &BlackBoard) {
+        
+        match self.kind {
+            EnemyKind::Health => {
+            }
+            EnemyKind::Speed => {
+            }
+            EnemyKind::Attack => {
+                crate::yellowenemy::update(self, blackboard);
+            }
+        }
+    }
     // Using Connor's player implementation for this design:
-
+    
+    pub fn type_eq(a: EnemyKind, b: EnemyKind) -> bool{
+        let num1 = Enemy::assignNum(a);
+        let num2 = Enemy::assignNum(b);
+        //println!("{:?}, {}", a, num1);
+        //println!("{:?}, {}", b, num2);
+        if(num1 == num2){
+            return true;
+            }
+        else{
+            return false;
+            }
+    }
+    
+    pub fn assignNum(a: EnemyKind) -> i32
+    {
+        match a {
+            EnemyKind::Health => {
+                return 0;
+            }
+            EnemyKind::Speed => {
+                return 1;
+            }
+            EnemyKind::Attack => {
+                return 2;
+            }
+        }
+    }
+    
+    pub fn signal_attack(&mut self) {
+        match self.last_attack_time {
+            Some (time) => {
+                let res = time.elapsed() <= Duration::from_millis(500+600);
+                if !res {
+                    self.is_attacking = true;
+                    self.last_attack_time = Some(Instant::now());
+                }
+                else {
+                    self.is_attacking = false;
+                }
+            }
+            
+            None => {
+                self.is_attacking = true;
+                self.last_attack_time = Some(Instant::now());
+            }
+        }
+    }
+    
+    pub fn recently_attacked(&mut self) -> bool {
+        match self.last_attack_time {
+            Some( time ) => {
+                let res = time.elapsed() <= Duration::from_millis(500);
+                if !res {
+                    self.is_attacking = false;
+                }
+    
+                res
+            },
+            None => false
+        }
+    }
+    
     pub fn get_pos_x(&self) -> i32 { self.pos.x as i32 }
     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32 }
 

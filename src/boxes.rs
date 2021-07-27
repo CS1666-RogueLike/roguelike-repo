@@ -45,6 +45,8 @@ impl Box {
     }
     //function to get the attackbox based on direction
     pub fn get_attackbox(&self, pos : Vec2<f32>, dir : Direction) -> Rect {
+        
+        //Add an if statement for enemies so that the attackbox doesn't look terrible
         match dir {
             Direction::Up => {
                 Rect::new(pos.x as i32 - ( self.attackbox.x / 2 ) as i32, pos.y as i32 - (self.attackbox.y as i32) - (self.attackbox.y / 2 as i32) - 24,

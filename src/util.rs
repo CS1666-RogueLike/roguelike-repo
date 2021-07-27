@@ -43,7 +43,7 @@ pub const ATTACK_ENEMY_ATK_WIDTH: u32 = 20; //The width of this enemy's projecti
 pub const ATTACK_ENEMY_ATK_HEIGHT: u32 = 20; //The height of this enemy's projectile attack
 
 // ------------------------------------------- Vec2 --------------------------------------------
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Vec2<T> {
     pub x: T,
     pub y: T,

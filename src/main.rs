@@ -10,6 +10,11 @@ mod player;
 mod entity;
 mod attack;
 
+mod blackboard;
+use crate::blackboard::*;
+
+mod yellowenemy;
+
 mod util;
 use crate::util::*;
 
@@ -63,6 +68,7 @@ pub struct Manager {
     debug: bool,
     menu: MenuState, // Enum that controls the control flow via the menu.
     game: Game, // Struct holding all game related data.
+    blackboard: BlackBoard, //Struct for holding game data that the enemy needs to access
 }
 
 impl Demo for Manager {
@@ -72,8 +78,9 @@ impl Demo for Manager {
         let debug = false;
         let menu = MenuState::MainMenu;
         let game = Game::new();
+        let blackboard = BlackBoard::new();
 
-        Ok(Manager{core, debug, menu, game})
+        Ok(Manager{core, debug, menu, game, blackboard})
     }
 
     fn run(&mut self) -> Result<(), String> {
@@ -222,12 +229,15 @@ impl Demo for Manager {
                                 self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
                                 self.game.player.signal_attack();
                             }
-
+                            //Update Blackboard
+                            
+                            self.blackboard.update(& self.game);
+                            
                             // Move player
                             self.game.player.update_pos(mov_vec);
                             //Update enemy
                             for enemy in self.game.current_room_mut().enemies.iter_mut() {
-                                enemy.update_pos();
+                                enemy.update(& self.blackboard);
                             }
 
                             // Apply collision

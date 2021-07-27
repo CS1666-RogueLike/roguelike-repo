@@ -141,7 +141,12 @@ impl Floor {
             ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 10
         ];
         rooms[4][3] = Box::new(Room::new_test_room(blueprint));
-
+        let mut enemies_43_fl0 = Vec::new();
+        enemies_43_fl0.push(Enemy::new( Vec2::new((LEFT_WALL + 1 * 64) as f32 + 32.0, (TOP_WALL + 6 * 64) as f32 + 40.0), EnemyKind::Attack));
+        enemies_43_fl0.push(Enemy::new(Vec2::new((LEFT_WALL + 12 * 64) as f32 + 32.0, (TOP_WALL + 7 * 64) as f32 + 40.0), EnemyKind::Attack));
+        enemies_43_fl0.push(Enemy::new(Vec2::new((LEFT_WALL + 12 * 64) as f32 + 32.0, (TOP_WALL + 8 * 64) as f32 + 40.0), EnemyKind::Speed));
+        rooms[4][3].add_enemies(enemies_43_fl0);
+        
         // RIGHT MID ROOM
         blueprint = [
             //                                   MID

@@ -81,13 +81,29 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 TOP_WALL as f32 + (enemy.box_es.walkbox.y * 4) as f32, 
                 BOT_WALL as f32 - (enemy.box_es.walkbox.y * 4) as f32
             );
-
+            
+            let player_test = game.player.box_es.get_hitbox(game.player.pos);
             // If the test enemy is in the current room of the player...
 
             if !enemy.death() {
+                
+                //If enemy is attacking
+                if(enemy.recently_attacked()) {
+                    //See if player collides with attackbox
+                    let enemy_attack = enemy.box_es.get_attackbox(enemy.pos, enemy.dir);
+                    if (player_test.has_intersection(enemy_attack)) {
+                        //Enemy attacked player
+                        game.player.take_damage(2, P_INVINCIBILITY_TIME);
+                        if game.player.death() {
+                            *menu = MenuState::GameOver;
+                        }
+                    }
+                        
+                }
+                
+                
                 // If the test enemy's walkbox intersects with the player walkbox...
                 let wb_test = enemy.box_es.get_walkbox(enemy.pos);
-                let player_test = game.player.box_es.get_hitbox(game.player.pos);
                 // Attempt at collision with attackbox
                 if game.player.is_attacking {
                     let player_attack = game.player.box_es.get_attackbox(game.player.pos, game.player.dir);
@@ -143,6 +159,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 }
 
             }
+            
         }
 
         core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
