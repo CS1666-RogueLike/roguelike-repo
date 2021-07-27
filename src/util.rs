@@ -66,6 +66,8 @@ pub enum SpriteID {
     GemRed,
     GemBlue,
     GemYellow,
+    Bomb,
+    Explosion,
 }
 
 #[derive(Copy, Clone, PartialEq)]

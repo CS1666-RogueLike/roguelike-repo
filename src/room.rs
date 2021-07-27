@@ -64,6 +64,7 @@ impl Room {
                     'r' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Red })),
                     'y' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Yellow })),
                     'b' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Blue })),
+                    'Q' => tiles[y as usize].push(Box::new(Bomb {has_bomb: true})),
                     'W' => tiles[y as usize].push(Box::new(Wall {})),
                     'R' => tiles[y as usize].push(Box::new(Rock {})),
                     'P' => tiles[y as usize].push(Box::new(Pit {})),

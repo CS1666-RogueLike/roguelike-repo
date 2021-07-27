@@ -102,6 +102,7 @@ impl Demo for Manager {
         println!("\tSpace\t\tShort-range attack (cardinal directions only)");
         println!("\tEscape\t\tPause game (while in game, not menus)");
         println!("");
+        println!("\tQ\t\tUse Bomb");
         println!("\tH\t\tTest health power up");
         println!("\tJ\t\tTest speed power up");
         println!("\tK\t\tTest attack power up");
@@ -227,6 +228,11 @@ impl Demo for Manager {
                             if keystate.contains(&Keycode::Space) && matches!(self.menu, MenuState::GameActive) &&
                                 self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
                                 self.game.player.signal_attack();
+                            }
+
+                            if keystate.contains(&Keycode::Q) && matches!(self.menu, MenuState::GameActive) &&
+                                self.game.init_time.elapsed() >= Duration::from_secs(1) && self.game.player.has_bomb {
+                                self.game.player.use_bomb();
                             }
 
                             // Move player

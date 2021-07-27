@@ -66,6 +66,11 @@ pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
                 game.player.has_key = true;
             },
 
+            WalkoverAction::GivePlayerBomb => {
+                println!("Bomb was picked up!!!");
+                game.player.has_bomb = true;
+            }
+
             WalkoverAction::Damage => {
                 println!("You've stepped on spikes!");
                 game.player.take_damage(1, 1000);
