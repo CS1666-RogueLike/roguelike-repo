@@ -21,6 +21,8 @@ pub struct Game {
     pub transition_start: Instant,
     pub trans_dir: Direction,
 
+    pub changed_floors: bool,
+
     pub init_time: Instant,
 }
 
@@ -31,9 +33,10 @@ impl Game {
             map: Map::new(),
             cr: Vec2::new(3, 4),
             cf: 0,
-            game_state: GameState::Gameplay,
+            game_state: GameState::InitialFloorTrans,
             transition_start: Instant::now(),
             trans_dir: Direction::Up,
+            changed_floors: false,
             init_time: Instant::now(),
             //cr: Vec2::new(1, 3),
         }
@@ -53,4 +56,6 @@ impl Game {
 pub enum GameState {
     Gameplay,
     BetweenRooms,
+    BetweenFloors,
+    InitialFloorTrans,
 }

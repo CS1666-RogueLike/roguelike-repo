@@ -3,7 +3,7 @@ use crate::room::*;
 use crate::floor::*;
 
 pub struct Map {
-    pub floors: [Floor; 2],
+    pub floors: [Floor; 3],
 
     //pub room: Room, // TEMP
 }
@@ -28,7 +28,7 @@ impl Map {
         Map {
             //floors: [Floor::test_floor()],
             //room: Room::new_test_room(blueprint),
-            floors: [Floor::test_floor(), Floor::test_floor_2()],
+            floors: [Floor::test_floor(), Floor::test_floor_2(), Floor::test_floor()],
         }
     }
 
