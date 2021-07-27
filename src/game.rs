@@ -31,7 +31,7 @@ impl Game {
         Game {
             player: Player::new(),
             map: Map::new(),
-            cr: Vec2::new(3, 4),
+            cr: Vec2::new(START_X, START_Y),
             cf: 0,
             game_state: GameState::InitialFloorTrans,
             transition_start: Instant::now(),

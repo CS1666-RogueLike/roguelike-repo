@@ -675,7 +675,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             }
             if game.player.recently_bombed() {
                 //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
-                core.wincan.copy(&bomb_explosion, None, game.player.box_es.get_bombbox(game.player.pos, game.player.dir))?;
+                core.wincan.copy(&bomb_explosion, None, game.player.box_es.get_bombbox(game.player.pos_static, game.player.dir))?;
                 //core.wincan.fill_rect(game.player.box_es.get_bombbox(game.player.pos, game.player.dir))?;
             }
             // FINAL DRAW FOR ANY OVERLAYS

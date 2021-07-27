@@ -26,9 +26,7 @@ impl Map {
             ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 10
         ];
         Map {
-            //floors: [Floor::test_floor()],
-            //room: Room::new_test_room(blueprint),
-            floors: [Floor::test_floor(), Floor::test_floor_2(), Floor::test_floor()],
+            floors: [Floor::gen_floor(), Floor::gen_floor(), Floor::gen_floor()],
         }
     }
 
