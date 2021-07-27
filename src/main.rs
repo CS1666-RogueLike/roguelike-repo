@@ -43,6 +43,7 @@ use entity::EnemyKind;
 
 //use std::cmp::min;
 use std::collections::HashSet;
+use std::time::Instant;
 
 use std::time::Duration;
 use crate::menu::MenuState::GameOver;
@@ -73,7 +74,9 @@ impl Demo for Manager {
         let core = SDLCore::init(TITLE, VSYNC, WINDOW_WIDTH, WINDOW_HEIGHT)?;
         let debug = false;
         let menu = MenuState::MainMenu;
-        let game = Game::new();
+        let mut game = Game::new();
+        game.changed_floors = false;
+        game.transition_start = Instant::now();
 
         Ok(Manager{core, debug, menu, game})
     }
@@ -177,11 +180,38 @@ impl Demo for Manager {
                 GameActive => {
 
                     match self.game.game_state {
+                        GameState::InitialFloorTrans => {
+                            if self.game.transition_start.elapsed().as_millis() > 2500 {
+                                self.game.game_state = GameState::Gameplay;
+                            }
+                        }
                         GameState::BetweenRooms => {
                             //sleep(Duration::new(0, 500_000_000)); // 500 mil is half second
                             if self.game.transition_start.elapsed().as_millis() > 400 {
                                 self.game.game_state = GameState::Gameplay;
                             }
+
+                        }
+
+                        GameState::BetweenFloors => {
+                            if self.game.transition_start.elapsed().as_millis() > 3000 {
+                                self.game.game_state = GameState::Gameplay;
+                            }
+
+                            // TODO Proc gen team this needs to change for additional floors
+                            if self.game.changed_floors == false && self.game.transition_start.elapsed().as_millis() > 500 {
+                                if self.game.cf == 2 { // 1 WILL PROBABLY NEED TO BECOME 3 OR 4
+                                    self.menu = MenuState::GameOver;
+                                } else {
+                                    self.game.cf += 1;
+                                    self.game.cr.x = 3;
+                                    self.game.cr.y = 4;
+                                    self.game.player.pos.x = (LEFT_WALL + 8 * 64) as f32 + 32.0;
+                                    self.game.player.pos.y = (TOP_WALL + 5 * 64) as f32 + 40.0;
+                                    self.game.changed_floors = true;
+                                }
+                            }
+
                         }
 
                         GameState::Gameplay => {
