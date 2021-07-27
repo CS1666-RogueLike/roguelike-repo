@@ -50,6 +50,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             let attack_atk = texture_creator.load_texture("assets/attack-projectile.png")?;
 
             let hp_indicator = texture_creator.load_texture("assets/hp.png")?;
+            let hp_bomb_indicator = texture_creator.load_texture("assets/-3.png")?;
 
             //power assets
             let p_text = texture_creator.load_texture("assets/p_text.png")?;
@@ -72,6 +73,9 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             let gem_red = texture_creator.load_texture("assets/gem_red.png")?;
             let gem_yellow = texture_creator.load_texture("assets/gem_yellow.png")?;
             let gem_blue = texture_creator.load_texture("assets/gem_blue.png")?;
+            let bomb_item = texture_creator.load_texture("assets/Bomb.png")?;
+            let bomb_menu = texture_creator.load_texture("assets/bomb_menu.png")?;
+            let bomb_explosion = texture_creator.load_texture("assets/Explosion.png")?;
 
             let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
             let rock = texture_creator.load_texture("assets/rock.png")?;
@@ -205,6 +209,16 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                                     core.wincan.copy(&key, None, Rect::new(x_val, y_val, 64, 64))?;
                                 }
 
+                                SpriteID::Bomb => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&bomb_item, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+
+                                SpriteID::Explosion => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&bomb_explosion, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+
                                 SpriteID::TrapdoorLocked => {
                                     core.wincan.copy(&td_locked, None, Rect::new(x_val, y_val, 64, 64))?;
                                 }
@@ -278,6 +292,16 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                         SpriteID::Pit => {
                             //core.wincan.set_draw_color(Color::RGBA(255, 255, 0, 255));
                             //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
+                        }
+
+                        SpriteID::Bomb => {
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&bomb_item, None, Rect::new(x_val, y_val, 64, 64))?;
+                        }
+
+                        SpriteID::Explosion => {
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&bomb_explosion, None, Rect::new(x_val, y_val, 64, 64))?;
                         }
 
                         SpriteID::DoorLocked => {
@@ -465,7 +489,11 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
             // Rough key setup
             if game.player.has_key {
-                core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64))?;
+                core.wincan.copy(&key, None, Rect::new(96, 200, 64, 64))?;
+            }
+
+            if game.player.has_bomb {
+                core.wincan.copy(&bomb_menu, None, Rect::new(16, 200, 64, 64))?;
             }
 
             // Minimap (commented out first block as the block below does the same thing)
@@ -630,6 +658,11 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             if game.player.recently_attacked() {
                 //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
                 core.wincan.fill_rect(game.player.box_es.get_attackbox(game.player.pos, game.player.dir))?;
+            }
+            if game.player.recently_bombed() {
+                //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
+                core.wincan.copy(&bomb_explosion, None, game.player.box_es.get_bombbox(game.player.pos, game.player.dir))?;
+                //core.wincan.fill_rect(game.player.box_es.get_bombbox(game.player.pos, game.player.dir))?;
             }
 
         }
