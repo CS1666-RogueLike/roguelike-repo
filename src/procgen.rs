@@ -1,6 +1,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use rand::seq::SliceRandom;
+use crate::util::{START_X, START_Y};
 
 struct Node {
     visited: bool,
@@ -15,7 +16,7 @@ impl Node {
     }
 }
 
-struct RecursiveBacktracker {
+pub struct RecursiveBacktracker {
     cells: [Vec<Rc<RefCell<Node>>>; GRID_SIZE],
     max_iterations: Option<usize>,
 }
@@ -64,7 +65,7 @@ impl RecursiveBacktracker {
 
     pub fn run( &self ) -> Vec<(i32, i32)> {
         let mut layout = Vec::new();
-        self.carve_path( 0, 0, &mut layout );
+        self.carve_path( START_X, START_Y, &mut layout );
         layout
     }
 

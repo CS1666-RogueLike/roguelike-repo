@@ -15,6 +15,10 @@ pub const BOT_WALL: i32 = 648 + 64;
 pub const MAX_HP: i32 = 6;
 pub const DEATH_HP: i32 = 0;
 
+//-------------------------------Start Position for Procgen---------------------------------
+pub const START_X: i32 = 3;
+pub const START_Y: i32 = 3;
+
 // ------------------------------------------- Vec2 --------------------------------------------
 #[derive(Copy, Clone, PartialEq)]
 pub struct Vec2<T> {

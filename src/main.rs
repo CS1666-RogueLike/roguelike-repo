@@ -20,6 +20,7 @@ mod draw;
 
 mod map;
 mod floor;
+mod procgen;
 mod room;
 mod tile;
 mod boxes;
