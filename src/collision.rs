@@ -98,7 +98,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     }
                 }
                 if game.player.using_bomb {
-                    let player_bomb = game.player.box_es.get_bombbox(game.player.pos, game.player.dir);
+                    let player_bomb = game.player.box_es.get_bombbox(game.player.pos_static, game.player.dir);
                     if wb_test.has_intersection(player_bomb) {
                         println!("Bomb collided with enemy!");
                         enemy.damage(3); //Bomb deals 3 damage
