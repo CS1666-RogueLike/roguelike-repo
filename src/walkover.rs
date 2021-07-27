@@ -88,7 +88,7 @@ pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
                     game.player.has_key = false;
                     //Debug: println!("{}", game.cf);
                     // Temp Check for game over
-                    if game.cf == 1 {
+                    if game.cf == 2 {
                         *menu = MenuState::GameOver;
                     }
                     else {
@@ -96,8 +96,8 @@ pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
                     }
                     //Debug: println!("{}", game.cf);
                     // THIS WILL NEED CHANGING
-                    game.cr.x = 3;
-                    game.cr.y = 4;
+                    game.cr.x = START_X;
+                    game.cr.y = START_Y;
                     game.player.pos.x = (LEFT_WALL + 8 * 64) as f32 + 32.0;
                     game.player.pos.y = (TOP_WALL + 5 * 64) as f32 + 40.0;
 

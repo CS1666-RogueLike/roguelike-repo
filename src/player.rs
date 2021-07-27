@@ -16,6 +16,7 @@ pub struct Player {
     // TODO: REWORK INTO INDIVIDUAL TRAITS SO THEY CAN BE USED WITH ENEMIES
     pub box_es: Box,
     pub speed: f32,
+    pub stored_speed: f32,
     pub dir: Direction,
     pub hp: i32,    //store the health for player
     pub m_hp: i32,
@@ -65,6 +66,7 @@ impl Player {
             pos_static: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
             box_es: Box::new(Vec2::new(48, 52), Vec2::new(40, 24), Vec2::new(32, 48)),
             speed: PLAYER_SPEED,
+            stored_speed: PLAYER_SPEED,
             dir: Direction::Down,
             hp: MAX_HP,
             m_hp: MAX_HP,
@@ -190,14 +192,15 @@ impl Player {
         match current_tile {
             WalkoverAction::Damage => {
                 //println!("{:#?}", current_tile);
-                if self.speed >= PLAYER_SPEED{
+                if self.speed >= self.stored_speed{
+                    self.stored_speed = self.speed;
                     self.speed *= 0.6666;
                 }
             },
             _ => {
                 //println!("{}",self.speed);
-                if self.speed < PLAYER_SPEED{
-                    self.speed = PLAYER_SPEED;
+                if self.speed < self.stored_speed{
+                    self.speed = self.stored_speed;
                 }
             },
         }

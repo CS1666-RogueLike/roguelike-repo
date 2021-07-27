@@ -1,4 +1,5 @@
 extern crate roguelike;
+use sdl2::audio::{AudioCallback, AudioSpecDesired};
 
 mod menu;
 use crate::menu::*;
@@ -19,6 +20,7 @@ mod draw;
 
 mod map;
 mod floor;
+mod procgen;
 mod room;
 mod tile;
 mod boxes;
@@ -114,7 +116,12 @@ impl Demo for Manager {
         let mut esc_prev = false;
         let mut esc_curr = false;
 
+        //sdl2::mixer::open_audio(Some(44100),)?;
+        // let music = sdl2::mixer::Music::from_file("assets/Blob Style.mp3")?;
+        // music.play(1);
+        //Duration::from_millis(100000);
 
+        //play::play("assets/Blob Style.mp3").unwrap();
 
         //println!("DOES THE ROOM EXIST? {}", self.game.current_room().exists);
 
