@@ -111,9 +111,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     let player_attack = game.player.box_es.get_attackbox(game.player.pos, game.player.dir);
                     //let player_attack = game.player.get_attackbox_world();
                     if wb_test.has_intersection(player_attack) {
-                        println!("Attack collided with enemy!");
-                        enemy.damage(game.player.attack);
-                        println!("damage done was {}", game.player.attack);
+                        enemy.take_damage(game.player.attack, E_INVINCIBILITY_TIME);
                         if enemy.death == true && live_count == 1
                         {
                             enemy.power = true;
@@ -136,7 +134,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     let player_bomb = game.player.box_es.get_bombbox(game.player.pos_static, game.player.dir);
                     if wb_test.has_intersection(player_bomb) {
                         println!("Bomb collided with enemy!");
-                        enemy.damage(3); //Bomb deals 3 damage
+                        enemy.take_damage(4, E_INVINCIBILITY_TIME); //Bomb deals 3 damage
                         println!("damage done was 3 from bomb");
                         if enemy.death == true && live_count == 1
                         {

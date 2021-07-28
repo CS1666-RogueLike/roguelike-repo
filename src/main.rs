@@ -279,7 +279,9 @@ impl Demo for Manager {
                             self.game.player.update_pos(mov_vec);
                             //Update enemy
                             for enemy in self.game.current_room_mut().enemies.iter_mut() {
-                                enemy.update(& self.blackboard);
+                                if !enemy.death{
+                                    enemy.update(& self.blackboard);
+                                }
                             }
 
                             // Apply collision

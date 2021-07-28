@@ -28,6 +28,7 @@ pub const DIAGONAL_VEC: f32 = 0.7071067;
 
 
 pub const ENEMY_INTERSECTION_DAMAGE: i32 = 1; //Damage taken by player when they collide with enemy
+pub const E_INVINCIBILITY_TIME: u64 = 1000;
 
 //----Health Enemy Stats----
 pub const HEALTH_ENEMY_ATK_DMG: i32 = 2; //The damage of this enemy's projectile attack

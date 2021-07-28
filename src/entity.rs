@@ -26,6 +26,7 @@ pub trait Health {
 #[derive(Debug)]
 #[derive (Copy)]
 #[derive(Clone)]
+#[derive(PartialEq)]
 pub enum EnemyKind {
     Attack,
     Health,
@@ -57,6 +58,7 @@ pub struct Enemy {
     pub death: bool,
     pub power: bool,
     pub atk_list: Vec<AtkProjectile>,
+    pub last_invincibility_time: Option<Instant>,
     pub state: State,
     pub is_attacking: bool,
     pub last_attack_time: Option<Instant>,
@@ -91,10 +93,10 @@ impl Enemy {
             pos: position,
             lastpos: Vec2::new(-1.0, 0.0),
             box_es: Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(40, 30)),
-            speed: 2.8,
+            speed: speed_kind(kind),
             dir: Direction::Right,
-            hp: 1,
-            m_hp: 1,
+            hp: health_kind(kind),
+            m_hp: health_kind(kind),
             movement_vec: Vec2::new(-1.0, 0.0),
             last_dir_update: None,
             kind: kind,
@@ -104,6 +106,7 @@ impl Enemy {
             state: State::Idle,
             
             current_frame_tile: Vec2::new(0,0),
+            last_invincibility_time: None,
             
             //timing attacks so they aren't just 'on'
             is_attacking: false,
@@ -117,7 +120,7 @@ impl Enemy {
             (self.get_pos_y() - TOP_WALL) / TILE_WIDTH
         );
         
-        self.update_dir(blackboard);
+        self.update_dir(blackboard.player_frame_tile);
         //println!("{:?}", self.current_frame_tile);
         match self.kind {
             EnemyKind::Health => {
@@ -130,11 +133,35 @@ impl Enemy {
         }
     }
     
-    pub fn update_dir(& mut self, blackboard: &BlackBoard){
+    pub fn update_invincibility_time(&mut self) {
+        self.last_invincibility_time = Some(Instant::now());
+    }
+    
+    pub fn take_damage(&mut self, amount: i32, cooldown_window_ms: u64) {
+        match self.last_invincibility_time {
+            // If there is an old invincibility time for the player,
+            // see if the "invincibility window" has elapsed since then...
+            Some( time ) => {
+                if time.elapsed() >= Duration::from_millis(cooldown_window_ms) {
+                    // If so, update the invincibility time and take damage to the player.
+                    self.update_invincibility_time();
+                    self.damage(amount);
+                }
+            },
+            None => {
+                // Otherwise, take damage as there was
+                // no previous "invincibility window" to account for
+                self.update_invincibility_time();
+                self.damage(amount);
+            }
+        }
+    }
+    
+    pub fn update_dir(& mut self, frame_tile: Vec2<i32>){
         let e_x = self.current_frame_tile.x;
         let e_y = self.current_frame_tile.y;
-        let p_x = blackboard.player_frame_tile.x;
-        let p_y = blackboard.player_frame_tile.y;
+        let p_x = frame_tile.x;
+        let p_y = frame_tile.y;
         if(e_x == p_x && e_y < p_y)
         {
             self.dir = Direction::Down;
@@ -339,4 +366,34 @@ impl Enemy {
 
     pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }
     pub fn get_dir(& mut self) -> Direction { self.dir }
+}
+
+pub fn speed_kind(kind: EnemyKind) -> f32 {
+    let mut speed = 0.0;
+    match kind {
+        EnemyKind::Health => {
+            speed = 1.8;
+        }
+        EnemyKind::Speed =>{
+            speed = 3.8;
+        }
+        EnemyKind::Attack => {
+            speed = 2.8;
+        }
+    }
+    return speed;
+}pub fn health_kind(kind: EnemyKind) -> i32 {
+    let mut health = 0;
+    match kind {
+        EnemyKind::Health => {
+            health = 5;
+        }
+        EnemyKind::Speed =>{
+            health = 2;
+        }
+        EnemyKind::Attack => {
+            health = 3;
+        }
+    }
+    return health;
 }
