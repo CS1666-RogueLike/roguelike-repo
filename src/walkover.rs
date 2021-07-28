@@ -18,6 +18,14 @@ pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
         game.map.floors[game.cf].rooms[game.cr.y as usize][game.cr.x as usize].visited = true;
 
         let current_tile = &mut game.map.floors[game.cf].rooms[game.cr.y as usize][game.cr.x as usize].tiles[game.player.current_frame_tile.y as usize][game.player.current_frame_tile.x as usize];
+        let damage_and_adjust = |game: &mut Game, menu: &mut MenuState| {
+            game.player.take_damage(1, P_INVINCIBILITY_TIME);
+            game.player.speed_adjust(WalkoverAction::Damage);
+            if game.player.death() {
+                *menu = MenuState::GameOver;
+            }
+        };
+
         match current_tile.on_walkover() {
             WalkoverAction::DoNothing => {game.player.speed_adjust(WalkoverAction::DoNothing);},
             WalkoverAction::ChangeRooms => {
@@ -72,31 +80,19 @@ pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
             // Gem pickups
             WalkoverAction::BuffDamage => { 
                 if current_tile.walkability() == Walkability::Spike {
-                    game.player.take_damage(1, P_INVINCIBILITY_TIME);
-                    game.player.speed_adjust(WalkoverAction::Damage);
-                    if game.player.death() {
-                        *menu = MenuState::GameOver;
-                    }
+                    damage_and_adjust( game, menu );
                 }
                 game.player.plus_power_attack(); 
             },
             WalkoverAction::BuffHealth => { 
                 if current_tile.walkability() == Walkability::Spike {
-                    game.player.take_damage(1, P_INVINCIBILITY_TIME);
-                    game.player.speed_adjust(WalkoverAction::Damage);
-                    if game.player.death() {
-                        *menu = MenuState::GameOver;
-                    }
+                    damage_and_adjust( game, menu );
                 }
                 game.player.plus_power_health();
             },
             WalkoverAction::BuffSpeed => { 
                 if current_tile.walkability() == Walkability::Spike {
-                    game.player.take_damage(1, P_INVINCIBILITY_TIME);
-                    game.player.speed_adjust(WalkoverAction::Damage);
-                    if game.player.death() {
-                        *menu = MenuState::GameOver;
-                    }
+                    damage_and_adjust( game, menu );
                 }
                 game.player.plus_power_speed(); 
             }
@@ -113,11 +109,7 @@ pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
 
             WalkoverAction::Damage => {
                 println!("You've stepped on spikes!");
-                game.player.take_damage(1, P_INVINCIBILITY_TIME);
-                game.player.speed_adjust(WalkoverAction::Damage);
-                if game.player.death() {
-                    *menu = MenuState::GameOver;
-                }
+                damage_and_adjust( game, menu );
             },
 
             WalkoverAction::GoToNextFloor => {
