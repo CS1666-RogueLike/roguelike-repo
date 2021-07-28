@@ -11,7 +11,12 @@ use roguelike::SDLCore;
 use crate::boxes::*;
 
 pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
-    let intersection = enemy.box_es.get_walkbox(enemy.pos).intersection(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+    let intersection = enemy.box_es.get_walkbox(enemy.pos).intersection(Rect::new(
+        LEFT_WALL + x * TILE_WIDTH, 
+        TOP_WALL + y * TILE_WIDTH, 
+        TILE_WIDTH as u32, 
+        TILE_WIDTH as u32
+    ));
 
     let inter_rect = match intersection {
         Some(x) => x,
@@ -46,8 +51,14 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
 
 pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuState){
 // Outermost wall collision
-        game.player.pos.x = game.player.pos.x.clamp(LEFT_WALL as f32 + (game.player.box_es.walkbox.x/2) as f32, RIGHT_WALL as f32 - (game.player.box_es.walkbox.x/2) as f32);
-        game.player.pos.y = game.player.pos.y.clamp(TOP_WALL as f32 + (game.player.box_es.walkbox.y/2) as f32, BOT_WALL as f32 - (game.player.box_es.walkbox.y/2) as f32);
+        game.player.pos.x = game.player.pos.x.clamp(
+            LEFT_WALL as f32 + (game.player.box_es.walkbox.x/2) as f32,
+            RIGHT_WALL as f32 - (game.player.box_es.walkbox.x/2) as f32
+        );
+        game.player.pos.y = game.player.pos.y.clamp(
+            TOP_WALL as f32 + (game.player.box_es.walkbox.y/2) as f32, 
+            BOT_WALL as f32 - (game.player.box_es.walkbox.y/2) as f32
+        );
 
         // TODO: Goal is to generalize hitbox data into a trait so that we can condense logic
 
@@ -62,15 +73,39 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
         }
 
         for enemy in enemy_list.iter_mut() {
-            enemy.pos.x = enemy.pos.x.clamp(LEFT_WALL as f32 + (enemy.box_es.walkbox.x * 4) as f32, RIGHT_WALL as f32 - (enemy.box_es.walkbox.x * 4) as f32);
-            enemy.pos.y = enemy.pos.y.clamp(TOP_WALL as f32 + (enemy.box_es.walkbox.y * 4) as f32, BOT_WALL as f32 - (enemy.box_es.walkbox.y * 4) as f32);
 
+            enemy.lastpos = enemy.pos; //Update the last position
+            enemy.pos.x = enemy.pos.x.clamp(
+                (LEFT_WALL as f32 + (enemy.box_es.walkbox.x * 4) as f32) - TILE_WIDTH as f32,
+                (RIGHT_WALL as f32 - (enemy.box_es.walkbox.x * 4) as f32) + TILE_WIDTH as f32
+            );
+            enemy.pos.y = enemy.pos.y.clamp(
+                (TOP_WALL as f32 + (enemy.box_es.walkbox.y * 4) as f32) - TILE_WIDTH as f32, 
+                (BOT_WALL as f32 - (enemy.box_es.walkbox.y * 4) as f32) + TILE_WIDTH as f32
+            ); 
+            
+            let player_test = game.player.box_es.get_hitbox(game.player.pos);
             // If the test enemy is in the current room of the player...
 
             if !enemy.death() {
+                
+                //If enemy is attacking
+                if(enemy.recently_attacked()) {
+                    //See if player collides with attackbox
+                    let enemy_attack = enemy.box_es.get_attackbox(enemy.pos, enemy.dir);
+                    if (player_test.has_intersection(enemy_attack)) {
+                        //Enemy attacked player
+                        game.player.take_damage(2, P_INVINCIBILITY_TIME);
+                        if game.player.death() {
+                            *menu = MenuState::GameOver;
+                        }
+                    }
+                        
+                }
+                
+                
                 // If the test enemy's walkbox intersects with the player walkbox...
                 let wb_test = enemy.box_es.get_walkbox(enemy.pos);
-                let player_test = game.player.box_es.get_hitbox(game.player.pos);
                 // Attempt at collision with attackbox
                 if game.player.is_attacking {
                     let player_attack = game.player.box_es.get_attackbox(game.player.pos, game.player.dir);
@@ -125,26 +160,26 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
 
                 // Then there's a collision!
-                if wb_test.has_intersection(player_test) {
+                /*if wb_test.has_intersection(player_test) {
                     //Damage enemy also! For some reason
                     //enemy.damage(1);
                     // Update player invincibility window and take damage to the player.
                     // Parameters: 1 is the damage amount, 1750 is the amount of ms before the cooldown window expires
-                    game.player.take_damage( 1, 1750 );
+                    game.player.take_damage( ENEMY_INTERSECTION_DAMAGE, P_INVINCIBILITY_TIME );
 
 
                     // If the player is dead, update to the game over menu state
                     if game.player.death() {
                         *menu = MenuState::GameOver;
                     }
-                }
+                }*/
             }
             for atk in &enemy.atkList{
                 let wb_test = atk.box_es.get_hitbox(atk.pos);
                 let player_test = game.player.box_es.get_hitbox(game.player.pos);
 
                 if wb_test.has_intersection(player_test){
-                    game.player.take_damage(atk.damage, 1750);
+                    game.player.take_damage(atk.damage, P_INVINCIBILITY_TIME);
                     if game.player.death() {
                         *menu = MenuState::GameOver;
                     }
@@ -162,7 +197,12 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 match t.walkability() {
                     Walkability::Wall | Walkability::Rock | Walkability::Pit => {
                         // Hacky af block collision that needs to be changed later
-                        let opt = game.player.box_es.get_walkbox(game.player.pos).intersection(Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64));
+                        let opt = game.player.box_es.get_walkbox(game.player.pos).intersection(Rect::new(
+                            LEFT_WALL + x * TILE_WIDTH, 
+                            TOP_WALL + y * TILE_WIDTH, 
+                            TILE_WIDTH as u32, 
+                            TILE_WIDTH as u32
+                        ));
                         for enemy in enemy_list.iter_mut() {
                             match enemy.kind {
                                 EnemyKind::Speed => {},

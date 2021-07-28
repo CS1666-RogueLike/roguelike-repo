@@ -435,6 +435,11 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                             enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
                             64, 64)
                     )?;
+                    
+                    core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
+                    if enemy.recently_attacked() {
+                        core.wincan.fill_rect(enemy.box_es.get_attackbox(enemy.pos, enemy.dir))?;
+                    }
                 }
             }
 
@@ -584,6 +589,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                                 enemy.box_es.hitbox.y
                             )
                         )?;
+                        
                     }
 
                     for atk in &enemy.atkList {
@@ -673,6 +679,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
                 core.wincan.fill_rect(game.player.box_es.get_attackbox(game.player.pos, game.player.dir))?;
             }
+
             if game.player.recently_bombed() {
                 //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
                 core.wincan.copy(&bomb_explosion, None, game.player.box_es.get_bombbox(game.player.pos_static, game.player.dir))?;

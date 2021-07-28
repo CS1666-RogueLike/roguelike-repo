@@ -11,6 +11,11 @@ mod player;
 mod entity;
 mod attack;
 
+mod blackboard;
+use crate::blackboard::*;
+
+mod yellowenemy;
+
 mod util;
 use crate::util::*;
 
@@ -66,6 +71,7 @@ pub struct Manager {
     debug: bool,
     menu: MenuState, // Enum that controls the control flow via the menu.
     game: Game, // Struct holding all game related data.
+    blackboard: BlackBoard, //Struct for holding game data that the enemy needs to access
 }
 
 impl Demo for Manager {
@@ -74,11 +80,12 @@ impl Demo for Manager {
         let core = SDLCore::init(TITLE, VSYNC, WINDOW_WIDTH, WINDOW_HEIGHT)?;
         let debug = false;
         let menu = MenuState::MainMenu;
+        let blackboard = BlackBoard::new();
         let mut game = Game::new();
         game.changed_floors = false;
         game.transition_start = Instant::now();
 
-        Ok(Manager{core, debug, menu, game})
+        Ok(Manager{core, debug, menu, game, blackboard})
     }
 
     fn run(&mut self) -> Result<(), String> {
@@ -265,12 +272,14 @@ impl Demo for Manager {
                                 self.game.init_time.elapsed() >= Duration::from_secs(1) && self.game.player.has_bomb {
                                 self.game.player.use_bomb();
                             }
+                            
+                            self.blackboard.update(& self.game);
 
                             // Move player
                             self.game.player.update_pos(mov_vec);
-
+                            //Update enemy
                             for enemy in self.game.current_room_mut().enemies.iter_mut() {
-                                enemy.update_pos();
+                                enemy.update(& self.blackboard);
                             }
 
                             // Apply collision
@@ -290,8 +299,10 @@ impl Demo for Manager {
                             // Set prev frame tile
                             self.game.player.prev_frame_tile = self.game.player.current_frame_tile;
                             // Update current fream tile
-                            self.game.player.current_frame_tile = Vec2::new((self.game.player.get_pos_x() - LEFT_WALL) / 64,
-                                                                            (self.game.player.get_pos_y() - TOP_WALL) / 64);
+                            self.game.player.current_frame_tile = Vec2::new(
+                                (self.game.player.get_pos_x() - LEFT_WALL) / TILE_WIDTH,
+                                (self.game.player.get_pos_y() - TOP_WALL) / TILE_WIDTH
+                            );
                             //println!("{}, {}", self.game.player.current_frame_tile.x, self.game.player.current_frame_tile.y);
 
                             self.walkover();

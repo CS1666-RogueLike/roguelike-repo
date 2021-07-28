@@ -67,6 +67,7 @@ impl Floor {
                 ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 10
         ];
 
+
         // Initialize all grid spaces with None
         let mut rooms: Vec<Vec<Box<Room>>> = Vec::with_capacity(8);
 
