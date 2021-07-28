@@ -45,6 +45,7 @@ pub enum State{
 #[derive(Clone)]
 pub struct Enemy {
     pub pos: Vec2<f32>,
+    pub lastpos:Vec2<f32>,
     pub box_es: Box,
     pub speed: f32,
     pub dir: Direction,
@@ -88,6 +89,7 @@ impl Enemy {
     pub fn new(position: Vec2<f32>, kind: EnemyKind) -> Enemy {
         Enemy {
             pos: position,
+            lastpos: Vec2::new(-1.0, 0.0),
             box_es: Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(40, 30)),
             speed: 2.8,
             dir: Direction::Right,
@@ -114,6 +116,9 @@ impl Enemy {
             (self.get_pos_x() - LEFT_WALL) / TILE_WIDTH,
             (self.get_pos_y() - TOP_WALL) / TILE_WIDTH
         );
+        
+        self.updateDir(blackboard);
+        //println!("{:?}", self.current_frame_tile);
         match self.kind {
             EnemyKind::Health => {
             }
@@ -122,6 +127,50 @@ impl Enemy {
             EnemyKind::Attack => {
                 crate::yellowenemy::update(self, blackboard);
             }
+        }
+    }
+    
+    pub fn updateDir(& mut self, blackboard: &BlackBoard){
+        let e_x = self.current_frame_tile.x;
+        let e_y = self.current_frame_tile.y;
+        let p_x = blackboard.playerFrameTile.x;
+        let p_y = blackboard.playerFrameTile.y;
+        if(e_x == p_x && e_y < p_y)
+        {
+            self.dir = Direction::Down;
+        }
+        
+        if(e_x == p_x && e_y > p_y)
+        {
+            self.dir = Direction::Up;
+        }
+        
+        if e_x > p_x 
+        {
+            self.dir = Direction::Left;
+        }
+        
+        if e_x < p_x
+        {
+            self.dir = Direction::Right;
+        }
+    }
+    
+    pub fn playerClose(enemy: & mut Enemy, blackboard: &BlackBoard) -> bool{
+        let e_x = enemy.pos.x;
+        let e_y = enemy.pos.y;
+        let p_x = blackboard.playerpos.x;
+        let p_y = blackboard.playerpos.y;
+        
+        /*if (e_x == p_x && ((e_y-20.0) <= p_y || (e_y+20.0) >= p_y)) || //If the player is right above or below the enemy
+        (e_y == p_y && ((e_x-20.0) <= p_x || (e_x+20.0) >= p_x)) || //If the player is on either side of the enemy
+        (e_y == p_y && e_x == p_x){ //If the player is on top of the enemy*/
+        
+        if (enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.playerBox.get_walkbox(blackboard.playerpos))){
+            return true;
+        }
+        else{
+            return false;
         }
     }
     // Using Connor's player implementation for this design:
@@ -229,20 +278,20 @@ impl Enemy {
                             self.movement_vec.y = 0.0;
                         },
                         7 | 8 => {
-                            self.movement_vec.x = 0.7071067;
-                            self.movement_vec.y = 0.7071067;
+                            self.movement_vec.x = DIAGONAL_VEC;
+                            self.movement_vec.y = DIAGONAL_VEC;
                         },
                         9 | 10 => {
-                            self.movement_vec.x = -0.7071067;
-                            self.movement_vec.y = -0.7071067;
+                            self.movement_vec.x = -DIAGONAL_VEC;
+                            self.movement_vec.y = -DIAGONAL_VEC;
                         },
                         11 | 12 => {
-                            self.movement_vec.x = 0.7071067;
-                            self.movement_vec.y = -0.7071067;
+                            self.movement_vec.x = DIAGONAL_VEC;
+                            self.movement_vec.y = -DIAGONAL_VEC;
                         },
                         13 | 14 => {
-                            self.movement_vec.x = -0.7071067;
-                            self.movement_vec.y = 0.7071067;
+                            self.movement_vec.x = -DIAGONAL_VEC;
+                            self.movement_vec.y = DIAGONAL_VEC;
                         },
                         15 => {
                             self.movement_vec.x = 0.0;

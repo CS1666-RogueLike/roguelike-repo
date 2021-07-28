@@ -20,6 +20,8 @@ pub const P_DEATH_HP: i32 = 0;
 pub const P_INVINCIBILITY_TIME: u64 = 1750; //The time (in milliseconds) that the player is invunerable
 //after they take damage
 
+pub const DIAGONAL_VEC: f32 = 0.7071067;
+
 //pub const P_SPEED: 
 
 pub const ENEMY_INTERSECTION_DAMAGE: i32 = 1; //Damage taken by player when they collide with enemy

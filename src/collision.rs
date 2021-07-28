@@ -73,14 +73,16 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
         }
 
         for enemy in enemy_list.iter_mut() {
+
+            enemy.lastpos = enemy.pos; //Update the last position
             enemy.pos.x = enemy.pos.x.clamp(
-                LEFT_WALL as f32 + (enemy.box_es.walkbox.x * 4) as f32,
-                RIGHT_WALL as f32 - (enemy.box_es.walkbox.x * 4) as f32
+                (LEFT_WALL as f32 + (enemy.box_es.walkbox.x * 4) as f32) - TILE_WIDTH as f32,
+                (RIGHT_WALL as f32 - (enemy.box_es.walkbox.x * 4) as f32) + TILE_WIDTH as f32
             );
             enemy.pos.y = enemy.pos.y.clamp(
-                TOP_WALL as f32 + (enemy.box_es.walkbox.y * 4) as f32, 
-                BOT_WALL as f32 - (enemy.box_es.walkbox.y * 4) as f32
-            );
+                (TOP_WALL as f32 + (enemy.box_es.walkbox.y * 4) as f32) - TILE_WIDTH as f32, 
+                (BOT_WALL as f32 - (enemy.box_es.walkbox.y * 4) as f32) + TILE_WIDTH as f32
+            ); 
             
             let player_test = game.player.box_es.get_hitbox(game.player.pos);
             // If the test enemy is in the current room of the player...
@@ -133,7 +135,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 }
 
                 // Then there's a collision!
-                if wb_test.has_intersection(player_test) {
+                /*if wb_test.has_intersection(player_test) {
                     //Damage enemy also! For some reason
                     //enemy.damage(1);
                     // Update player invincibility window and take damage to the player.
@@ -145,7 +147,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     if game.player.death() {
                         *menu = MenuState::GameOver;
                     }
-                }
+                }*/
             }
             for atk in &enemy.atkList{
                 let wb_test = atk.box_es.get_hitbox(atk.pos);
@@ -159,7 +161,6 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 }
 
             }
-            
         }
 
         core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
