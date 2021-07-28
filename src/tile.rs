@@ -102,7 +102,7 @@ impl Tile for Rock {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {
         false
     }
@@ -119,7 +119,7 @@ impl Tile for Wall {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {
         false
     }
@@ -136,7 +136,7 @@ impl Tile for Pit {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {
         false
     }
@@ -203,7 +203,7 @@ impl Tile for Door {
     fn lock(&mut self) { self.lock = LockState::Locked; }
     fn unlock(&mut self) { self.lock = LockState::Unlocked; }
     fn get_lock_state(&self) -> LockState { self.lock }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
     fn get_gem_type(&self) -> Gem {
         Gem::None
     }
@@ -232,7 +232,7 @@ impl Tile for Bomb {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {
         false
     }
@@ -262,7 +262,7 @@ impl Tile for Key {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {
         false
     }
@@ -289,7 +289,7 @@ impl Tile for Trapdoor {
     fn lock(&mut self) { self.lock = LockState::Locked; }
     fn unlock(&mut self) { self.lock = LockState::Unlocked; }
     fn get_lock_state(&self) -> LockState { self.lock }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {
         false
     }

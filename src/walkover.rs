@@ -7,7 +7,7 @@ use crate::player::PowerUp;
 use std::time::Instant;
 
 
-pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
+pub fn base(game : &mut Game, menu : &mut MenuState){
 
     // Branch for tiles that should only be called once (doors, pickups
     if game.player.current_frame_tile != game.player.prev_frame_tile {
