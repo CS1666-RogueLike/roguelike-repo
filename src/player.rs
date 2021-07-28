@@ -11,10 +11,12 @@ const PLAYER_SPEED: f32 = 3.5;
 
 pub struct Player {
     pub pos: Vec2<f32>, // Position of middle of player.
+    pub pos_static: Vec2<f32>,
 
     // TODO: REWORK INTO INDIVIDUAL TRAITS SO THEY CAN BE USED WITH ENEMIES
     pub box_es: Box,
     pub speed: f32,
+    pub stored_speed: f32,
     pub dir: Direction,
     pub hp: i32,    //store the health for player
     pub m_hp: i32,
@@ -26,6 +28,9 @@ pub struct Player {
     pub prev_frame_tile: Vec2<i32>,
     pub current_frame_tile: Vec2<i32>,
 
+    pub has_bomb: bool,
+    pub using_bomb: bool,
+    last_bomb_time: Option<Instant>,
     pub has_key: bool,
     pub last_invincibility_time: Option<Instant>,
 
@@ -58,8 +63,10 @@ impl Player {
     pub fn new() -> Player {
         Player {
             pos: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
+            pos_static: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
             box_es: Box::new(Vec2::new(48, 52), Vec2::new(40, 24), Vec2::new(32, 48)),
             speed: PLAYER_SPEED,
+            stored_speed: PLAYER_SPEED,
             dir: Direction::Down,
             hp: P_MAX_HP,
             m_hp: P_MAX_HP,
@@ -71,6 +78,9 @@ impl Player {
             prev_frame_tile: Vec2::new(8, 5),
             current_frame_tile: Vec2::new(8, 5),
 
+            has_bomb: false,
+            using_bomb: false,
+            last_bomb_time: None,
             has_key: false,
             last_invincibility_time: None,
 
@@ -115,6 +125,11 @@ impl Player {
         }
     }
 
+    pub fn update_static_pos(&mut self)
+    {
+        self.pos_static = self.pos;
+    }
+
     pub fn signal_attack(&mut self) {
         self.is_attacking = true;
         self.last_attack_time = Some(Instant::now());
@@ -126,6 +141,19 @@ impl Player {
                 let res = time.elapsed() <= Duration::from_millis(500);
                 if !res {
                     self.is_attacking = false;
+                }
+
+                res
+            },
+            None => false
+        }
+    }
+    pub fn recently_bombed(&mut self) -> bool {
+        match self.last_bomb_time {
+            Some( time ) => {
+                let res = time.elapsed() <= Duration::from_millis(500);
+                if !res {
+                    self.using_bomb = false;
                 }
 
                 res
@@ -164,14 +192,15 @@ impl Player {
         match current_tile {
             WalkoverAction::Damage => {
                 //println!("{:#?}", current_tile);
-                if self.speed >= PLAYER_SPEED{
+                if self.speed >= self.stored_speed{
+                    self.stored_speed = self.speed;
                     self.speed *= 0.6666;
                 }
             },
             _ => {
                 //println!("{}",self.speed);
-                if self.speed < PLAYER_SPEED{
-                    self.speed = PLAYER_SPEED;
+                if self.speed < self.stored_speed{
+                    self.speed = self.stored_speed;
                 }
             },
         }
@@ -195,6 +224,13 @@ impl Player {
                 self.damage(amount);
             }
         }
+    }
+
+    pub fn use_bomb(&mut self) {
+        self.update_static_pos();
+        self.has_bomb = false;
+        self.using_bomb = true;
+        self.last_bomb_time = Some(Instant::now());
     }
 }
 

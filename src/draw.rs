@@ -5,7 +5,9 @@ use crate::menu::*;
 use crate::player::PowerUp;
 use crate::entity::*;
 use roguelike::SDLCore;
+
 use std::time::Duration;
+use std::time::Instant;
 
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
@@ -14,6 +16,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::image::LoadTexture;
 use sdl2::render::Texture;
+
 
 
 pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuState, &debug: &bool) -> Result<(), String> {
@@ -50,6 +53,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             let attack_atk = texture_creator.load_texture("assets/attack-projectile.png")?;
 
             let hp_indicator = texture_creator.load_texture("assets/hp.png")?;
+            let hp_bomb_indicator = texture_creator.load_texture("assets/-3.png")?;
 
             //power assets
             let p_text = texture_creator.load_texture("assets/p_text.png")?;
@@ -72,6 +76,9 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             let gem_red = texture_creator.load_texture("assets/gem_red.png")?;
             let gem_yellow = texture_creator.load_texture("assets/gem_yellow.png")?;
             let gem_blue = texture_creator.load_texture("assets/gem_blue.png")?;
+            let bomb_item = texture_creator.load_texture("assets/Bomb.png")?;
+            let bomb_menu = texture_creator.load_texture("assets/bomb_menu.png")?;
+            let bomb_explosion = texture_creator.load_texture("assets/Explosion.png")?;
 
             let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
             let rock = texture_creator.load_texture("assets/rock.png")?;
@@ -96,10 +103,21 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     // Draw background of game screen
                     core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
                 }
+                GameState::InitialFloorTrans => {
+                    // Draw background of game screen again, room transition is custom
+                    core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+
+                    // BETWEEN FLOORS DRAWING CODE IS AT BOTTOM BC IT NEEDS TO BE DRAWN OVERTOP
+                }
+                GameState::BetweenFloors => {
+                    // Draw background of game screen again, room transition is custom
+                    core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+
+                    // BETWEEN FLOORS DRAWING CODE IS AT BOTTOM BC IT NEEDS TO BE DRAWN OVERTOP
+                }
                 GameState::BetweenRooms => {
                     // Transition duration
                     let dur = Duration::new(0, 400_000_000); // Half billion = half second
-
                     // 0.0 to 1.0 value to scale transition by
                     let scale = (game.transition_start.elapsed().as_millis() as f64 / dur.as_millis() as f64);
 
@@ -205,12 +223,22 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                                     core.wincan.copy(&key, None, Rect::new(x_val, y_val, 64, 64))?;
                                 }
 
+                                SpriteID::Bomb => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&bomb_item, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+
+                                SpriteID::Explosion => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&bomb_explosion, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+
                                 SpriteID::TrapdoorLocked => {
                                     core.wincan.copy(&td_locked, None, Rect::new(x_val, y_val, 64, 64))?;
                                 }
 
                                 SpriteID::TrapdoorUnlocked => {
-                                    core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
+                                    core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
                                     core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
                                 }
 
@@ -280,6 +308,16 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                             //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
                         }
 
+                        SpriteID::Bomb => {
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&bomb_item, None, Rect::new(x_val, y_val, 64, 64))?;
+                        }
+
+                        SpriteID::Explosion => {
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&bomb_explosion, None, Rect::new(x_val, y_val, 64, 64))?;
+                        }
+
                         SpriteID::DoorLocked => {
                             core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                             core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
@@ -300,7 +338,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                         }
 
                         SpriteID::TrapdoorUnlocked => {
-                            core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
+                            core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
                             core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
                         }
 
@@ -470,7 +508,11 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
             // Rough key setup
             if game.player.has_key {
-                core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64))?;
+                core.wincan.copy(&key, None, Rect::new(96, 200, 64, 64))?;
+            }
+
+            if game.player.has_bomb {
+                core.wincan.copy(&bomb_menu, None, Rect::new(16, 200, 64, 64))?;
             }
 
             // Minimap (commented out first block as the block below does the same thing)
@@ -637,9 +679,77 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
                 core.wincan.fill_rect(game.player.box_es.get_attackbox(game.player.pos, game.player.dir))?;
             }
-            
-            
 
+            if game.player.recently_bombed() {
+                //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
+                core.wincan.copy(&bomb_explosion, None, game.player.box_es.get_bombbox(game.player.pos_static, game.player.dir))?;
+                //core.wincan.fill_rect(game.player.box_es.get_bombbox(game.player.pos, game.player.dir))?;
+            }
+            // FINAL DRAW FOR ANY OVERLAYS
+            match game.game_state {
+                GameState::InitialFloorTrans => {
+                    let dur = Duration::new(0, 500_000_000); // 1 billion = second
+                    let ms = game.transition_start.elapsed().as_millis();
+
+                    if ms <= 1500 {
+                        core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, 720));
+
+                        let f1 = texture_creator.load_texture("assets/floor_1.png")?;
+                        core.wincan.copy(&f1, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                    } else if ms <= 2000 {
+                        let scale = 1.0 - ((game.transition_start.elapsed().as_millis() - 1500) as f64 / dur.as_millis() as f64);
+
+                        core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32));
+                        core.wincan.fill_rect(Rect::new(0, (720.0 - 360.0 * scale) as i32, 1280, (scale * 360.0) as u32));
+                    }
+                }
+                GameState::BetweenFloors => {
+
+
+                    // Transition duration
+                    let dur = Duration::new(0, 500_000_000); // 1 billion = second
+
+                    let ms = game.transition_start.elapsed().as_millis();
+                    if ms <= 500 {
+                        // 0.0 to 1.0 value to scale transition by
+                        let scale = (game.transition_start.elapsed().as_millis() as f64 / dur.as_millis() as f64);
+
+                        core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32));
+                        core.wincan.fill_rect(Rect::new(0, (720.0 - 360.0 * scale) as i32, 1280, (scale * 360.0) as u32));
+                    } else if ms <= 2500 {
+                        core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, 720));
+
+                        if ms > 550 { // Avoids drawing previous floor for a few frames bug
+                            match game.cf {
+                                0 => {
+                                    let f1 = texture_creator.load_texture("assets/floor_1.png")?;
+                                    core.wincan.copy(&f1, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                                }
+                                1 => {
+                                    let f2 = texture_creator.load_texture("assets/floor_2.png")?;
+                                    core.wincan.copy(&f2, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                                }
+                                2 => {
+                                    let f3 = texture_creator.load_texture("assets/floor_3.png")?;
+                                    core.wincan.copy(&f3, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                                }
+                                _ => {}
+                            }
+                        }
+                    } else if ms <= 3000 {
+                        let scale = 1.0 - ((game.transition_start.elapsed().as_millis() - 2500) as f64 / dur.as_millis() as f64);
+
+                        core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32));
+                        core.wincan.fill_rect(Rect::new(0, (720.0 - 360.0 * scale) as i32, 1280, (scale * 360.0) as u32));
+                    }
+                }
+                _ => {} // Do nothing for other stuff
+            }
         }
 
         MenuState::GameOver => {
@@ -656,6 +766,9 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
         }
 
     }
+
+
+
 
     // Tell SDL to draw everything on screen.
     core.wincan.present();

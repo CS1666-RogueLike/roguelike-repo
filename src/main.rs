@@ -1,4 +1,5 @@
 extern crate roguelike;
+use sdl2::audio::{AudioCallback, AudioSpecDesired};
 
 mod menu;
 use crate::menu::*;
@@ -24,6 +25,7 @@ mod draw;
 
 mod map;
 mod floor;
+mod procgen;
 mod room;
 mod tile;
 mod boxes;
@@ -46,6 +48,7 @@ use entity::EnemyKind;
 
 //use std::cmp::min;
 use std::collections::HashSet;
+use std::time::Instant;
 
 use std::time::Duration;
 use crate::menu::MenuState::GameOver;
@@ -77,8 +80,10 @@ impl Demo for Manager {
         let core = SDLCore::init(TITLE, VSYNC, WINDOW_WIDTH, WINDOW_HEIGHT)?;
         let debug = false;
         let menu = MenuState::MainMenu;
-        let game = Game::new();
         let blackboard = BlackBoard::new();
+        let mut game = Game::new();
+        game.changed_floors = false;
+        game.transition_start = Instant::now();
 
         Ok(Manager{core, debug, menu, game, blackboard})
     }
@@ -108,6 +113,7 @@ impl Demo for Manager {
         println!("\tSpace\t\tShort-range attack (cardinal directions only)");
         println!("\tEscape\t\tPause game (while in game, not menus)");
         println!("");
+        println!("\tQ\t\tUse Bomb");
         println!("\tH\t\tTest health power up");
         println!("\tJ\t\tTest speed power up");
         println!("\tK\t\tTest attack power up");
@@ -120,7 +126,12 @@ impl Demo for Manager {
         let mut esc_prev = false;
         let mut esc_curr = false;
 
+        //sdl2::mixer::open_audio(Some(44100),)?;
+        // let music = sdl2::mixer::Music::from_file("assets/Blob Style.mp3")?;
+        // music.play(1);
+        //Duration::from_millis(100000);
 
+        //play::play("assets/Blob Style.mp3").unwrap();
 
         //println!("DOES THE ROOM EXIST? {}", self.game.current_room().exists);
 
@@ -176,11 +187,38 @@ impl Demo for Manager {
                 GameActive => {
 
                     match self.game.game_state {
+                        GameState::InitialFloorTrans => {
+                            if self.game.transition_start.elapsed().as_millis() > 2500 {
+                                self.game.game_state = GameState::Gameplay;
+                            }
+                        }
                         GameState::BetweenRooms => {
                             //sleep(Duration::new(0, 500_000_000)); // 500 mil is half second
                             if self.game.transition_start.elapsed().as_millis() > 400 {
                                 self.game.game_state = GameState::Gameplay;
                             }
+
+                        }
+
+                        GameState::BetweenFloors => {
+                            if self.game.transition_start.elapsed().as_millis() > 3000 {
+                                self.game.game_state = GameState::Gameplay;
+                            }
+
+                            // TODO Proc gen team this needs to change for additional floors
+                            if self.game.changed_floors == false && self.game.transition_start.elapsed().as_millis() > 500 {
+                                if self.game.cf == 2 { // 1 WILL PROBABLY NEED TO BECOME 3 OR 4
+                                    self.menu = MenuState::GameOver;
+                                } else {
+                                    self.game.cf += 1;
+                                    self.game.cr.x = START_X;
+                                    self.game.cr.y = START_Y;
+                                    self.game.player.pos.x = (LEFT_WALL + 8 * 64) as f32 + 32.0;
+                                    self.game.player.pos.y = (TOP_WALL + 5 * 64) as f32 + 40.0;
+                                    self.game.changed_floors = true;
+                                }
+                            }
+
                         }
 
                         GameState::Gameplay => {
@@ -229,10 +267,14 @@ impl Demo for Manager {
                                 self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
                                 self.game.player.signal_attack();
                             }
-                            //Update Blackboard
+
+                            if keystate.contains(&Keycode::Q) && matches!(self.menu, MenuState::GameActive) &&
+                                self.game.init_time.elapsed() >= Duration::from_secs(1) && self.game.player.has_bomb {
+                                self.game.player.use_bomb();
+                            }
                             
                             self.blackboard.update(& self.game);
-                            
+
                             // Move player
                             self.game.player.update_pos(mov_vec);
                             //Update enemy

@@ -78,6 +78,11 @@ pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
                 game.player.has_key = true;
             },
 
+            WalkoverAction::GivePlayerBomb => {
+                println!("Bomb was picked up!!!");
+                game.player.has_bomb = true;
+            }
+
             WalkoverAction::Damage => {
                 println!("You've stepped on spikes!");
                 game.player.take_damage(1, P_INVINCIBILITY_TIME);
@@ -94,19 +99,14 @@ pub fn base(mut game : &mut Game, mut menu : &mut MenuState){
                         .tiles[game.player.current_frame_tile.y as usize][game.player.current_frame_tile.x as usize].unlock();
                     game.player.has_key = false;
                     //Debug: println!("{}", game.cf);
-                    // Temp Check for game over
-                    if game.cf == 1 {
-                        *menu = MenuState::GameOver;
-                    }
-                    else {
-                        game.cf += 1;// this should stay
-                    }
+
+                    // FLOOR CHANGING DONE ONCE TRANSITION IS COMPLETE
                     //Debug: println!("{}", game.cf);
                     // THIS WILL NEED CHANGING
-                    game.cr.x = 3;
-                    game.cr.y = 4;
-                    game.player.pos.x = (LEFT_WALL + 8 * TILE_WIDTH) as f32 + 32.0;
-                    game.player.pos.y = (TOP_WALL + 5 * TILE_WIDTH) as f32 + 40.0;
+
+                    game.changed_floors = false;
+                    game.transition_start = Instant::now();
+                    game.game_state = GameState::BetweenFloors;
 
                 }
                 else {

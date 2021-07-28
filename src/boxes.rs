@@ -66,4 +66,25 @@ impl Box {
             }
         }
     }
+
+    pub fn get_bombbox(&self, pos : Vec2<f32>, dir : Direction) -> Rect {
+        match dir {
+            Direction::Up => {
+                Rect::new(pos.x as i32 - ( 256 / 2 ) as i32, pos.y as i32 - (256 as i32) - 48,
+                          256 as u32,  256 as u32)
+            }
+            Direction::Down => {
+                Rect::new(pos.x as i32 - ( 256 / 2 ) as i32, pos.y as i32 + 16,
+                          256 as u32, 256 as u32)
+            }
+            Direction::Left => {
+                Rect::new(pos.x as i32 -32 - 256, pos.y as i32 - 16 - (256/2),
+                          256 as u32, 256 as u32)
+            }
+            Direction::Right => {
+                Rect::new(pos.x as i32 + 32, pos.y as i32 - 16 - (256/2),
+                          256 as u32, 256 as u32)
+            }
+        }
+    }
 }

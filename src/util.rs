@@ -44,6 +44,10 @@ pub const ATTACK_ENEMY_ATK_PROJSPEED: f32 = 3.0; //The speed of this enemy's pro
 pub const ATTACK_ENEMY_ATK_WIDTH: u32 = 20; //The width of this enemy's projectile attack
 pub const ATTACK_ENEMY_ATK_HEIGHT: u32 = 20; //The height of this enemy's projectile attack
 
+//-------------------------------Start Position for Procgen---------------------------------
+pub const START_X: i32 = 3;
+pub const START_Y: i32 = 3;
+
 // ------------------------------------------- Vec2 --------------------------------------------
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Vec2<T> {
@@ -95,6 +99,8 @@ pub enum SpriteID {
     GemRed,
     GemBlue,
     GemYellow,
+    Bomb,
+    Explosion,
 }
 
 #[derive(Copy, Clone, PartialEq)]
