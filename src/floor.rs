@@ -79,26 +79,26 @@ impl Floor {
             }
         }
         let rb = RecursiveBacktracker::new(Some(8));
-        let procgenRes = rb.run();
-        let randomNum = rng.gen_range(2..=6);
-        for cord in procgenRes.iter() {
+        let procgen_res = rb.run();
+        let random_num = rng.gen_range(2..=6);
+        for cord in procgen_res.iter() {
             let mut blueprint = cellular_automata();
             if cord.1 == START_X && cord.0 == START_Y
             {
                 blueprint = start_room;
             }
-            if cord == procgenRes.last().unwrap()
+            if cord == procgen_res.last().unwrap()
             {
                 blueprint = end_room;
             }
-            if cord == procgenRes.get(randomNum).unwrap()
+            if cord == procgen_res.get(random_num).unwrap()
             {
                 blueprint = key_room;
             }
             rooms[cord.1 as usize][cord.0 as usize] = Box::new(Room::new_test_room(blueprint));
         }
 
-        for (x,y) in procgenRes.iter() {
+        for (x,y) in procgen_res.iter() {
             let dy = *y;
             let dx = *x;
             if dy > 0 {
@@ -248,15 +248,15 @@ impl Floor {
                             };
                         }
                         if blank > 8 {
-                            let randomNum = rng.gen_range(0..=2);
-                            if randomNum == 0 {
+                            let random_num = rng.gen_range(0..=2);
+                            if random_num == 0 {
                                 write_vec[rows][cols] = 'P';
                             } else {
                                 write_vec[rows][cols] = '_';
                             }
                         } else if blank > 7 {
-                            let randomNum = rng.gen_range(0..=2);
-                            if randomNum == 0 {
+                            let random_num = rng.gen_range(0..=2);
+                            if random_num == 0 {
                                 write_vec[rows][cols] = 'R';
                             } else {
                                 write_vec[rows][cols] = '_';

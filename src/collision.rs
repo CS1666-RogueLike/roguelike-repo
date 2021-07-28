@@ -174,7 +174,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     }
                 }*/
             }
-            for atk in &enemy.atkList{
+            for atk in &enemy.atk_list{
                 let wb_test = atk.box_es.get_hitbox(atk.pos);
                 let player_test = game.player.box_es.get_hitbox(game.player.pos);
 

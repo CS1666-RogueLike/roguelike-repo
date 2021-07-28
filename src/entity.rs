@@ -56,7 +56,7 @@ pub struct Enemy {
     pub kind: EnemyKind,
     pub death: bool,
     pub power: bool,
-    pub atkList: Vec<AtkProjectile>,
+    pub atk_list: Vec<AtkProjectile>,
     pub state: State,
     pub is_attacking: bool,
     pub last_attack_time: Option<Instant>,
@@ -100,7 +100,7 @@ impl Enemy {
             kind: kind,
             death: false,
             power: false,
-            atkList: Vec::new(),
+            atk_list: Vec::new(),
             state: State::Idle,
             
             current_frame_tile: Vec2::new(0,0),
@@ -117,7 +117,7 @@ impl Enemy {
             (self.get_pos_y() - TOP_WALL) / TILE_WIDTH
         );
         
-        self.updateDir(blackboard);
+        self.update_dir(blackboard);
         //println!("{:?}", self.current_frame_tile);
         match self.kind {
             EnemyKind::Health => {
@@ -130,11 +130,11 @@ impl Enemy {
         }
     }
     
-    pub fn updateDir(& mut self, blackboard: &BlackBoard){
+    pub fn update_dir(& mut self, blackboard: &BlackBoard){
         let e_x = self.current_frame_tile.x;
         let e_y = self.current_frame_tile.y;
-        let p_x = blackboard.playerFrameTile.x;
-        let p_y = blackboard.playerFrameTile.y;
+        let p_x = blackboard.player_frame_tile.x;
+        let p_y = blackboard.player_frame_tile.y;
         if(e_x == p_x && e_y < p_y)
         {
             self.dir = Direction::Down;
@@ -156,17 +156,18 @@ impl Enemy {
         }
     }
     
-    pub fn playerClose(enemy: & mut Enemy, blackboard: &BlackBoard) -> bool{
+    pub fn player_close(enemy: & mut Enemy, blackboard: &BlackBoard) -> bool{
+        /*
         let e_x = enemy.pos.x;
         let e_y = enemy.pos.y;
         let p_x = blackboard.playerpos.x;
         let p_y = blackboard.playerpos.y;
         
-        /*if (e_x == p_x && ((e_y-20.0) <= p_y || (e_y+20.0) >= p_y)) || //If the player is right above or below the enemy
+        if (e_x == p_x && ((e_y-20.0) <= p_y || (e_y+20.0) >= p_y)) || //If the player is right above or below the enemy
         (e_y == p_y && ((e_x-20.0) <= p_x || (e_x+20.0) >= p_x)) || //If the player is on either side of the enemy
         (e_y == p_y && e_x == p_x){ //If the player is on top of the enemy*/
         
-        if (enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.playerBox.get_walkbox(blackboard.playerpos))){
+        if (enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.player_box.get_walkbox(blackboard.playerpos))){
             return true;
         }
         else{
@@ -176,8 +177,8 @@ impl Enemy {
     // Using Connor's player implementation for this design:
 
     pub fn type_eq(a: EnemyKind, b: EnemyKind) -> bool{
-        let num1 = Enemy::assignNum(a);
-        let num2 = Enemy::assignNum(b);
+        let num1 = Enemy::assign_num(a);
+        let num2 = Enemy::assign_num(b);
         //println!("{:?}, {}", a, num1);
         //println!("{:?}, {}", b, num2);
         if(num1 == num2){
@@ -188,7 +189,7 @@ impl Enemy {
             }
     }
     
-    pub fn assignNum(a: EnemyKind) -> i32
+    pub fn assign_num(a: EnemyKind) -> i32
     {
         match a {
             EnemyKind::Health => {
@@ -257,8 +258,8 @@ impl Enemy {
                 if update_time.elapsed() >= Duration::from_secs(2) {
 
                     //Make a new attack projectile every time the enemy moves. For test things
-                    let newAtk = AtkProjectile::new(self.pos, self.movement_vec, &self.kind);
-                    self.atkList.push(newAtk);
+                    let new_atk = AtkProjectile::new(self.pos, self.movement_vec, &self.kind);
+                    self.atk_list.push(new_atk);
 
                     match rng.gen_range( 0 ..= 15 ) {
                         0 => {
@@ -316,22 +317,22 @@ impl Enemy {
         //Moves all the attacks that this enemy shot
 
         let mut index = 0;
-        let mut toRemove = Vec::new();
-        for mut atk in &mut self.atkList {
+        let mut to_remove = Vec::new();
+        for mut atk in &mut self.atk_list {
             atk.pos.x += atk.movement_vec.x * atk.speed;
             atk.pos.y += atk.movement_vec.y * atk.speed;
 
             //If the attack is off screen, remove it from the atk vector
 
-            if(atk.pos.x < 0.0 || atk.pos.y < 0.0 || atk.pos.x > WINDOW_WIDTH as f32|| atk.pos.y > WINDOW_HEIGHT as f32)
+            if atk.pos.x < 0.0 || atk.pos.y < 0.0 || atk.pos.x > WINDOW_WIDTH as f32|| atk.pos.y > WINDOW_HEIGHT as f32
             {
-                toRemove.push(index);
+                to_remove.push(index);
             }
             index+=1;
         }
 
-        for rmv in &mut toRemove {
-            self.atkList.remove(*rmv);
+        for rmv in &mut to_remove {
+            self.atk_list.remove(*rmv);
             println!("Bullet Removed");
         }
     }

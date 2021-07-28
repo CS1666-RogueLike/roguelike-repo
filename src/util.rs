@@ -24,6 +24,9 @@ pub const DIAGONAL_VEC: f32 = 0.7071067;
 
 //pub const P_SPEED: 
 
+//Commented out for now to get rid of warnings
+
+
 pub const ENEMY_INTERSECTION_DAMAGE: i32 = 1; //Damage taken by player when they collide with enemy
 
 //----Health Enemy Stats----
@@ -38,11 +41,13 @@ pub const SPEED_ENEMY_ATK_PROJSPEED: f32 = 4.0; //The speed of this enemy's proj
 pub const SPEED_ENEMY_ATK_WIDTH: u32 = 10; //The width of this enemy's projectile attack
 pub const SPEED_ENEMY_ATK_HEIGHT: u32 = 10; //The height of this enemy's projectile attack
 
+
 //----Attack Enemy Stats----
 pub const ATTACK_ENEMY_ATK_DMG: i32 = 3; //The damage of this enemy's projectile attack
 pub const ATTACK_ENEMY_ATK_PROJSPEED: f32 = 3.0; //The speed of this enemy's projectile attack
 pub const ATTACK_ENEMY_ATK_WIDTH: u32 = 20; //The width of this enemy's projectile attack
 pub const ATTACK_ENEMY_ATK_HEIGHT: u32 = 20; //The height of this enemy's projectile attack
+
 
 //-------------------------------Start Position for Procgen---------------------------------
 pub const START_X: i32 = 3;

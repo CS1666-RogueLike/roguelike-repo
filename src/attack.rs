@@ -17,15 +17,15 @@ impl AtkProjectile {
         AtkProjectile {
         	pos : pos, //Where the attack is
         	movement_vec : movement_vec, //What direction its moving
-        	speed : getSpeed(enemy_kind), //How fast it is
-        	damage : getDamage(enemy_kind), //How much it will damage the player when collided with
-        	box_es : getBoxes(enemy_kind), //The hitbox of it
+        	speed : get_speed(enemy_kind), //How fast it is
+        	damage : get_damage(enemy_kind), //How much it will damage the player when collided with
+        	box_es : get_boxes(enemy_kind), //The hitbox of it
         }
     }
 }
  //Set speed of attack projectile based on what kind of enemy it is
-fn getSpeed(enemy_kind : & EnemyKind) -> f32 {
-	let mut speed;
+fn get_speed(enemy_kind : & EnemyKind) -> f32 {
+	let speed;
     match enemy_kind {
 		EnemyKind::Health => {
 			speed = HEALTH_ENEMY_ATK_PROJSPEED;
@@ -41,8 +41,8 @@ fn getSpeed(enemy_kind : & EnemyKind) -> f32 {
 }
 
  //Set damage of attack projectile based on what kind of enemy it is
-fn getDamage(enemy_kind : & EnemyKind) -> i32 {
-	let mut damage;
+fn get_damage(enemy_kind : & EnemyKind) -> i32 {
+	let damage;
     match enemy_kind {
 		EnemyKind::Health => {
 			damage = HEALTH_ENEMY_ATK_DMG;
@@ -58,8 +58,8 @@ fn getDamage(enemy_kind : & EnemyKind) -> i32 {
 }
 
  //Set hitbox and walkbox of attack projectile based on what kind of enemy it is
-fn getBoxes(enemy_kind : & EnemyKind) -> Box {
-	let mut box_es;
+fn get_boxes(enemy_kind : & EnemyKind) -> Box {
+	let box_es;
     match enemy_kind {
 		EnemyKind::Health => {
 			box_es = Box::new(

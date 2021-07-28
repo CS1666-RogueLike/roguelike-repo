@@ -1,9 +1,9 @@
 use crate::blackboard::*;
-use crate::attack::*;
+//use crate::attack::*;
 use crate::util::*;
-use sdl2::rect::Rect;
-use std::time::{Duration, Instant};
-use crate::boxes::*;
+//use sdl2::rect::Rect;
+//use std::time::{Duration, Instant};
+//use crate::boxes::*;
 use crate::entity::*;
 
 
@@ -11,7 +11,7 @@ use crate::entity::*;
 pub enum State{
     Attack,
     Retreat,
-    TakeCover,
+    take_cover,
     Chase,
     Heal,
     Idle,
@@ -27,7 +27,7 @@ pub fn update(enemy: & mut Enemy, blackboard: &BlackBoard){
             retreat(enemy, blackboard);
         }
         State::TakeCover => {
-            takeCover(enemy, blackboard);
+            take_cover(enemy, blackboard);
         }
         State::Chase => {
             chase(enemy, blackboard);
@@ -43,7 +43,7 @@ pub fn update(enemy: & mut Enemy, blackboard: &BlackBoard){
 
 pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
     enemy.signal_attack();
-    if !Enemy::playerClose(enemy, blackboard)
+    if !Enemy::player_close(enemy, blackboard)
     {
         enemy.state = State::Chase;
     }
@@ -92,7 +92,7 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
     enemy.pos.y += enemy.movement_vec.y * enemy.speed;
 }
 
-pub fn takeCover(enemy: & mut Enemy, blackboard: &BlackBoard){
+pub fn take_cover(enemy: & mut Enemy, blackboard: &BlackBoard){
     
 }
 
@@ -135,9 +135,9 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
     }
    // println!("{:?}, {:?}", enemy.lastpos, enemy.pos);
 /*
-    if (!Enemy::playerClose(enemy, blackboard) && (enemy.lastpos.x != enemy.pos.x || enemy.lastpos.y != enemy.pos.y))
+    if (!Enemy::player_close(enemy, blackboard) && (enemy.lastpos.x != enemy.pos.x || enemy.lastpos.y != enemy.pos.y))
     {
-        /*if !Enemy::playerClose(enemy, blackboard){
+        /*if !Enemy::player_close(enemy, blackboard){
             println!("1");
             }
             
@@ -167,7 +167,7 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
         enemy.pos.x += enemy.movement_vec.x * enemy.speed;
         enemy.pos.y += enemy.movement_vec.y * enemy.speed;
    // }
-    if Enemy::playerClose(enemy, blackboard)
+    if Enemy::player_close(enemy, blackboard)
     {
         enemy.state = State::Attack;
     }
