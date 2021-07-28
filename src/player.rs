@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 use crate::tile::*;
 
 
-const PLAYER_SPEED: f32 = 225.0;
+const PLAYER_SPEED: f32 = 210.0;
 
 pub struct Player {
     pub pos: Vec2<f32>, // Position of middle of player.
