@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 use crate::tile::*;
 
 
-const PLAYER_SPEED: f32 = 3.5;
+const PLAYER_SPEED: f32 = 225.0;
 
 pub struct Player {
     pub pos: Vec2<f32>, // Position of middle of player.
@@ -33,6 +33,8 @@ pub struct Player {
     last_bomb_time: Option<Instant>,
     pub has_key: bool,
     pub last_invincibility_time: Option<Instant>,
+    pub time_between_frames: Option<Instant>,
+    
 
     pub is_attacking: bool,
     pub last_attack_time: Option<Instant>,
@@ -83,6 +85,7 @@ impl Player {
             last_bomb_time: None,
             has_key: false,
             last_invincibility_time: None,
+            time_between_frames: None,
 
             //timing attacks so they aren't just 'on'
             is_attacking: false,
@@ -103,9 +106,31 @@ impl Player {
             mov_vec.y *= DIAGONAL_VEC;
         }
 
-        // Udate position using movement vector and speed
-        self.pos.x += mov_vec.x * self.speed;
-        self.pos.y += mov_vec.y * self.speed;
+        // Update position using movement vector and speed
+        // (now factors in time between frames for frame-independent movement)
+        match self.time_between_frames {
+            Some( delta ) => {
+                let val = delta.elapsed().as_millis();
+
+                // This check prevents the position from abruptly speeding up during the very short period
+                // that the delta isn't updating, as we are transitioning between doors (around a 300-400ms period)
+                
+                // This also prevents the player from flying immediately into a spike as soon
+                // as they enter the room. It adds a natural snappiness to each room transition;
+                // still allowing player movement to occur, but delaying it slightly until
+                // the room transition is essentially finished.
+                if ( val < 300 ) {
+                    self.pos.x += mov_vec.x * self.speed * ( val as f32 / 1000.0 );
+                    self.pos.y += mov_vec.y * self.speed * ( val as f32 / 1000.0 );
+                }
+            },
+            None => {}
+        }
+
+        // Update timestamp to get next delta
+        self.time_between_frames = Some( Instant::now() );
+        // self.pos.x += mov_vec.x * self.speed;
+        // self.pos.y += mov_vec.y * self.speed;
 
         // COLLISION CODE HAS BEEN MOVED TO MANAGER STRUCT, AS NEW COLLISION REQUIRES KNOWLEDGE OF
         // MAP STATE WHICH IS ABOVE THE PLAYER
@@ -289,7 +314,7 @@ impl PowerUp for Player {
             if let Some(temp) = self.power_up_vec.get_mut(1){
                 *temp = 0;
             }
-            self.speed += 1.0;
+            self.speed += 20.0;
         }
     }
     fn plus_power_attack(&mut self){
