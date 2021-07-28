@@ -141,8 +141,8 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     core.wincan.copy(&bg, None, Rect::new(xo, yo, WINDOW_WIDTH, WINDOW_HEIGHT))?;
                     core.wincan.copy(&bg, None, Rect::new(xo + x_dir as i32 * -1280, yo + y_dir as i32 * -720, WINDOW_WIDTH, WINDOW_HEIGHT))?;
 
-                    let mut x = 0;
-                    let mut y = 0;
+                    let x = 0;
+                    let y = 0;
                     let rmx = game.cr.x + match game.trans_dir {
                         Direction::Right => -1,
                         Direction::Left => 1,
@@ -407,14 +407,14 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
             let enemies = &mut game.current_room_mut().enemies;
             for enemy in enemies.iter_mut()  {
-                    let texA = match &enemy.kind {
+                    let tex_a = match &enemy.kind {
                         EnemyKind::Attack => &attack_atk,
                         EnemyKind::Health => &health_atk,
                         EnemyKind::Speed => &speed_atk
                     };
 
-                for atk in &enemy.atkList {
-                    core.wincan.copy(&texA, None,
+                for atk in &enemy.atk_list {
+                    core.wincan.copy(&tex_a, None,
                         Rect::new(
                                 atk.pos.x as i32 - (atk.box_es.hitbox.x/2) as i32,
                                 atk.pos.y as i32 - (atk.box_es.hitbox.y) as i32,
@@ -592,7 +592,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                         
                     }
 
-                    for atk in &enemy.atkList {
+                    for atk in &enemy.atk_list {
                         core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
                         core.wincan.draw_rect(
                             Rect::new(
@@ -693,7 +693,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
                     if ms <= 1500 {
                         core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
-                        core.wincan.fill_rect(Rect::new(0, 0, 1280, 720));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, 720))?;
 
                         let f1 = texture_creator.load_texture("assets/floor_1.png")?;
                         core.wincan.copy(&f1, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
@@ -701,8 +701,8 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                         let scale = 1.0 - ((game.transition_start.elapsed().as_millis() - 1500) as f64 / dur.as_millis() as f64);
 
                         core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
-                        core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32));
-                        core.wincan.fill_rect(Rect::new(0, (720.0 - 360.0 * scale) as i32, 1280, (scale * 360.0) as u32));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32))?;
+                        core.wincan.fill_rect(Rect::new(0, (720.0 - 360.0 * scale) as i32, 1280, (scale * 360.0) as u32))?;
                     }
                 }
                 GameState::BetweenFloors => {
@@ -717,11 +717,11 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                         let scale = (game.transition_start.elapsed().as_millis() as f64 / dur.as_millis() as f64);
 
                         core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
-                        core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32));
-                        core.wincan.fill_rect(Rect::new(0, (720.0 - 360.0 * scale) as i32, 1280, (scale * 360.0) as u32));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32))?;
+                        core.wincan.fill_rect(Rect::new(0, (720.0 - 360.0 * scale) as i32, 1280, (scale * 360.0) as u32))?;
                     } else if ms <= 2500 {
                         core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
-                        core.wincan.fill_rect(Rect::new(0, 0, 1280, 720));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, 720))?;
 
                         if ms > 550 { // Avoids drawing previous floor for a few frames bug
                             match game.cf {
@@ -744,8 +744,8 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                         let scale = 1.0 - ((game.transition_start.elapsed().as_millis() - 2500) as f64 / dur.as_millis() as f64);
 
                         core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
-                        core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32));
-                        core.wincan.fill_rect(Rect::new(0, (720.0 - 360.0 * scale) as i32, 1280, (scale * 360.0) as u32));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32))?;
+                        core.wincan.fill_rect(Rect::new(0, (720.0 - 360.0 * scale) as i32, 1280, (scale * 360.0) as u32))?;
                     }
                 }
                 _ => {} // Do nothing for other stuff

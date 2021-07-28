@@ -7,12 +7,12 @@ use crate::boxes::*;
 pub struct BlackBoard
 {
     pub playerpos: Vec2<f32>,
-    pub playerFrameTile: Vec2<i32>,
-    pub playerBox: Box,
-    pub playerHealth: i32,
-    pub enemyQuantity: i32,
+    pub player_frame_tile: Vec2<i32>,
+    pub player_box: Box,
+    pub player_health: i32,
+    pub enemy_quantity: i32,
     //pub bomb:
-    pub typesInRoom: Vec<EnemyKind>,
+    pub types_in_room: Vec<EnemyKind>,
     //pub playerGemStatus:
     
 }
@@ -21,24 +21,24 @@ impl BlackBoard{
     pub fn new() -> BlackBoard{ 
         BlackBoard{
             playerpos : Vec2::new(0.0, 0.0),
-            playerFrameTile : Vec2::new(0, 0),
-            playerBox : Box::new(Vec2::new(0,0), Vec2::new(0,0), Vec2::new(0,0)),
-            playerHealth: -1,
-            enemyQuantity: -1,
-            typesInRoom: Vec::<EnemyKind>::new(),
+            player_frame_tile : Vec2::new(0, 0),
+            player_box : Box::new(Vec2::new(0,0), Vec2::new(0,0), Vec2::new(0,0)),
+            player_health: -1,
+            enemy_quantity: -1,
+            types_in_room: Vec::<EnemyKind>::new(),
         }
     }
     
     pub fn update(&mut self, game: &Game){
         self.playerpos = game.player.pos;
-        self.playerFrameTile = game.player.current_frame_tile;
-        self.playerBox = game.player.box_es;
-        self.playerHealth = game.player.hp;
-        self.enemyQuantity = BlackBoard::getEnemyQuantity(game);
-        self.typesInRoom = BlackBoard::getTypesInRoom(game);
+        self.player_frame_tile = game.player.current_frame_tile;
+        self.player_box = game.player.box_es;
+        self.player_health = game.player.hp;
+        self.enemy_quantity = BlackBoard::get_enemy_quantity(game);
+        self.types_in_room = BlackBoard::get_types_in_room(game);
     }
     
-    pub fn getTypesInRoom(game: &Game) -> Vec<EnemyKind> {
+    pub fn get_types_in_room(game: &Game) -> Vec<EnemyKind> {
         let mut v = vec![];
         for enemy in game.current_room().enemies.iter() {
             v.push(enemy.kind);
@@ -50,12 +50,12 @@ impl BlackBoard{
         
     }
     
-    pub fn getEnemyQuantity(game: &Game) -> i32 {
+    pub fn get_enemy_quantity(game: &Game) -> i32 {
         let mut qty = 0;
         
         for enemy in game.current_room().enemies.iter()
         {
-            if(!enemy.death) {
+            if !enemy.death {
                 qty += 1;
             }
         }
