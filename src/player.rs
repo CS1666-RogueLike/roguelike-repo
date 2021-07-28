@@ -99,8 +99,8 @@ impl Player {
         if mov_vec.x != 0.0 && mov_vec.y != 0.0 {
             // The number approximates sqrt(2)/2, the position on the unit circle at 45 degrees
             // that is 1 unit away from the center.
-            mov_vec.x *= 0.707106;
-            mov_vec.y *= 0.707106;
+            mov_vec.x *= DIAGONAL_VEC;
+            mov_vec.y *= DIAGONAL_VEC;
         }
 
         // Udate position using movement vector and speed
