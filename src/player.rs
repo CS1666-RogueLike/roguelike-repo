@@ -110,7 +110,7 @@ impl Player {
         // (now factors in time between frames for frame-independent movement)
         match self.time_between_frames {
             Some( delta ) => {
-                let val = delta.elapsed().as_millis();
+                let val = delta.elapsed().as_millis() as f32;
 
                 // This check prevents the position from abruptly speeding up during the very short period
                 // that the delta isn't updating, as we are transitioning between doors (around a 300-400ms period)
@@ -119,9 +119,9 @@ impl Player {
                 // as they enter the room. It adds a natural snappiness to each room transition;
                 // still allowing player movement to occur, but delaying it slightly until
                 // the room transition is essentially finished.
-                if ( val < 300 ) {
-                    self.pos.x += mov_vec.x * self.speed * ( val as f32 / 1000.0 );
-                    self.pos.y += mov_vec.y * self.speed * ( val as f32 / 1000.0 );
+                if ( val < 300.0 ) {
+                    self.pos.x += mov_vec.x * self.speed * ( val / 1000.0 );
+                    self.pos.y += mov_vec.y * self.speed * ( val / 1000.0 );
                 }
             },
             None => {}
