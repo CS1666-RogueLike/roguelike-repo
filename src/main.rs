@@ -29,21 +29,14 @@ mod procgen;
 mod room;
 mod tile;
 mod boxes;
-use crate::tile::*;
 
-use sdl2::pixels::Color;
-use sdl2::rect::Rect;
-use sdl2::rect::Point;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::image::LoadTexture;
-use sdl2::render::Texture;
 
 use roguelike::SDLCore;
 use roguelike::Demo;
 use entity::Health;
 use player::PowerUp;
-use entity::EnemyKind;
 
 
 //use std::cmp::min;
@@ -51,10 +44,6 @@ use std::collections::HashSet;
 use std::time::Instant;
 
 use std::time::Duration;
-use crate::menu::MenuState::GameOver;
-use crate::game::GameState::Gameplay;
-
-use std::thread::sleep;
 
 // TODO: Move all sdl code to a separate file, keep the main.rs file simple
 
