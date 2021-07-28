@@ -68,7 +68,7 @@ impl Room {
                     'W' => tiles[y as usize].push(Box::new(Wall {})),
                     'R' => tiles[y as usize].push(Box::new(Rock {})),
                     'P' => tiles[y as usize].push(Box::new(Pit {})),
-                    'S' => tiles[y as usize].push(Box::new(Spike {})),
+                    'S' => tiles[y as usize].push(Box::new(Spike { gem: Gem::None })),
                     // TODO: Add code for proper handling of direction
                     'D' => tiles[y as usize].push(Box::new(Door { lock: LockState::Unlocked, position: Direction::Up })),
 

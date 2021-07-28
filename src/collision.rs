@@ -100,9 +100,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                             *menu = MenuState::GameOver;
                         }
                     }
-                        
                 }
-                
                 
                 // If the test enemy's walkbox intersects with the player walkbox...
                 let wb_test = enemy.box_es.get_walkbox(enemy.pos);

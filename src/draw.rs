@@ -245,6 +245,20 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                                 SpriteID::Spike => {
                                     core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
                                     core.wincan.copy(&spike, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    if t.has_gem() {
+                                        match t.get_gem_type() {
+                                            Gem::Red => {
+                                                core.wincan.copy(&gem_red, None, Rect::new(x_val, y_val, 64, 64))?;
+                                            }
+                                            Gem::Blue => {
+                                                core.wincan.copy(&gem_blue, None, Rect::new(x_val, y_val, 64, 64))?;
+                                            }
+                                            Gem::Yellow => {
+                                                core.wincan.copy(&gem_yellow, None, Rect::new(x_val, y_val, 64, 64))?;
+                                            }
+                                            _ => {}
+                                        }
+                                    }
                                 }
                             }
                             x += 1;
@@ -345,6 +359,20 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                         SpriteID::Spike => {
                             core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
                             core.wincan.copy(&spike, None, Rect::new(x_val, y_val, 64, 64))?;
+                            if t.has_gem() {
+                                match t.get_gem_type() {
+                                    Gem::Red => {
+                                        core.wincan.copy(&gem_red, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    }
+                                    Gem::Blue => {
+                                        core.wincan.copy(&gem_blue, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    }
+                                    Gem::Yellow => {
+                                        core.wincan.copy(&gem_yellow, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    }
+                                    _ => {}
+                                }
+                            }
                         }
                     }
                     x += 1;
