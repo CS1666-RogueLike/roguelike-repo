@@ -63,6 +63,7 @@ pub struct Enemy {
     pub is_attacking: bool,
     pub last_attack_time: Option<Instant>,
     pub current_frame_tile: Vec2<i32>,
+    pub is_healing: bool,
 }
 
 impl Health for Enemy {
@@ -104,22 +105,24 @@ impl Enemy {
             power: false,
             atk_list: Vec::new(),
             state: State::Idle,
-            
+
             current_frame_tile: Vec2::new(0,0),
             last_invincibility_time: None,
-            
+
             //timing attacks so they aren't just 'on'
             is_attacking: false,
             last_attack_time: None,
+
+            is_healing: false
         }
     }
-    
+
     pub fn update(& mut self, blackboard: &BlackBoard) {
         self.current_frame_tile = Vec2::new(
             (self.get_pos_x() - LEFT_WALL) / TILE_WIDTH,
             (self.get_pos_y() - TOP_WALL) / TILE_WIDTH
         );
-        
+
         self.update_dir(blackboard.player_frame_tile);
         //println!("{:?}", self.current_frame_tile);
         match self.kind {
@@ -132,11 +135,11 @@ impl Enemy {
             }
         }
     }
-    
+
     pub fn update_invincibility_time(&mut self) {
         self.last_invincibility_time = Some(Instant::now());
     }
-    
+
     pub fn take_damage(&mut self, amount: i32, cooldown_window_ms: u64) {
         match self.last_invincibility_time {
             // If there is an old invincibility time for the player,
@@ -156,7 +159,7 @@ impl Enemy {
             }
         }
     }
-    
+
     pub fn update_dir(& mut self, frame_tile: Vec2<i32>){
         let e_x = self.current_frame_tile.x;
         let e_y = self.current_frame_tile.y;
@@ -166,34 +169,34 @@ impl Enemy {
         {
             self.dir = Direction::Down;
         }
-        
+
         if(e_x == p_x && e_y > p_y)
         {
             self.dir = Direction::Up;
         }
-        
-        if e_x > p_x 
+
+        if e_x > p_x
         {
             self.dir = Direction::Left;
         }
-        
+
         if e_x < p_x
         {
             self.dir = Direction::Right;
         }
     }
-    
+
     pub fn player_close(enemy: & mut Enemy, blackboard: &BlackBoard) -> bool{
         /*
         let e_x = enemy.pos.x;
         let e_y = enemy.pos.y;
         let p_x = blackboard.playerpos.x;
         let p_y = blackboard.playerpos.y;
-        
+
         if (e_x == p_x && ((e_y-20.0) <= p_y || (e_y+20.0) >= p_y)) || //If the player is right above or below the enemy
         (e_y == p_y && ((e_x-20.0) <= p_x || (e_x+20.0) >= p_x)) || //If the player is on either side of the enemy
         (e_y == p_y && e_x == p_x){ //If the player is on top of the enemy*/
-        
+
         if (enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.player_box.get_walkbox(blackboard.playerpos))){
             return true;
         }
@@ -215,7 +218,7 @@ impl Enemy {
             return false;
             }
     }
-    
+
     pub fn assign_num(a: EnemyKind) -> i32
     {
         match a {
@@ -230,7 +233,7 @@ impl Enemy {
             }
         }
     }
-    
+
     pub fn signal_attack(&mut self) {
         match self.last_attack_time {
             Some (time) => {
@@ -243,14 +246,14 @@ impl Enemy {
                     self.is_attacking = false;
                 }
             }
-            
+
             None => {
                 self.is_attacking = true;
                 self.last_attack_time = Some(Instant::now());
             }
         }
     }
-    
+
     pub fn recently_attacked(&mut self) -> bool {
         match self.last_attack_time {
             Some( time ) => {
@@ -258,13 +261,13 @@ impl Enemy {
                 if !res {
                     self.is_attacking = false;
                 }
-    
+
                 res
             },
             None => false
         }
     }
-    
+
     pub fn get_pos_x(&self) -> i32 { self.pos.x as i32 }
     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32 }
 
@@ -274,7 +277,7 @@ impl Enemy {
             self.movement_vec.y = 0.0;
             return;
         }
-        
+
 
         let now = Instant::now();
 
