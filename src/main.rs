@@ -312,7 +312,6 @@ impl Demo for Manager {
                             //println!("{}, {}", self.game.player.current_frame_tile.x, self.game.player.current_frame_tile.y);
 
                             self.walkover();
-                            println!("{:?}", self.game.player.current_frame_tile);
 
                         }
 

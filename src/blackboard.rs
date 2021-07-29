@@ -137,4 +137,12 @@ impl BlackBoard{
 
         return qty;
     }
+    
+    pub fn is_walkable(&self, tile: Vec2<i32>)-> bool {
+        match self.cr_tiles[tile.y as usize][tile.x as usize].walkability(){
+            Walkability::Wall | Walkability::Rock | Walkability::Pit => {false}
+            _ => {true}
+            
+        }
+    }
 }

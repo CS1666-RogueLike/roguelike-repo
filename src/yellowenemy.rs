@@ -119,38 +119,42 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
     enemy.pathfinding(blackboard.playerpos, blackboard);
     match enemy.dir {
         Direction::Up => {
+            println!("Up");
             enemy.movement_vec.y = -1.0;
         }
         Direction::Down => {
+            println!("Down");
             enemy.movement_vec.y = 1.0;
         }
         Direction::Right => {
-            if(enemy.pos.y < blackboard.playerpos.y){
-                enemy.movement_vec.x = DIAGONAL_VEC;
-                enemy.movement_vec.y = DIAGONAL_VEC;
-            }
-            else if(enemy.pos.y > blackboard.playerpos.y){
-                enemy.movement_vec.x = DIAGONAL_VEC;
-                enemy.movement_vec.y = -DIAGONAL_VEC;
-            }
-            else{
+            println!("Right");
+//            if(enemy.pos.y < blackboard.playerpos.y){
+//                enemy.movement_vec.x = DIAGONAL_VEC;
+//                enemy.movement_vec.y = DIAGONAL_VEC;
+//            }
+//            else if(enemy.pos.y > blackboard.playerpos.y){
+//                enemy.movement_vec.x = DIAGONAL_VEC;
+//                enemy.movement_vec.y = -DIAGONAL_VEC;
+//            }
+//            else{
                 enemy.movement_vec.x = 1.0;
                 enemy.movement_vec.y = 0.0;
-            }
+           // }
         }
         Direction::Left => {
-            if(enemy.pos.y < blackboard.playerpos.y){
-                enemy.movement_vec.x = -DIAGONAL_VEC;
-                enemy.movement_vec.y = DIAGONAL_VEC;
-            }
-            else if(enemy.pos.y > blackboard.playerpos.y){
-                enemy.movement_vec.x = -DIAGONAL_VEC;
-                enemy.movement_vec.y = -DIAGONAL_VEC;
-            }
-            else{
+            println!("Left");
+//            if(enemy.pos.y < blackboard.playerpos.y){
+//                enemy.movement_vec.x = -DIAGONAL_VEC;
+//                enemy.movement_vec.y = DIAGONAL_VEC;
+//            }
+//            else if(enemy.pos.y > blackboard.playerpos.y){
+//                enemy.movement_vec.x = -DIAGONAL_VEC;
+//                enemy.movement_vec.y = -DIAGONAL_VEC;
+//            }
+//            else{
                 enemy.movement_vec.x = -1.0;
                 enemy.movement_vec.y = 0.0;
-            }
+            //}
         }
     }
         enemy.pos.x += enemy.movement_vec.x * enemy.speed;

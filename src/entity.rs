@@ -148,32 +148,44 @@ impl Enemy {
             (target.y as i32 - TOP_WALL) / TILE_WIDTH
         ); //The target tile
         
-        let mut cur_tile = self.current_frame_tile; //The current tile
+        let none = Vec2::new(-1, -1);
         
-        let mut queue: VecDeque<Vec2<i32>> = VecDeque::new(); //The queue of tiles to be checked
-        let mut visited:Vec<Vec2<i32>> = Vec::new(); //Tiles that have been visited
-        let mut seen:Vec<Vec2<i32>> = Vec::new(); //Tiles that have been seen
-        let mut parent_array:Vec<Vec<Vec2<i32>>> = Vec::new(); //Parent array () 
+        let start_tile = self.current_frame_tile;
+        let mut cur_tile = start_tile; //The current tile
         
-        if cur_tile == target_tile {
+        if start_tile == target_tile {
             return;
         }
         
-        visited.push(cur_tile);
+        
+        let mut queue: VecDeque<Vec2<i32>> = VecDeque::new(); //The queue of tiles to be checked
+        //let mut visited:Vec<Vec2<i32>> = Vec::new(); //Tiles that have been visited
+        let mut seen:Vec<Vec2<i32>> = Vec::new(); //Tiles that have been seen
+        let mut parent_array:Vec<Vec<Vec2<i32>>> = Vec::new(); //Parent array () 
+        let mut neighbors:Vec<Vec2<i32>> = Vec::new();
+        neighbors.resize(4,none);
+        parent_array.resize(ROOM_WIDTH as usize, Vec::new()); 
+        
+        
+        for i in 0..ROOM_WIDTH{
+            parent_array[i as usize].resize(ROOM_HEIGHT as usize, none);
+        }
+        //visited.push(cur_tile);
+        queue.push_back(cur_tile);
         seen.push(cur_tile);
         
-        let mut neighbors:Vec<Vec2<i32>> = Vec::new();
-        
-        let right_tile = Vec2::new(cur_tile.x+1, cur_tile.y);
-        let left_tile = Vec2::new(cur_tile.x-1, cur_tile.y);
-        let up_tile = Vec2::new(cur_tile.x, cur_tile.y-1);
-        let down_tile = Vec2::new(cur_tile.x, cur_tile.y+1);
-        
-        neighbors.push(right_tile); //neighbors[0] = right_tile
-        neighbors.push(left_tile); //neighbors[1] = left_tile
-        neighbors.push(up_tile); //neighbors[2] = up_tile
-        neighbors.push(down_tile); //neighbors[3] = down_tile
-        
+       
+//        let right_tile = Vec2::new(cur_tile.x+1, cur_tile.y);
+//        let left_tile = Vec2::new(cur_tile.x-1, cur_tile.y);
+//        let up_tile = Vec2::new(cur_tile.x, cur_tile.y-1);
+//        let down_tile = Vec2::new(cur_tile.x, cur_tile.y+1);
+//        
+//        
+//        neighbors.push(right_tile); //neighbors[0] = right_tile
+//        neighbors.push(left_tile); //neighbors[1] = left_tile
+//        neighbors.push(up_tile); //neighbors[2] = up_tile
+//        neighbors.push(down_tile); //neighbors[3] = down_tile
+        /*
         for tile in neighbors.iter() {
             let real_tile = *tile;
             
@@ -182,13 +194,13 @@ impl Enemy {
             seen.push(real_tile);
             queue.push_back(real_tile);
         }
-        
+        */
         while !queue.is_empty() {
             cur_tile = queue.pop_front().unwrap();
             if cur_tile == target_tile {
                 break;
             }
-            visited.push(cur_tile);
+            //visited.push(cur_tile);
             
             neighbors[0] = Vec2::new(cur_tile.x+1, cur_tile.y); //add right neighbor
             neighbors[1] = Vec2::new(cur_tile.x-1, cur_tile.y); //add left neighbor
@@ -200,13 +212,24 @@ impl Enemy {
                 
                 if(real_tile.x >= 0 && real_tile.x < ROOM_WIDTH) &&  //The tile x is within the room width
                 (real_tile.y >= 0 && real_tile.y < ROOM_HEIGHT) &&  //The tile y is within the room height
+                blackboard.is_walkable(real_tile) &&
                 !seen.iter().any(|&i| i==real_tile) //The tile has not been seen yet
                 {
+                    parent_array[real_tile.x as usize][real_tile.y as usize] = cur_tile;
                     seen.push(real_tile);
                     queue.push_back(real_tile);
                 }
             }
         }
+        
+        let mut path:Vec<Vec2<i32>> = Vec::new();
+        while(cur_tile!=start_tile){
+            path.push(cur_tile);
+            cur_tile = parent_array[cur_tile.x as usize][cur_tile.y as usize];
+        }
+        
+        //path.push(start_tile);
+        self.update_dir(path.pop().unwrap());
         
         
         
