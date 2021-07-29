@@ -116,6 +116,7 @@ pub fn take_cover(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
+    enemy.pathfinding(blackboard.playerpos, blackboard);
     match enemy.dir {
         Direction::Up => {
             enemy.movement_vec.y = -1.0;
@@ -160,12 +161,12 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
         enemy.state = State::Attack;
     }
 
-    println!("{} vs {}", enemy.hp as f32, (enemy.m_hp as f32 / 3.0));
-    println!("{}", blackboard.enemy_quantity);
+    //println!("{} vs {}", enemy.hp as f32, (enemy.m_hp as f32 / 3.0));
+    //println!("{}", blackboard.enemy_quantity);
 
-    if(!blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health)){
+    /*if(!blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health)){
         println!("true");
-    }
+    }*/
 
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
     (blackboard.enemy_quantity > 1 &&
@@ -188,54 +189,56 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
         && (enemy.hp as f32) < enemy.m_hp as f32 * 0.75 {
         enemy.is_healing = true;
         enemy.take_damage(-1, HEAL_TIME);
-        println!("{}", enemy.hp);
+        //println!("{}", enemy.hp);
 
     }
+    else{
+        enemy.is_healing = false;
+    }
 
-    if !enemy.is_healing {
-        if blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health){
-            enemy.update_dir(blackboard.health_enemy_tile[0]);
+    if !enemy.is_healing && blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health){
+        enemy.update_dir(blackboard.health_enemy_tile[0]);
 
-            match enemy.dir {
-                Direction::Up => {
-                    enemy.movement_vec.y = -1.0;
+        match enemy.dir {
+            Direction::Up => {
+                enemy.movement_vec.y = -1.0;
+            }
+            Direction::Down => {
+                enemy.movement_vec.y = 1.0;
+            }
+            Direction::Right => {
+                if(enemy.pos.y < blackboard.health_enemy_pos[0].y){
+                    enemy.movement_vec.x = DIAGONAL_VEC;
+                    enemy.movement_vec.y = DIAGONAL_VEC;
                 }
-                Direction::Down => {
-                    enemy.movement_vec.y = 1.0;
+                else if(enemy.pos.y > blackboard.health_enemy_pos[0].y){
+                    enemy.movement_vec.x = DIAGONAL_VEC;
+                    enemy.movement_vec.y = -DIAGONAL_VEC;
                 }
-                Direction::Right => {
-                    if(enemy.pos.y < blackboard.health_enemy_pos[0].y){
-                        enemy.movement_vec.x = DIAGONAL_VEC;
-                        enemy.movement_vec.y = DIAGONAL_VEC;
-                    }
-                    else if(enemy.pos.y > blackboard.health_enemy_pos[0].y){
-                        enemy.movement_vec.x = DIAGONAL_VEC;
-                        enemy.movement_vec.y = -DIAGONAL_VEC;
-                    }
-                    else{
-                        enemy.movement_vec.x = 1.0;
-                        enemy.movement_vec.y = 0.0;
-                    }
-                }
-                Direction::Left => {
-                    if(enemy.pos.y < blackboard.health_enemy_pos[0].y){
-                        enemy.movement_vec.x = -DIAGONAL_VEC;
-                        enemy.movement_vec.y = DIAGONAL_VEC;
-                    }
-                    else if(enemy.pos.y > blackboard.health_enemy_pos[0].y){
-                        enemy.movement_vec.x = -DIAGONAL_VEC;
-                        enemy.movement_vec.y = -DIAGONAL_VEC;
-                    }
-                    else{
-                        enemy.movement_vec.x = -1.0;
-                        enemy.movement_vec.y = 0.0;
-                    }
+                else{
+                    enemy.movement_vec.x = 1.0;
+                    enemy.movement_vec.y = 0.0;
                 }
             }
-
-            enemy.pos.x += enemy.movement_vec.x * enemy.speed;
-            enemy.pos.y += enemy.movement_vec.y * enemy.speed;
+            Direction::Left => {
+                if(enemy.pos.y < blackboard.health_enemy_pos[0].y){
+                    enemy.movement_vec.x = -DIAGONAL_VEC;
+                    enemy.movement_vec.y = DIAGONAL_VEC;
+                }
+                else if(enemy.pos.y > blackboard.health_enemy_pos[0].y){
+                    enemy.movement_vec.x = -DIAGONAL_VEC;
+                    enemy.movement_vec.y = -DIAGONAL_VEC;
+                }
+                else{
+                    enemy.movement_vec.x = -1.0;
+                    enemy.movement_vec.y = 0.0;
+                }
+            }
         }
+
+        enemy.pos.x += enemy.movement_vec.x * enemy.speed;
+        enemy.pos.y += enemy.movement_vec.y * enemy.speed;
+    
 
     }
 
