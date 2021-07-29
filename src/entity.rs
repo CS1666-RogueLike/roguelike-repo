@@ -6,6 +6,10 @@ use std::time::{Duration, Instant};
 use crate::boxes::*;
 use crate::yellowenemy::*;
 use crate::blackboard::*;
+use crate::tile::*;
+use std::collections::VecDeque;
+use crate::room::ROOM_HEIGHT;
+use crate::room::ROOM_WIDTH;
 
 use rand::Rng;
 
@@ -42,6 +46,7 @@ pub enum State{
     Heal,
     Idle,
 }
+
 
 #[derive(Clone)]
 pub struct Enemy {
@@ -122,20 +127,93 @@ impl Enemy {
             (self.get_pos_x() - LEFT_WALL) / TILE_WIDTH,
             (self.get_pos_y() - TOP_WALL) / TILE_WIDTH
         );
-
-        self.update_dir(blackboard.player_frame_tile);
+        //self.update_dir(blackboard.player_frame_tile);
         //println!("{:?}", self.current_frame_tile);
         match self.kind {
             EnemyKind::Health => {
+                crate::yellowenemy::update(self, blackboard)
             }
             EnemyKind::Speed => {
+                crate::yellowenemy::update(self, blackboard)
             }
             EnemyKind::Attack => {
                 crate::yellowenemy::update(self, blackboard);
             }
         }
     }
-
+    pub fn pathfinding(&mut self, target: Vec2<f32>, blackboard: &BlackBoard){
+        
+        let target_tile = Vec2::new(
+            (target.x as i32 - LEFT_WALL) / TILE_WIDTH,
+            (target.y as i32 - TOP_WALL) / TILE_WIDTH
+        ); //The target tile
+        
+        let mut cur_tile = self.current_frame_tile; //The current tile
+        
+        let mut queue: VecDeque<Vec2<i32>> = VecDeque::new(); //The queue of tiles to be checked
+        let mut visited:Vec<Vec2<i32>> = Vec::new(); //Tiles that have been visited
+        let mut seen:Vec<Vec2<i32>> = Vec::new(); //Tiles that have been seen
+        let mut parent_array:Vec<Vec<Vec2<i32>>> = Vec::new(); //Parent array () 
+        
+        if cur_tile == target_tile {
+            return;
+        }
+        
+        visited.push(cur_tile);
+        seen.push(cur_tile);
+        
+        let mut neighbors:Vec<Vec2<i32>> = Vec::new();
+        
+        let right_tile = Vec2::new(cur_tile.x+1, cur_tile.y);
+        let left_tile = Vec2::new(cur_tile.x-1, cur_tile.y);
+        let up_tile = Vec2::new(cur_tile.x, cur_tile.y-1);
+        let down_tile = Vec2::new(cur_tile.x, cur_tile.y+1);
+        
+        neighbors.push(right_tile); //neighbors[0] = right_tile
+        neighbors.push(left_tile); //neighbors[1] = left_tile
+        neighbors.push(up_tile); //neighbors[2] = up_tile
+        neighbors.push(down_tile); //neighbors[3] = down_tile
+        
+        for tile in neighbors.iter() {
+            let real_tile = *tile;
+            
+            parent_array[real_tile.x as usize][real_tile.y as usize] = cur_tile;
+            
+            seen.push(real_tile);
+            queue.push_back(real_tile);
+        }
+        
+        while !queue.is_empty() {
+            cur_tile = queue.pop_front().unwrap();
+            if cur_tile == target_tile {
+                break;
+            }
+            visited.push(cur_tile);
+            
+            neighbors[0] = Vec2::new(cur_tile.x+1, cur_tile.y); //add right neighbor
+            neighbors[1] = Vec2::new(cur_tile.x-1, cur_tile.y); //add left neighbor
+            neighbors[2] = Vec2::new(cur_tile.x, cur_tile.y-1); //add up neighbor
+            neighbors[3] = Vec2::new(cur_tile.x, cur_tile.y+1); //add down neighbor
+            
+            for tile in neighbors.iter() {
+                let real_tile = *tile;
+                
+                if(real_tile.x >= 0 && real_tile.x < ROOM_WIDTH) &&  //The tile x is within the room width
+                (real_tile.y >= 0 && real_tile.y < ROOM_HEIGHT) &&  //The tile y is within the room height
+                !seen.iter().any(|&i| i==real_tile) //The tile has not been seen yet
+                {
+                    seen.push(real_tile);
+                    queue.push_back(real_tile);
+                }
+            }
+        }
+        
+        
+        
+        
+        
+    }
+    
     pub fn update_invincibility_time(&mut self) {
         self.last_invincibility_time = Some(Instant::now());
     }
@@ -159,7 +237,9 @@ impl Enemy {
             }
         }
     }
-
+    
+    
+    //Old update direction without pathfinding
     pub fn update_dir(& mut self, frame_tile: Vec2<i32>){
         let e_x = self.current_frame_tile.x;
         let e_y = self.current_frame_tile.y;

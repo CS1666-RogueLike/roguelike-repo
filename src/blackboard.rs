@@ -2,6 +2,8 @@ use crate::util::*;
 use crate::game::*;
 use crate::entity::*;
 use crate::boxes::*;
+use crate::tile::*;
+use crate::room::*;
 use sdl2::rect::Rect;
 
 
@@ -18,6 +20,8 @@ pub struct BlackBoard
     //pub bomb:
     pub types_in_room: Vec<EnemyKind>,
     //pub playerGemStatus:
+    
+    pub cr_tiles: Vec<Vec<std::boxed::Box<dyn Tile>>>,
 
 }
 
@@ -33,6 +37,9 @@ impl BlackBoard{
             health_enemy_tile:Vec::new(),
             health_enemy_hitbox:Vec::<Rect>::new(),
             types_in_room: Vec::<EnemyKind>::new(),
+            
+            //Not updated normally, updated only when the room changes
+            cr_tiles : Vec::new(),
         }
     }
 
@@ -46,6 +53,29 @@ impl BlackBoard{
         self.health_enemy_tile = BlackBoard::get_health_enemy_tile(&self.health_enemy_pos);
         self.health_enemy_hitbox = BlackBoard::get_health_enemy_hitbox(game);
         self.types_in_room = BlackBoard::get_types_in_room(game);
+    }
+    
+    pub fn update_room(&mut self, game: &Game){
+        
+        let mut tiles: Vec<Vec<std::boxed::Box<dyn Tile>>> = Vec::new();
+        for y in 0..ROOM_HEIGHT {
+            // Add a row to our struct
+            tiles.push(Vec::new());
+            for x in 0..ROOM_WIDTH {
+                    match(game.map.floors[game.cf].rooms[game.cr.y as usize][game.cr.x as usize].tiles[y as usize][x as usize]).walkability(){
+                        Walkability::Floor => {tiles[y as usize].push(std::boxed::Box::new(Ground { gem: Gem::None }))}
+                        Walkability::Spike => {tiles[y as usize].push(std::boxed::Box::new(Spike {}))}
+                        Walkability::Pit => {tiles[y as usize].push(std::boxed::Box::new(Pit {}))}
+                        Walkability::Wall => {tiles[y as usize].push(std::boxed::Box::new(Wall {}))}
+                        Walkability::Rock => {tiles[y as usize].push(std::boxed::Box::new(Rock {}))}
+                    }
+                }
+            }
+            
+        self.cr_tiles = tiles;
+            
+        //let mut tiles: Vec<Vec<std::boxed::Box<dyn Tile>>> = Vec::new();
+        //tiles.copy_from_slice(&game.map.floors[game.cf].rooms[game.cr.y as usize][game.cr.x as usize].tiles[0..]);
     }
 
     pub fn get_types_in_room(game: &Game) -> Vec<EnemyKind> {
