@@ -386,40 +386,57 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                 else {
                     0
                 };
-            match game.player.get_dir() {
-                Direction::Up => {
-                    core.wincan.copy(&slime_up, None,
-                        Rect::new(
-                            game.player.get_pos_x() - 35 + 4 + x_val,
-                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
-                            64, 64)
-                        )?;
-                }
-                Direction::Down => {
-                    core.wincan.copy(&slime_down, None,
-                        Rect::new(
-                            game.player.get_pos_x() - 35 + x_val,
-                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
-                            64, 64)
-                        )?;
-                }
-                Direction::Left => {
-                    core.wincan.copy(&slime_left, None,
-                        Rect::new(
-                            game.player.get_pos_x() - 35 + 4 + x_val,
-                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
-                            64, 64)
-                        )?;
-                }
-                Direction::Right => {
-                    core.wincan.copy(&slime_right, None,
-                        Rect::new(
-                            game.player.get_pos_x() - 35 + x_val,
-                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
-                            64, 64)
-                        )?;
+                
+            //Draw player
+            
+            //Get how long ago the player became invincible
+            let mut timeSinceDmg = Duration::new(69, 420); //A number that is big enough to get ignored by the if statement below
+            match game.player.last_invincibility_time{
+                Some(time) =>{
+                    timeSinceDmg = time.elapsed();
+                },
+                None=>{
+                    
                 }
             }
+            if !(timeSinceDmg <= Duration::from_millis(P_INVINCIBILITY_TIME - P_INVINCIBILITY_TIME/2) && timeSinceDmg.as_millis()%100 < 50) &&
+            !(timeSinceDmg <= Duration::from_millis(P_INVINCIBILITY_TIME)&& timeSinceDmg > Duration::from_millis(P_INVINCIBILITY_TIME - P_INVINCIBILITY_TIME/2) && timeSinceDmg.as_millis()%200 < 100){
+                match game.player.get_dir() {
+                    Direction::Up => {
+                        core.wincan.copy(&slime_up, None,
+                            Rect::new(
+                                game.player.get_pos_x() - 35 + 4 + x_val,
+                                game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                64, 64)
+                            )?;
+                    }
+                    Direction::Down => {
+                        core.wincan.copy(&slime_down, None,
+                            Rect::new(
+                                game.player.get_pos_x() - 35 + x_val,
+                                game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                64, 64)
+                            )?;
+                    }
+                    Direction::Left => {
+                        core.wincan.copy(&slime_left, None,
+                            Rect::new(
+                                game.player.get_pos_x() - 35 + 4 + x_val,
+                                game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                64, 64)
+                            )?;
+                    }
+                    Direction::Right => {
+                        core.wincan.copy(&slime_right, None,
+                            Rect::new(
+                                game.player.get_pos_x() - 35 + x_val,
+                                game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                64, 64)
+                            )?;
+                    }
+                }
+            }
+            
 
             //draw_enemies(textures);
 
