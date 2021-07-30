@@ -226,6 +226,8 @@ impl Demo for Manager {
                         }
 
                         GameState::Gameplay => {
+                            
+                            
                             // Pause Code
                             esc_prev = esc_curr;
                             if keystate.contains(&Keycode::Escape) && esc_prev == false {
@@ -254,7 +256,8 @@ impl Demo for Manager {
                                 self.game.current_room_mut().tiles[0][8].unlock();
                                 self.game.current_room_mut().tiles[10][8].unlock();
                             }
-
+                               
+                            
                             // -------------------------------------- GAMEPLAY CODE -------------------------
                             // Movement
                             if keystate.contains(&Keycode::W) { mov_vec.y -= 1.0; }

@@ -26,20 +26,75 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
     let mut x_offset = inter_rect.width() as i32;
     let mut y_offset = inter_rect.height() as i32;
 
-    if enemy.pos.x < inter_rect.x() as f32 {
+    println!("{:?}", enemy.dir);
+    if enemy.pos.x < inter_rect.x() as f32 && //To left
+    enemy.pos.y < inter_rect.y() as f32 { //And Above
+        match enemy.dir{
+            Direction::Down | Direction::Up => { //Act like it is only to the left
+                y_offset = 0;
+            }
+            Direction::Right | Direction::Left => { //Act like it is only above
+                x_offset = 0;
+            }
+            _ => {
+                println!("What? This shouldn't be happening");
+            }
+        }
+    }else if enemy.pos.x < inter_rect.x() as f32 && //To left
+    enemy.pos.y > (inter_rect.y() + inter_rect.height() as i32) as f32{ //And below
+        match enemy.dir{
+            Direction::Up | Direction::Down=> { //Act like it is only to left
+                y_offset = 0;
+            }
+            Direction::Right | Direction::Left => { //Act like it is only below
+                x_offset = 0;
+                y_offset *= -1;
+            }
+            _ => {
+                println!("What? I think I left the stove on");
+            }
+        }
+    }else if enemy.pos.x > (inter_rect.x() + inter_rect.width() as i32) as f32  &&//To right
+    enemy.pos.y < inter_rect.y() as f32 { //And above
+        match enemy.dir{
+            Direction::Down | Direction::Up=> { //Act like it is only to right
+                x_offset *= -1;
+                y_offset = 0;
+            }
+            Direction::Left | Direction::Right => { //Act like it is only above
+                x_offset = 0;
+            }
+            _ => {
+                println!("What? Is life even real?");
+            }
+        }
+    }else if enemy.pos.x > (inter_rect.x() + inter_rect.width() as i32) as f32 &&//To right
+    enemy.pos.y > (inter_rect.y() + inter_rect.height() as i32) as f32{ //And below
+        match enemy.dir{
+            Direction::Up|Direction::Down => { //Act like it is only to right
+                x_offset *= -1;
+                y_offset = 0;
+            }
+            Direction::Left | Direction::Right => { //Act like it is only below
+                x_offset = 0;
+                y_offset *= -1;
+            }
+            _ => {
+                println!("What? I think I might be in hell");
+            }
+        }
+        
+    }else if enemy.pos.x < inter_rect.x() as f32 {
         // TO THE LEFT OF ROCK
         y_offset = 0;
-    }
-    if enemy.pos.x > (inter_rect.x() + inter_rect.width() as i32) as f32 {
+    }else if enemy.pos.x > (inter_rect.x() + inter_rect.width() as i32) as f32 {
         // TO THE RIGHT OF ROCK
         x_offset *= -1;
         y_offset = 0;
-    }
-    if enemy.pos.y < inter_rect.y() as f32 {
+    }else if enemy.pos.y < inter_rect.y() as f32 {
         // ABOVE ROCK
         x_offset = 0;
-    }
-    if enemy.pos.y > (inter_rect.y() + inter_rect.height() as i32) as f32 {
+    }else if enemy.pos.y > (inter_rect.y() + inter_rect.height() as i32) as f32 {
         // BELOW ROCK
         x_offset = 0;
         y_offset *= -1;

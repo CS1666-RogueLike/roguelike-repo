@@ -17,6 +17,7 @@ pub struct BlackBoard
     pub health_enemy_pos: Vec<Vec2<f32>>,
     pub health_enemy_tile: Vec<Vec2<i32>>,
     pub health_enemy_hitbox: Vec<Rect>,
+    //pub offset: i32,
     //pub bomb:
     pub types_in_room: Vec<EnemyKind>,
     //pub playerGemStatus:
@@ -33,6 +34,7 @@ impl BlackBoard{
             player_box : Box::new(Vec2::new(0,0), Vec2::new(0,0), Vec2::new(0,0)),
             player_health: -1,
             enemy_quantity: -1,
+            //offset: 0,
             health_enemy_pos:Vec::new(),
             health_enemy_tile:Vec::new(),
             health_enemy_hitbox:Vec::<Rect>::new(),
@@ -53,6 +55,7 @@ impl BlackBoard{
         self.health_enemy_tile = BlackBoard::get_health_enemy_tile(&self.health_enemy_pos);
         self.health_enemy_hitbox = BlackBoard::get_health_enemy_hitbox(game);
         self.types_in_room = BlackBoard::get_types_in_room(game);
+        //self.offset = ofs;
     }
     
     pub fn update_room(&mut self, game: &Game){

@@ -76,7 +76,7 @@ impl<T> Vec2<T> {
 
 
 //
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Direction {
     Up,
     Down,
