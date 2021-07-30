@@ -80,6 +80,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             let spike = texture_creator.load_texture("assets/spike.png")?;
 
             let key = texture_creator.load_texture("assets/key.png")?;
+            let door_locked = texture_creator.load_texture("assets/door.png")?;
             let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
 
             let pl_heart = texture_creator.load_texture("assets/playerheart16x.png")?;
@@ -204,13 +205,10 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                 }
 
                                 SpriteID::DoorLocked => {
-                                    core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                                    core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&door_locked, None, Rect::new(x_val, y_val, 64, 64))?;
                                 }
                                 SpriteID::DoorUnlocked => {
                                     core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
-                                    //core.wincan.set_draw_color(Color::RGBA(0, 255, 0, 255));
-                                    //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
                                 }
 
                                 SpriteID::Key => {
@@ -328,13 +326,10 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                         }
 
                         SpriteID::DoorLocked => {
-                            core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                            core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&door_locked, None, Rect::new(x_val, y_val, 64, 64))?;
                         }
                         SpriteID::DoorUnlocked => {
                             core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
-                            //core.wincan.set_draw_color(Color::RGBA(0, 255, 0, 255));
-                            //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
                         }
 
                         SpriteID::Key => {
