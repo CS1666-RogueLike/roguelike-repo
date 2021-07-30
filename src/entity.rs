@@ -5,6 +5,10 @@ use std::time::{Duration, Instant};
 use crate::boxes::*;
 use crate::yellowenemy::*;
 use crate::blackboard::*;
+use crate::tile::*;
+use std::collections::VecDeque;
+use crate::room::ROOM_HEIGHT;
+use crate::room::ROOM_WIDTH;
 
 use rand::Rng;
 
@@ -25,6 +29,7 @@ pub trait Health {
 #[derive(Debug)]
 #[derive (Copy)]
 #[derive(Clone)]
+#[derive(PartialEq)]
 pub enum EnemyKind {
     Attack,
     Health,
@@ -41,6 +46,7 @@ pub enum State{
     Idle,
 }
 
+
 #[derive(Clone)]
 pub struct Enemy {
     pub pos: Vec2<f32>,
@@ -56,10 +62,12 @@ pub struct Enemy {
     pub death: bool,
     pub power: bool,
     pub atk_list: Vec<AtkProjectile>,
+    pub last_invincibility_time: Option<Instant>,
     pub state: State,
     pub is_attacking: bool,
     pub last_attack_time: Option<Instant>,
     pub current_frame_tile: Vec2<i32>,
+    pub is_healing: bool,
 }
 
 impl Health for Enemy {
@@ -90,10 +98,10 @@ impl Enemy {
             pos: position,
             lastpos: Vec2::new(-1.0, 0.0),
             box_es: Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(40, 30)),
-            speed: 2.8,
+            speed: speed_kind(kind),
             dir: Direction::Right,
-            hp: 1,
-            m_hp: 1,
+            hp: health_kind(kind),
+            m_hp: health_kind(kind),
             movement_vec: Vec2::new(-1.0, 0.0),
             last_dir_update: None,
             kind: kind,
@@ -101,72 +109,200 @@ impl Enemy {
             power: false,
             atk_list: Vec::new(),
             state: State::Idle,
-            
+
             current_frame_tile: Vec2::new(0,0),
-            
+            last_invincibility_time: None,
+
             //timing attacks so they aren't just 'on'
             is_attacking: false,
             last_attack_time: None,
+
+            is_healing: false
         }
     }
-    
+
     pub fn update(& mut self, blackboard: &BlackBoard) {
         self.current_frame_tile = Vec2::new(
             (self.get_pos_x() - LEFT_WALL) / TILE_WIDTH,
             (self.get_pos_y() - TOP_WALL) / TILE_WIDTH
         );
-        
-        self.update_dir(blackboard);
+        //self.update_dir(blackboard.player_frame_tile);
         //println!("{:?}", self.current_frame_tile);
         match self.kind {
             EnemyKind::Health => {
+                crate::yellowenemy::update(self, blackboard)
             }
             EnemyKind::Speed => {
+                crate::yellowenemy::update(self, blackboard)
             }
             EnemyKind::Attack => {
                 crate::yellowenemy::update(self, blackboard);
             }
         }
     }
+    pub fn pathfinding(&mut self, target: Vec2<f32>, blackboard: &BlackBoard){
+        
+        let target_tile = Vec2::new(
+            (target.x as i32 - LEFT_WALL) / TILE_WIDTH,
+            (target.y as i32 - TOP_WALL) / TILE_WIDTH
+        ); //The target tile
+        
+        let none = Vec2::new(-1, -1);
+        
+        let start_tile = self.current_frame_tile;
+        let mut cur_tile = start_tile; //The current tile
+        
+        if start_tile == target_tile {
+            return;
+        }
+        
+        
+        let mut queue: VecDeque<Vec2<i32>> = VecDeque::new(); //The queue of tiles to be checked
+        //let mut visited:Vec<Vec2<i32>> = Vec::new(); //Tiles that have been visited
+        let mut seen:Vec<Vec2<i32>> = Vec::new(); //Tiles that have been seen
+        let mut parent_array:Vec<Vec<Vec2<i32>>> = Vec::new(); //Parent array () 
+        let mut neighbors:Vec<Vec2<i32>> = Vec::new();
+        neighbors.resize(4,none);
+        parent_array.resize(ROOM_WIDTH as usize, Vec::new()); 
+        
+        
+        for i in 0..ROOM_WIDTH{
+            parent_array[i as usize].resize(ROOM_HEIGHT as usize, none);
+        }
+        //visited.push(cur_tile);
+        queue.push_back(cur_tile);
+        seen.push(cur_tile);
+        
+       
+//        let right_tile = Vec2::new(cur_tile.x+1, cur_tile.y);
+//        let left_tile = Vec2::new(cur_tile.x-1, cur_tile.y);
+//        let up_tile = Vec2::new(cur_tile.x, cur_tile.y-1);
+//        let down_tile = Vec2::new(cur_tile.x, cur_tile.y+1);
+//        
+//        
+//        neighbors.push(right_tile); //neighbors[0] = right_tile
+//        neighbors.push(left_tile); //neighbors[1] = left_tile
+//        neighbors.push(up_tile); //neighbors[2] = up_tile
+//        neighbors.push(down_tile); //neighbors[3] = down_tile
+        /*
+        for tile in neighbors.iter() {
+            let real_tile = *tile;
+            
+            parent_array[real_tile.x as usize][real_tile.y as usize] = cur_tile;
+            
+            seen.push(real_tile);
+            queue.push_back(real_tile);
+        }
+        */
+        while !queue.is_empty() {
+            cur_tile = queue.pop_front().unwrap();
+            if cur_tile == target_tile {
+                break;
+            }
+            //visited.push(cur_tile);
+            
+            neighbors[0] = Vec2::new(cur_tile.x+1, cur_tile.y); //add right neighbor
+            neighbors[1] = Vec2::new(cur_tile.x-1, cur_tile.y); //add left neighbor
+            neighbors[2] = Vec2::new(cur_tile.x, cur_tile.y-1); //add up neighbor
+            neighbors[3] = Vec2::new(cur_tile.x, cur_tile.y+1); //add down neighbor
+            
+            for tile in neighbors.iter() {
+                let real_tile = *tile;
+                
+                if(real_tile.x >= 0 && real_tile.x < ROOM_WIDTH) &&  //The tile x is within the room width
+                (real_tile.y >= 0 && real_tile.y < ROOM_HEIGHT) &&  //The tile y is within the room height
+                blackboard.is_walkable(real_tile) &&
+                !seen.iter().any(|&i| i==real_tile) //The tile has not been seen yet
+                {
+                    parent_array[real_tile.x as usize][real_tile.y as usize] = cur_tile;
+                    seen.push(real_tile);
+                    queue.push_back(real_tile);
+                }
+            }
+        }
+        
+        let mut path:Vec<Vec2<i32>> = Vec::new();
+        while(cur_tile!=start_tile){
+            path.push(cur_tile);
+            cur_tile = parent_array[cur_tile.x as usize][cur_tile.y as usize];
+        }
+        
+        //path.push(start_tile);
+        self.update_dir(path.pop().unwrap());
+        
+        
+        
+        
+        
+    }
     
-    pub fn update_dir(& mut self, blackboard: &BlackBoard){
+    pub fn update_invincibility_time(&mut self) {
+        self.last_invincibility_time = Some(Instant::now());
+    }
+
+    pub fn take_damage(&mut self, amount: i32, cooldown_window_ms: u64) {
+        match self.last_invincibility_time {
+            // If there is an old invincibility time for the player,
+            // see if the "invincibility window" has elapsed since then...
+            Some( time ) => {
+                if time.elapsed() >= Duration::from_millis(cooldown_window_ms) {
+                    // If so, update the invincibility time and take damage to the player.
+                    self.update_invincibility_time();
+                    self.damage(amount);
+                }
+            },
+            None => {
+                // Otherwise, take damage as there was
+                // no previous "invincibility window" to account for
+                self.update_invincibility_time();
+                self.damage(amount);
+            }
+        }
+    }
+    
+    
+    //Old update direction without pathfinding
+    pub fn update_dir(& mut self, frame_tile: Vec2<i32>){
         let e_x = self.current_frame_tile.x;
         let e_y = self.current_frame_tile.y;
-        let p_x = blackboard.player_frame_tile.x;
-        let p_y = blackboard.player_frame_tile.y;
+
+        let p_x = frame_tile.x;
+        let p_y = frame_tile.y;
         if e_x == p_x && e_y < p_y
         {
             self.dir = Direction::Down;
         }
         
         if e_x == p_x && e_y > p_y
+
         {
             self.dir = Direction::Up;
         }
-        
-        if e_x > p_x 
+
+        if e_x > p_x
         {
             self.dir = Direction::Left;
         }
-        
+
         if e_x < p_x
         {
             self.dir = Direction::Right;
         }
     }
-    
+
     pub fn player_close(enemy: & mut Enemy, blackboard: &BlackBoard) -> bool{
         /*
         let e_x = enemy.pos.x;
         let e_y = enemy.pos.y;
         let p_x = blackboard.playerpos.x;
         let p_y = blackboard.playerpos.y;
-        
+
         if (e_x == p_x && ((e_y-20.0) <= p_y || (e_y+20.0) >= p_y)) || //If the player is right above or below the enemy
         (e_y == p_y && ((e_x-20.0) <= p_x || (e_x+20.0) >= p_x)) || //If the player is on either side of the enemy
         (e_y == p_y && e_x == p_x){ //If the player is on top of the enemy*/
-        
+
         if enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.player_box.get_walkbox(blackboard.playerpos)) {
+
             return true;
         }
         else{
@@ -188,7 +324,7 @@ impl Enemy {
         //     return false;
         // }
     }
-    
+
     pub fn assign_num(a: EnemyKind) -> i32
     {
         match a {
@@ -203,7 +339,7 @@ impl Enemy {
             }
         }
     }
-    
+
     pub fn signal_attack(&mut self) {
         match self.last_attack_time {
             Some (time) => {
@@ -216,14 +352,14 @@ impl Enemy {
                     self.is_attacking = false;
                 }
             }
-            
+
             None => {
                 self.is_attacking = true;
                 self.last_attack_time = Some(Instant::now());
             }
         }
     }
-    
+
     pub fn recently_attacked(&mut self) -> bool {
         match self.last_attack_time {
             Some( time ) => {
@@ -231,13 +367,13 @@ impl Enemy {
                 if !res {
                     self.is_attacking = false;
                 }
-    
+
                 res
             },
             None => false
         }
     }
-    
+
     pub fn get_pos_x(&self) -> i32 { self.pos.x as i32 }
     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32 }
 
@@ -247,7 +383,7 @@ impl Enemy {
             self.movement_vec.y = 0.0;
             return;
         }
-        
+
 
         let now = Instant::now();
 
@@ -339,4 +475,34 @@ impl Enemy {
 
     pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }
     pub fn get_dir(& mut self) -> Direction { self.dir }
+}
+
+pub fn speed_kind(kind: EnemyKind) -> f32 {
+    let mut speed = 0.0;
+    match kind {
+        EnemyKind::Health => {
+            speed = 1.8;
+        }
+        EnemyKind::Speed =>{
+            speed = 3.8;
+        }
+        EnemyKind::Attack => {
+            speed = 2.8;
+        }
+    }
+    return speed;
+}pub fn health_kind(kind: EnemyKind) -> i32 {
+    let mut health = 0;
+    match kind {
+        EnemyKind::Health => {
+            health = 5;
+        }
+        EnemyKind::Speed =>{
+            health = 2;
+        }
+        EnemyKind::Attack => {
+            health = 3;
+        }
+    }
+    return health;
 }

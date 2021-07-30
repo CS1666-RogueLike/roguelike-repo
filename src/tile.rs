@@ -1,5 +1,6 @@
 use crate::util::*;
 
+
 pub trait Tile {
     // Determines what tile sprite to use when drawing.
     fn sprite(&self) -> SpriteID;

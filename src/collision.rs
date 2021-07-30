@@ -26,20 +26,75 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
     let mut x_offset = inter_rect.width() as i32;
     let mut y_offset = inter_rect.height() as i32;
 
-    if enemy.pos.x < inter_rect.x() as f32 {
+    println!("{:?}", enemy.dir);
+    if enemy.pos.x < inter_rect.x() as f32 && //To left
+    enemy.pos.y < inter_rect.y() as f32 { //And Above
+        match enemy.dir{
+            Direction::Down | Direction::Up => { //Act like it is only to the left
+                y_offset = 0;
+            }
+            Direction::Right | Direction::Left => { //Act like it is only above
+                x_offset = 0;
+            }
+            _ => {
+                println!("What? This shouldn't be happening");
+            }
+        }
+    }else if enemy.pos.x < inter_rect.x() as f32 && //To left
+    enemy.pos.y > (inter_rect.y() + inter_rect.height() as i32) as f32{ //And below
+        match enemy.dir{
+            Direction::Up | Direction::Down=> { //Act like it is only to left
+                y_offset = 0;
+            }
+            Direction::Right | Direction::Left => { //Act like it is only below
+                x_offset = 0;
+                y_offset *= -1;
+            }
+            _ => {
+                println!("What? I think I left the stove on");
+            }
+        }
+    }else if enemy.pos.x > (inter_rect.x() + inter_rect.width() as i32) as f32  &&//To right
+    enemy.pos.y < inter_rect.y() as f32 { //And above
+        match enemy.dir{
+            Direction::Down | Direction::Up=> { //Act like it is only to right
+                x_offset *= -1;
+                y_offset = 0;
+            }
+            Direction::Left | Direction::Right => { //Act like it is only above
+                x_offset = 0;
+            }
+            _ => {
+                println!("What? Is life even real?");
+            }
+        }
+    }else if enemy.pos.x > (inter_rect.x() + inter_rect.width() as i32) as f32 &&//To right
+    enemy.pos.y > (inter_rect.y() + inter_rect.height() as i32) as f32{ //And below
+        match enemy.dir{
+            Direction::Up|Direction::Down => { //Act like it is only to right
+                x_offset *= -1;
+                y_offset = 0;
+            }
+            Direction::Left | Direction::Right => { //Act like it is only below
+                x_offset = 0;
+                y_offset *= -1;
+            }
+            _ => {
+                println!("What? I think I might be in hell");
+            }
+        }
+        
+    }else if enemy.pos.x < inter_rect.x() as f32 {
         // TO THE LEFT OF ROCK
         y_offset = 0;
-    }
-    if enemy.pos.x > (inter_rect.x() + inter_rect.width() as i32) as f32 {
+    }else if enemy.pos.x > (inter_rect.x() + inter_rect.width() as i32) as f32 {
         // TO THE RIGHT OF ROCK
         x_offset *= -1;
         y_offset = 0;
-    }
-    if enemy.pos.y < inter_rect.y() as f32 {
+    }else if enemy.pos.y < inter_rect.y() as f32 {
         // ABOVE ROCK
         x_offset = 0;
-    }
-    if enemy.pos.y > (inter_rect.y() + inter_rect.height() as i32) as f32 {
+    }else if enemy.pos.y > (inter_rect.y() + inter_rect.height() as i32) as f32 {
         // BELOW ROCK
         x_offset = 0;
         y_offset *= -1;
@@ -109,9 +164,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                     let player_attack = game.player.box_es.get_attackbox(game.player.pos, game.player.dir);
                     //let player_attack = game.player.get_attackbox_world();
                     if wb_test.has_intersection(player_attack) {
-                        println!("Attack collided with enemy!");
-                        enemy.damage(game.player.attack);
-                        println!("damage done was {}", game.player.attack);
+                        enemy.take_damage(game.player.attack, E_INVINCIBILITY_TIME);
                         if enemy.death == true && live_count == 1
                         {
                             enemy.power = true;
@@ -134,7 +187,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                     let player_bomb = game.player.box_es.get_bombbox(game.player.pos_static, game.player.dir);
                     if wb_test.has_intersection(player_bomb) {
                         println!("Bomb collided with enemy!");
-                        enemy.damage(3); //Bomb deals 3 damage
+                        enemy.take_damage(4, E_INVINCIBILITY_TIME); //Bomb deals 3 damage
                         println!("damage done was 3 from bomb");
                         if enemy.death == true && live_count == 1
                         {
