@@ -67,7 +67,7 @@ impl BlackBoard{
             for x in 0..ROOM_WIDTH {
                     match(game.map.floors[game.cf].rooms[game.cr.y as usize][game.cr.x as usize].tiles[y as usize][x as usize]).walkability(){
                         Walkability::Floor => {tiles[y as usize].push(std::boxed::Box::new(Ground { gem: Gem::None }))}
-                        Walkability::Spike => {tiles[y as usize].push(std::boxed::Box::new(Spike {}))}
+                        Walkability::Spike => {tiles[y as usize].push(std::boxed::Box::new(Spike { gem: Gem::None}))}
                         Walkability::Pit => {tiles[y as usize].push(std::boxed::Box::new(Pit {}))}
                         Walkability::Wall => {tiles[y as usize].push(std::boxed::Box::new(Wall {}))}
                         Walkability::Rock => {tiles[y as usize].push(std::boxed::Box::new(Rock {}))}

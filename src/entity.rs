@@ -266,8 +266,8 @@ impl Enemy {
         let e_x = self.current_frame_tile.x;
         let e_y = self.current_frame_tile.y;
 
-        let p_x = blackboard.player_frame_tile.x;
-        let p_y = blackboard.player_frame_tile.y;
+        let p_x = frame_tile.x;
+        let p_y = frame_tile.y;
         if e_x == p_x && e_y < p_y
         {
             self.dir = Direction::Down;
