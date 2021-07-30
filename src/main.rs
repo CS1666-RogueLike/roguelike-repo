@@ -41,6 +41,7 @@ use player::PowerUp;
 
 //use std::cmp::min;
 use std::collections::HashSet;
+use std::collections::VecDeque;
 use std::time::Instant;
 
 use std::time::Duration;
@@ -178,12 +179,14 @@ impl Demo for Manager {
                     match self.game.game_state {
                         GameState::InitialFloorTrans => {
                             if self.game.transition_start.elapsed().as_millis() > 2500 {
+                                self.blackboard.update_room(& self.game);
                                 self.game.game_state = GameState::Gameplay;
                             }
                         }
                         GameState::BetweenRooms => {
                             //sleep(Duration::new(0, 500_000_000)); // 500 mil is half second
                             if self.game.transition_start.elapsed().as_millis() > 400 {
+                                self.blackboard.update_room(& self.game);
                                 self.game.game_state = GameState::Gameplay;
                             }
 
@@ -191,6 +194,7 @@ impl Demo for Manager {
 
                         GameState::BetweenFloors => {
                             if self.game.transition_start.elapsed().as_millis() > 3000 {
+                                self.blackboard.update_room(& self.game);
                                 self.game.game_state = GameState::Gameplay;
                             }
 
@@ -211,6 +215,8 @@ impl Demo for Manager {
                         }
 
                         GameState::Gameplay => {
+                            
+                            
                             // Pause Code
                             esc_prev = esc_curr;
                             if keystate.contains(&Keycode::Escape) && esc_prev == false {
@@ -239,7 +245,8 @@ impl Demo for Manager {
                                 self.game.current_room_mut().tiles[0][8].unlock();
                                 self.game.current_room_mut().tiles[10][8].unlock();
                             }
-
+                               
+                            
                             // -------------------------------------- GAMEPLAY CODE -------------------------
                             // Movement
                             if keystate.contains(&Keycode::W) { mov_vec.y -= 1.0; }
@@ -263,12 +270,14 @@ impl Demo for Manager {
                             }
                             
                             self.blackboard.update(& self.game);
-
+                        
                             // Move player
                             self.game.player.update_pos(mov_vec);
                             //Update enemy
                             for enemy in self.game.current_room_mut().enemies.iter_mut() {
-                                enemy.update(& self.blackboard);
+                                if !enemy.death{
+                                    enemy.update(& self.blackboard);
+                                }
                             }
 
                             // Apply collision
@@ -297,6 +306,7 @@ impl Demo for Manager {
                             self.walkover();
 
                         }
+
 
                     }
                     // --------------------------------- GAMEPLAY CODE END -------------------------
