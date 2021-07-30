@@ -1,7 +1,6 @@
-use crate::player::*;
+
 use crate::attack::*;
 use crate::util::*;
-use sdl2::rect::Rect;
 use std::time::{Duration, Instant};
 use crate::boxes::*;
 use crate::yellowenemy::*;
@@ -266,14 +265,16 @@ impl Enemy {
     pub fn update_dir(& mut self, frame_tile: Vec2<i32>){
         let e_x = self.current_frame_tile.x;
         let e_y = self.current_frame_tile.y;
-        let p_x = frame_tile.x;
-        let p_y = frame_tile.y;
-        if(e_x == p_x && e_y < p_y)
+
+        let p_x = blackboard.player_frame_tile.x;
+        let p_y = blackboard.player_frame_tile.y;
+        if e_x == p_x && e_y < p_y
         {
             self.dir = Direction::Down;
         }
+        
+        if e_x == p_x && e_y > p_y
 
-        if(e_x == p_x && e_y > p_y)
         {
             self.dir = Direction::Up;
         }
@@ -300,7 +301,8 @@ impl Enemy {
         (e_y == p_y && ((e_x-20.0) <= p_x || (e_x+20.0) >= p_x)) || //If the player is on either side of the enemy
         (e_y == p_y && e_x == p_x){ //If the player is on top of the enemy*/
 
-        if (enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.player_box.get_walkbox(blackboard.playerpos))){
+        if enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.player_box.get_walkbox(blackboard.playerpos)) {
+
             return true;
         }
         else{
@@ -314,12 +316,13 @@ impl Enemy {
         let num2 = Enemy::assign_num(b);
         //println!("{:?}, {}", a, num1);
         //println!("{:?}, {}", b, num2);
-        if(num1 == num2){
-            return true;
-            }
-        else{
-            return false;
-            }
+        num1 == num2
+        // if num1 == num2 {
+        //     return true;
+        // }
+        // else {
+        //     return false;
+        // }
     }
 
     pub fn assign_num(a: EnemyKind) -> i32

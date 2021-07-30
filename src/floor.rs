@@ -3,7 +3,6 @@ use crate::entity::*;
 use crate::util::*;
 use crate::tile::*;
 //use crate::procgen::*;
-use rand::random;
 use rand::Rng;
 
 
@@ -145,13 +144,14 @@ impl Floor {
             {
                 continue;
             }
+
             let mut enemies = Vec::new();
             let current_room = &mut rooms[dy as usize][dx as usize];
-            let num_enemies = rng.gen_range(0..4);
-            for i in 0..=num_enemies {
-                let boundary_x = rng.gen_range(1..=15);
-                let boundary_y = rng.gen_range(1..=9);
-                let enemy_rand: EnemyKind = match rng.gen_range(0..3) {
+            let num_enemies = rng.gen_range(0 .. 4);
+            for _i in 0 ..= num_enemies {
+                let boundary_x = rng.gen_range(3 ..= 13);
+                let boundary_y = rng.gen_range(2 ..= 8);
+                let enemy_rand: EnemyKind = match rng.gen_range(0 .. 3) {
                     0 => EnemyKind::Attack,
                     1 => EnemyKind::Health,
                     2 => EnemyKind::Speed,

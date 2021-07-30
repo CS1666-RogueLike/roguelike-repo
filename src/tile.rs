@@ -27,8 +27,12 @@ pub trait Tile {
     // Used for dropping the gem. Should only do something for ground tiles
     fn place_gem(&mut self, color: Gem);
 
+    // in order to stack gems on top of spikes
+    fn has_gem(&self) -> bool;
+    fn get_gem_type(&self) -> Gem;
 }
 
+#[derive(PartialEq)]
 pub enum Walkability {
     Floor, // Normal ground.
     Pit, // A pit. Can't be walked over but can be flown over.
@@ -78,10 +82,16 @@ impl Tile for Ground {
         // Variable that stores result of match so we can change gem state
         ret
     }
+    fn has_gem(&self) -> bool {
+        self.gem != Gem::None
+    }
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, color: Gem) { self.gem = color; }
+    fn get_gem_type(&self) -> Gem {
+        self.gem
+    }
 }
 
 
@@ -93,7 +103,13 @@ impl Tile for Rock {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
+    fn has_gem(&self) -> bool {
+        false
+    }
+    fn get_gem_type(&self) -> Gem {
+        Gem::None
+    }
 }
 
 pub struct Wall {}
@@ -104,7 +120,13 @@ impl Tile for Wall {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
+    fn has_gem(&self) -> bool {
+        false
+    }
+    fn get_gem_type(&self) -> Gem {
+        Gem::None
+    }
 }
 
 pub struct Pit {}
@@ -115,18 +137,45 @@ impl Tile for Pit {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
+    fn has_gem(&self) -> bool {
+        false
+    }
+    fn get_gem_type(&self) -> Gem {
+        Gem::None
+    }
 }
 
-pub struct Spike {}
+pub struct Spike {
+    pub gem: Gem,
+}
 impl Tile for Spike {
     fn sprite(&self) -> SpriteID { SpriteID::Spike }
     fn walkability(&self) -> Walkability { Walkability::Spike }
-    fn on_walkover(& mut self) -> WalkoverAction { WalkoverAction::Damage }
+    fn on_walkover(& mut self) -> WalkoverAction { 
+        let ret = match self.gem {
+            Gem::Red => WalkoverAction::BuffHealth,
+            Gem::Blue => WalkoverAction::BuffSpeed,
+            Gem::Yellow => WalkoverAction::BuffDamage,
+            Gem::None => WalkoverAction::Damage,
+        };
+
+        if self.gem != Gem::None {
+            self.gem = Gem::None;
+        }
+
+        ret
+    }
+    fn has_gem(&self) -> bool {
+        self.gem != Gem::None
+    }
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, color: Gem) { self.gem = color; }
+    fn get_gem_type(&self) -> Gem {
+        self.gem
+    }
 }
 
 pub struct Door {
@@ -148,11 +197,17 @@ impl Tile for Door {
             LockState::NA => panic!("Locking tile shouldn't have NA!!!")
         }
     }
+    fn has_gem(&self) -> bool {
+        false
+    }
     fn on_walkover(& mut self) -> WalkoverAction { WalkoverAction::ChangeRooms }
     fn lock(&mut self) { self.lock = LockState::Locked; }
     fn unlock(&mut self) { self.lock = LockState::Unlocked; }
     fn get_lock_state(&self) -> LockState { self.lock }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
+    fn get_gem_type(&self) -> Gem {
+        Gem::None
+    }
 }
 
 pub struct Bomb {
@@ -178,7 +233,13 @@ impl Tile for Bomb {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
+    fn has_gem(&self) -> bool {
+        false
+    }
+    fn get_gem_type(&self) -> Gem {
+        Gem::None
+    }
 }
 
 pub struct Key {
@@ -202,7 +263,13 @@ impl Tile for Key {
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
+    fn has_gem(&self) -> bool {
+        false
+    }
+    fn get_gem_type(&self) -> Gem {
+        Gem::None
+    }
 }
 
 pub struct Trapdoor {
@@ -223,5 +290,11 @@ impl Tile for Trapdoor {
     fn lock(&mut self) { self.lock = LockState::Locked; }
     fn unlock(&mut self) { self.lock = LockState::Unlocked; }
     fn get_lock_state(&self) -> LockState { self.lock }
-    fn place_gem(&mut self, color: Gem) {}
+    fn place_gem(&mut self, _color: Gem) {}
+    fn has_gem(&self) -> bool {
+        false
+    }
+    fn get_gem_type(&self) -> Gem {
+        Gem::None
+    }
 }

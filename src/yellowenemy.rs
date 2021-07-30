@@ -73,25 +73,25 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
             enemy.movement_vec.y = -1.0;
         }
         Direction::Right => {
-            if(enemy.pos.y < blackboard.playerpos.y){
+            if enemy.pos.y < blackboard.playerpos.y {
                 enemy.movement_vec.x = -DIAGONAL_VEC;
                 enemy.movement_vec.y = -DIAGONAL_VEC;
             }
-            else if(enemy.pos.y > blackboard.playerpos.y){
+            else if enemy.pos.y > blackboard.playerpos.y {
                 enemy.movement_vec.x = -DIAGONAL_VEC;
                 enemy.movement_vec.y = DIAGONAL_VEC;
             }
-            else{
+            else {
                 enemy.movement_vec.x = -1.0;
                 enemy.movement_vec.y = 0.0;
             }
         }
         Direction::Left => {
-            if(enemy.pos.y < blackboard.playerpos.y){
+            if enemy.pos.y < blackboard.playerpos.y {
                 enemy.movement_vec.x = DIAGONAL_VEC;
                 enemy.movement_vec.y = -DIAGONAL_VEC;
             }
-            else if(enemy.pos.y > blackboard.playerpos.y){
+            else if enemy.pos.y > blackboard.playerpos.y {
                 enemy.movement_vec.x = DIAGONAL_VEC;
                 enemy.movement_vec.y = DIAGONAL_VEC;
             }
@@ -127,31 +127,31 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
             enemy.movement_vec.y = 1.0;
         }
         Direction::Right => {
-            //println!("Right");
-            if(enemy.pos.y < blackboard.playerpos.y){
+            if enemy.pos.y < blackboard.playerpos.y {
+
                 enemy.movement_vec.x = DIAGONAL_VEC;
                 enemy.movement_vec.y = DIAGONAL_VEC;
             }
-            else if(enemy.pos.y > blackboard.playerpos.y){
+            else if enemy.pos.y > blackboard.playerpos.y {
                 enemy.movement_vec.x = DIAGONAL_VEC;
                 enemy.movement_vec.y = -DIAGONAL_VEC;
             }
-            else{
+            else {
                 enemy.movement_vec.x = 1.0;
                 enemy.movement_vec.y = 0.0;
             }
         }
         Direction::Left => {
-            //println!("Left");
-            if(enemy.pos.y < blackboard.playerpos.y){
+            if enemy.pos.y < blackboard.playerpos.y {
+
                 enemy.movement_vec.x = -DIAGONAL_VEC;
                 enemy.movement_vec.y = DIAGONAL_VEC;
             }
-            else if(enemy.pos.y > blackboard.playerpos.y){
+            else if enemy.pos.y > blackboard.playerpos.y {
                 enemy.movement_vec.x = -DIAGONAL_VEC;
                 enemy.movement_vec.y = -DIAGONAL_VEC;
             }
-            else{
+            else {
                 enemy.movement_vec.x = -1.0;
                 enemy.movement_vec.y = 0.0;
             }
@@ -260,7 +260,7 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
-    if(blackboard.playerpos.x > 400.0)
+    if blackboard.playerpos.x > 400.0
     {
         enemy.state = State::Chase;
     }

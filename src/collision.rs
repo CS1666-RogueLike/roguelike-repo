@@ -104,7 +104,7 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
     enemy.pos.y -= y_offset as f32;
 }
 
-pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuState){
+pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
 // Outermost wall collision
         game.player.pos.x = game.player.pos.x.clamp(
             LEFT_WALL as f32 + (game.player.box_es.walkbox.x/2) as f32,
@@ -145,19 +145,17 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             if !enemy.death() {
                 
                 //If enemy is attacking
-                if(enemy.recently_attacked()) {
+                if enemy.recently_attacked() {
                     //See if player collides with attackbox
                     let enemy_attack = enemy.box_es.get_attackbox(enemy.pos, enemy.dir);
-                    if (player_test.has_intersection(enemy_attack)) {
+                    if player_test.has_intersection(enemy_attack) {
                         //Enemy attacked player
                         game.player.take_damage(2, P_INVINCIBILITY_TIME);
                         if game.player.death() {
                             *menu = MenuState::GameOver;
                         }
                     }
-                        
                 }
-                
                 
                 // If the test enemy's walkbox intersects with the player walkbox...
                 let wb_test = enemy.box_es.get_walkbox(enemy.pos);

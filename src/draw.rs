@@ -7,19 +7,14 @@ use crate::entity::*;
 use roguelike::SDLCore;
 
 use std::time::Duration;
-use std::time::Instant;
-
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
-use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
 use sdl2::image::LoadTexture;
-use sdl2::render::Texture;
 
 
 
-pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuState, &debug: &bool) -> Result<(), String> {
+pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug: &bool) -> Result<(), String> {
 
 // MOVE SOMEWHERE ELSE, TEXTURES SHOULD ONLY BE INITIALIZED ONCE
     let texture_creator = core.wincan.texture_creator();
@@ -119,7 +114,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     // Transition duration
                     let dur = Duration::new(0, 400_000_000); // Half billion = half second
                     // 0.0 to 1.0 value to scale transition by
-                    let scale = (game.transition_start.elapsed().as_millis() as f64 / dur.as_millis() as f64);
+                    let scale = game.transition_start.elapsed().as_millis() as f64 / dur.as_millis() as f64;
 
                     // Scales values to make proper directions
                     x_dir = match game.trans_dir {
@@ -245,6 +240,20 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                                 SpriteID::Spike => {
                                     core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
                                     core.wincan.copy(&spike, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    if t.has_gem() {
+                                        match t.get_gem_type() {
+                                            Gem::Red => {
+                                                core.wincan.copy(&gem_red, None, Rect::new(x_val, y_val, 64, 64))?;
+                                            }
+                                            Gem::Blue => {
+                                                core.wincan.copy(&gem_blue, None, Rect::new(x_val, y_val, 64, 64))?;
+                                            }
+                                            Gem::Yellow => {
+                                                core.wincan.copy(&gem_yellow, None, Rect::new(x_val, y_val, 64, 64))?;
+                                            }
+                                            _ => {}
+                                        }
+                                    }
                                 }
                             }
                             x += 1;
@@ -345,6 +354,20 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                         SpriteID::Spike => {
                             core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
                             core.wincan.copy(&spike, None, Rect::new(x_val, y_val, 64, 64))?;
+                            if t.has_gem() {
+                                match t.get_gem_type() {
+                                    Gem::Red => {
+                                        core.wincan.copy(&gem_red, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    }
+                                    Gem::Blue => {
+                                        core.wincan.copy(&gem_blue, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    }
+                                    Gem::Yellow => {
+                                        core.wincan.copy(&gem_yellow, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    }
+                                    _ => {}
+                                }
+                            }
                         }
                     }
                     x += 1;
@@ -714,7 +737,7 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     let ms = game.transition_start.elapsed().as_millis();
                     if ms <= 500 {
                         // 0.0 to 1.0 value to scale transition by
-                        let scale = (game.transition_start.elapsed().as_millis() as f64 / dur.as_millis() as f64);
+                        let scale = game.transition_start.elapsed().as_millis() as f64 / dur.as_millis() as f64;
 
                         core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
                         core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32))?;
