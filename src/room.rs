@@ -124,4 +124,8 @@ impl Room {
     pub fn add_enemies(&mut self, enemies: Vec<Enemy>) {
         self.enemies = enemies;
     }
+
+    pub fn additional_enemies(&mut self, enemy: Enemy) {
+        self.enemies.push(enemy);
+    }
 }

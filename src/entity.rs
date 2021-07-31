@@ -33,7 +33,8 @@ pub trait Health {
 pub enum EnemyKind {
     Attack,
     Health,
-    Speed
+    Speed,
+    Final
 }
 
 #[derive(Clone)]
@@ -52,6 +53,10 @@ pub struct Enemy {
     pub pos: Vec2<f32>,
     pub lastpos:Vec2<f32>,
     pub box_es: Box,
+    pub box_left_final: Box,  //USE for FINAL BOSS ONlY
+    pub box_left_final_pos: Vec2<f32>,  //USE for FINAL BOSS ONlY
+    pub box_right_final: Box, //USE for FINAL BOSS ONlY
+    pub box_right_final_pos: Vec2<f32>, //USE for FINAL BOSS ONlY
     pub speed: f32,
     pub dir: Direction,
     pub hp: i32,    //store the health for speed enemy
@@ -97,7 +102,8 @@ impl Enemy {
         Enemy {
             pos: position,
             lastpos: Vec2::new(-1.0, 0.0),
-            box_es: Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(40, 30)),
+            //box_es: Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(40, 30)),
+            box_es: box_kind(kind),
             speed: speed_kind(kind),
             dir: Direction::Right,
             hp: health_kind(kind),
@@ -117,7 +123,13 @@ impl Enemy {
             is_attacking: false,
             last_attack_time: None,
 
-            is_healing: false
+            is_healing: false,
+
+            //FINAL BOSS ONLY
+            box_left_final: Box::new(Vec2::new(30, 50), Vec2::new(0, 0), Vec2::new(0, 0)),
+            box_left_final_pos: Vec2::new(position.x - 30.0, position.y + 5.0),
+            box_right_final: Box::new(Vec2::new(30, 50), Vec2::new(0, 0), Vec2::new(0, 0)),
+            box_right_final_pos: Vec2::new(position.x + 30.0, position.y + 5.0),
         }
     }
 
@@ -138,48 +150,51 @@ impl Enemy {
             EnemyKind::Attack => {
                 crate::yellowenemy::update(self, blackboard);
             }
+            EnemyKind::Final => {
+
+            }
         }
     }
 
     pub fn pathfinding(&mut self, target: Vec2<f32>, blackboard: &BlackBoard){
-        
+
         let target_tile = Vec2::new(
             (target.x as i32 - LEFT_WALL) / TILE_WIDTH,
             (target.y as i32 - TOP_WALL) / TILE_WIDTH
         ); //The target tile
-        
+
         let none = Vec2::new(-1, -1);
-        
+
         let start_tile = self.current_frame_tile;
         let mut cur_tile = start_tile; //The current tile
 
         // Don't do additional code if already in target tile
         if start_tile == target_tile { return; }
-        
-        
+
+
         let mut queue: VecDeque<Vec2<i32>> = VecDeque::new(); //The queue of tiles to be checked
         //let mut visited:Vec<Vec2<i32>> = Vec::new(); //Tiles that have been visited
         let mut seen:Vec<Vec2<i32>> = Vec::new(); //Tiles that have been seen
-        let mut parent_array:Vec<Vec<Vec2<i32>>> = Vec::new(); //Parent array () 
+        let mut parent_array:Vec<Vec<Vec2<i32>>> = Vec::new(); //Parent array ()
         let mut neighbors:Vec<Vec2<i32>> = Vec::new();
         neighbors.resize(4,none);
-        parent_array.resize(ROOM_WIDTH as usize, Vec::new()); 
-        
-        
+        parent_array.resize(ROOM_WIDTH as usize, Vec::new());
+
+
         for i in 0..ROOM_WIDTH{
             parent_array[i as usize].resize(ROOM_HEIGHT as usize, none);
         }
         //visited.push(cur_tile);
         queue.push_back(cur_tile);
         seen.push(cur_tile);
-        
-       
+
+
 //        let right_tile = Vec2::new(cur_tile.x+1, cur_tile.y);
 //        let left_tile = Vec2::new(cur_tile.x-1, cur_tile.y);
 //        let up_tile = Vec2::new(cur_tile.x, cur_tile.y-1);
 //        let down_tile = Vec2::new(cur_tile.x, cur_tile.y+1);
-//        
-//        
+//
+//
 //        neighbors.push(right_tile); //neighbors[0] = right_tile
 //        neighbors.push(left_tile); //neighbors[1] = left_tile
 //        neighbors.push(up_tile); //neighbors[2] = up_tile
@@ -187,9 +202,9 @@ impl Enemy {
         /*
         for tile in neighbors.iter() {
             let real_tile = *tile;
-            
+
             parent_array[real_tile.x as usize][real_tile.y as usize] = cur_tile;
-            
+
             seen.push(real_tile);
             queue.push_back(real_tile);
         }
@@ -200,15 +215,15 @@ impl Enemy {
                 break;
             }
             //visited.push(cur_tile);
-            
+
             neighbors[0] = Vec2::new(cur_tile.x+1, cur_tile.y); //add right neighbor
             neighbors[1] = Vec2::new(cur_tile.x-1, cur_tile.y); //add left neighbor
             neighbors[2] = Vec2::new(cur_tile.x, cur_tile.y-1); //add up neighbor
             neighbors[3] = Vec2::new(cur_tile.x, cur_tile.y+1); //add down neighbor
-            
+
             for tile in neighbors.iter() {
                 let real_tile = *tile;
-                
+
                 if(real_tile.x >= 0 && real_tile.x < ROOM_WIDTH) &&  //The tile x is within the room width
                 (real_tile.y >= 0 && real_tile.y < ROOM_HEIGHT) &&  //The tile y is within the room height
                 blackboard.is_walkable(real_tile) &&
@@ -220,17 +235,17 @@ impl Enemy {
                 }
             }
         }
-        
+
         let mut path:Vec<Vec2<i32>> = Vec::new();
         while(cur_tile!=start_tile){
             path.push(cur_tile);
             cur_tile = parent_array[cur_tile.x as usize][cur_tile.y as usize];
         }
-        
+
         //path.push(start_tile);
         self.update_dir(path.pop().unwrap());
     }
-    
+
     pub fn update_invincibility_time(&mut self) {
         self.last_invincibility_time = Some(Instant::now());
     }
@@ -254,8 +269,8 @@ impl Enemy {
             }
         }
     }
-    
-    
+
+
     //Old update direction without pathfinding
     pub fn update_dir(& mut self, frame_tile: Vec2<i32>){
         let e_x = self.current_frame_tile.x;
@@ -267,7 +282,7 @@ impl Enemy {
         {
             self.dir = Direction::Down;
         }
-        
+
         if e_x == p_x && e_y > p_y
 
         {
@@ -330,6 +345,9 @@ impl Enemy {
             }
             EnemyKind::Attack => {
                 return 2;
+            }
+            EnemyKind::Final => {
+                return 3;
             }
         }
     }
@@ -487,6 +505,9 @@ pub fn speed_kind(kind: EnemyKind) -> f32 {
         EnemyKind::Attack => {
             speed = 2.8;
         }
+        EnemyKind::Final => {
+            speed = 0.75;
+        }
     }
     return speed;
 }
@@ -502,6 +523,28 @@ pub fn health_kind(kind: EnemyKind) -> i32 {
         EnemyKind::Attack => {
             health = 3;
         }
+        EnemyKind::Final => {
+            health = 20;
+        }
+
     }
     return health;
+}
+
+pub fn box_kind(kind: EnemyKind) -> Box {
+    match kind {
+        EnemyKind::Health => {
+            return Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(40, 30));
+        }
+        EnemyKind::Speed =>{
+            return Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(40, 30));
+        }
+        EnemyKind::Attack => {
+            return Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(40, 30));
+        }
+        EnemyKind::Final => {
+            // Final doesn't attack itself so no attackbox
+            return Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(0, 0));
+        }
+    }
 }

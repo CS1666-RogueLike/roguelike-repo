@@ -21,7 +21,7 @@ pub struct BlackBoard
     //pub bomb:
     pub types_in_room: Vec<EnemyKind>,
     //pub playerGemStatus:
-    
+
     pub cr_tiles: Vec<Vec<std::boxed::Box<dyn Tile>>>,
 
 }
@@ -39,7 +39,7 @@ impl BlackBoard{
             health_enemy_tile:Vec::new(),
             health_enemy_hitbox:Vec::<Rect>::new(),
             types_in_room: Vec::<EnemyKind>::new(),
-            
+
             //Not updated normally, updated only when the room changes
             cr_tiles : Vec::new(),
         }
@@ -55,11 +55,10 @@ impl BlackBoard{
         self.health_enemy_tile = BlackBoard::get_health_enemy_tile(&self.health_enemy_pos);
         self.health_enemy_hitbox = BlackBoard::get_health_enemy_hitbox(game);
         self.types_in_room = BlackBoard::get_types_in_room(game);
-        //self.offset = ofs;
     }
-    
+
     pub fn update_room(&mut self, game: &Game){
-        
+
         let mut tiles: Vec<Vec<std::boxed::Box<dyn Tile>>> = Vec::new();
         for y in 0..ROOM_HEIGHT {
             // Add a row to our struct
@@ -74,9 +73,9 @@ impl BlackBoard{
                     }
                 }
             }
-            
+
         self.cr_tiles = tiles;
-            
+
         //let mut tiles: Vec<Vec<std::boxed::Box<dyn Tile>>> = Vec::new();
         //tiles.copy_from_slice(&game.map.floors[game.cf].rooms[game.cr.y as usize][game.cr.x as usize].tiles[0..]);
     }
@@ -140,12 +139,12 @@ impl BlackBoard{
 
         return qty;
     }
-    
+
     pub fn is_walkable(&self, tile: Vec2<i32>)-> bool {
         match self.cr_tiles[tile.y as usize][tile.x as usize].walkability(){
             Walkability::Wall | Walkability::Rock | Walkability::Pit => {false}
             _ => {true}
-            
+
         }
     }
 }

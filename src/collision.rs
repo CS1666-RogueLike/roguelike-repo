@@ -12,9 +12,9 @@ use crate::boxes::*;
 
 pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
     let intersection = enemy.box_es.get_walkbox(enemy.pos).intersection(Rect::new(
-        LEFT_WALL + x * TILE_WIDTH, 
-        TOP_WALL + y * TILE_WIDTH, 
-        TILE_WIDTH as u32, 
+        LEFT_WALL + x * TILE_WIDTH,
+        TOP_WALL + y * TILE_WIDTH,
+        TILE_WIDTH as u32,
         TILE_WIDTH as u32
     ));
 
@@ -83,7 +83,7 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
                 println!("What? I think I might be in hell");
             }
         }
-        
+
     }else if enemy.pos.x < inter_rect.x() as f32 {
         // TO THE LEFT OF ROCK
         y_offset = 0;
@@ -111,7 +111,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
             RIGHT_WALL as f32 - (game.player.box_es.walkbox.x/2) as f32
         );
         game.player.pos.y = game.player.pos.y.clamp(
-            TOP_WALL as f32 + (game.player.box_es.walkbox.y/2) as f32, 
+            TOP_WALL as f32 + (game.player.box_es.walkbox.y/2) as f32,
             BOT_WALL as f32 - (game.player.box_es.walkbox.y/2) as f32
         );
 
@@ -135,15 +135,15 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                 (RIGHT_WALL as f32 - (enemy.box_es.walkbox.x * 4) as f32) + TILE_WIDTH as f32
             );
             enemy.pos.y = enemy.pos.y.clamp(
-                (TOP_WALL as f32 + (enemy.box_es.walkbox.y * 4) as f32) - TILE_WIDTH as f32, 
+                (TOP_WALL as f32 + (enemy.box_es.walkbox.y * 4) as f32) - TILE_WIDTH as f32,
                 (BOT_WALL as f32 - (enemy.box_es.walkbox.y * 4) as f32) + TILE_WIDTH as f32
-            ); 
-            
+            );
+
             let player_test = game.player.box_es.get_hitbox(game.player.pos);
             // If the test enemy is in the current room of the player...
 
             if !enemy.death() {
-                
+
                 //If enemy is attacking
                 if enemy.recently_attacked() {
                     //See if player collides with attackbox
@@ -156,7 +156,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                         }
                     }
                 }
-                
+
                 // If the test enemy's walkbox intersects with the player walkbox...
                 let wb_test = enemy.box_es.get_walkbox(enemy.pos);
                 // Attempt at collision with attackbox
@@ -178,6 +178,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                                     EnemyKind::Health => Gem::Red,
                                     EnemyKind::Speed => Gem::Blue,
                                     EnemyKind::Attack => Gem::Yellow,
+                                    EnemyKind::Final => Gem::None,
                                 });
                             enemy.power = false;
                         }
@@ -202,6 +203,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                                     EnemyKind::Health => Gem::Red,
                                     EnemyKind::Speed => Gem::Blue,
                                     EnemyKind::Attack => Gem::Yellow,
+                                    EnemyKind::Final => Gem::None,
                                 });
 
                             enemy.power = false;
@@ -249,9 +251,9 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                     Walkability::Wall | Walkability::Rock | Walkability::Pit => {
                         // Hacky af block collision that needs to be changed later
                         let opt = game.player.box_es.get_walkbox(game.player.pos).intersection(Rect::new(
-                            LEFT_WALL + x * TILE_WIDTH, 
-                            TOP_WALL + y * TILE_WIDTH, 
-                            TILE_WIDTH as u32, 
+                            LEFT_WALL + x * TILE_WIDTH,
+                            TOP_WALL + y * TILE_WIDTH,
+                            TILE_WIDTH as u32,
                             TILE_WIDTH as u32
                         ));
                         for enemy in enemy_list.iter_mut() {

@@ -386,9 +386,9 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                 else {
                     0
                 };
-                
+
             //Draw player
-            
+
             //Get how long ago the player became invincible
             let mut timeSinceDmg = Duration::new(69, 420); //A number that is big enough to get ignored by the if statement below
             match game.player.last_invincibility_time{
@@ -396,7 +396,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                     timeSinceDmg = time.elapsed();
                 },
                 None=>{
-                    
+
                 }
             }
             if !(timeSinceDmg <= Duration::from_millis(P_INVINCIBILITY_TIME - P_INVINCIBILITY_TIME/2) && timeSinceDmg.as_millis()%100 < 50) &&
@@ -436,7 +436,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                     }
                 }
             }
-            
+
 
             //draw_enemies(textures);
 
@@ -445,7 +445,8 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                     let tex_a = match &enemy.kind {
                         EnemyKind::Attack => &attack_atk,
                         EnemyKind::Health => &health_atk,
-                        EnemyKind::Speed => &speed_atk
+                        EnemyKind::Speed => &speed_atk,
+                        EnemyKind::Final => &health_atk, //TODO: match statement to choose projectile
                     };
 
                 for atk in &enemy.atk_list {
@@ -461,7 +462,8 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                     let tex = match &enemy.kind {
                         EnemyKind::Attack => &attack_idle,
                         EnemyKind::Health => &health_idle,
-                        EnemyKind::Speed => &speed_idle
+                        EnemyKind::Speed => &speed_idle,
+                        EnemyKind::Final => &health_idle, //TODO: sprite for final boss
                     };
 
                     core.wincan.copy(&tex, None,
@@ -470,7 +472,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                             enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
                             64, 64)
                     )?;
-                    
+
                     core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
                     if enemy.recently_attacked() {
                         core.wincan.fill_rect(enemy.box_es.get_attackbox(enemy.pos, enemy.dir))?;
@@ -624,7 +626,16 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                 enemy.box_es.hitbox.y
                             )
                         )?;
-                        
+
+                    }
+
+                    // Final Boss debugging
+                    if !enemy.death() && enemy.kind == EnemyKind::Final {
+                        core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                        core.wincan.draw_rect(enemy.box_es.get_walkbox(enemy.pos))?;
+                        core.wincan.draw_rect(enemy.box_left_final.get_hitbox(enemy.box_left_final_pos))?;
+                        core.wincan.draw_rect(enemy.box_right_final.get_hitbox(enemy.box_right_final_pos))?;
+
                     }
 
                     for atk in &enemy.atk_list {
