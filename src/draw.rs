@@ -12,7 +12,52 @@ use sdl2::rect::Rect;
 use sdl2::rect::Point;
 use sdl2::image::LoadTexture;
 
+// Pseudo-code credits to Max Agoston in Computer Graphics and Geometric Modeling book, page 303
+pub fn hsv_to_rgb( h: f32, s: f32, v: f32 ) -> Color {
+    let rgb : (f32, f32, f32);
 
+    // H must be in [0, 360]
+    let new_h = if h >= 360.0 {
+        0.0
+    } else {
+        // H' = H / 60deg
+        // used to get the sextant of the hue
+        h / 60.0
+    };
+
+    // H' = H / 60deg
+    // used to get the sextant of the hue
+    let i = new_h as i32;
+
+    // Fractional part of hue
+    let frac = ( new_h as i32 - i ) as f32;
+    
+    // According to the algorithm:
+    // p := v * ( 1 - s )
+    // q := v * ( 1 - ( s * frac ) )
+    // t := v * ( 1 - ( s * ( 1 - frac ) )
+
+    // All values below are scaled by 255 for Color::RGBA format
+    let p = ( v * ( 1.0 - s ) ) * 255.0;
+    let q = v * ( 1.0 - ( s * frac ) ) * 255.0;
+    let t = v * ( 1.0 - ( s * ( 1.0 - frac ) ) ) * 255.0;
+
+    // Scale the value as well
+    let scaled_v = v * 255.0;
+
+    // Also from the alg:
+    // Determine R, G, and B based off of the sextant of H
+    rgb = match i {
+        0 => (scaled_v, t, p),
+        1 => (q, scaled_v, p),
+        2 => (p, scaled_v, t),
+        3 => (p, q, scaled_v),
+        4 => (t, p, scaled_v),
+        5 | _ => (scaled_v, p, q)
+    };
+
+    Color::RGBA( rgb.0 as u8, rgb.1 as u8, rgb.2 as u8, 255 )
+}
 
 pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug: &bool) -> Result<(), String> {
 
@@ -510,6 +555,29 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                             enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
                             64, 64)
                     )?;
+
+                    // If the enemy was recently damaged..
+                    if enemy.was_damaged() {
+                        // Outline (healthbar backdrop)
+                        core.wincan.set_draw_color( Color::RGBA( 0, 0, 0, 255 ) );
+                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 32, enemy.get_pos_y() - 69, 64, 12 ) )?;
+                        // Fill color (healthbar)
+                        let hp_percentage: f32 = enemy.hp as f32 / enemy.m_hp as f32;
+
+                        // Determine healthbar color.
+                        // Speed enemies only have 2 hp, so it is okay for damage to immediately become yellow.
+                        let hp_color = if enemy.hp == enemy.m_hp - 1 && enemy.kind != EnemyKind::Speed {
+                            Color::RGBA( 0, 255, 0, 255 )
+                        } else {
+                            // Cool trick to use HSV to modulate color from green to red
+                            // Converted to RGBA as SDL2 doesn't have an HSV color structure
+                            hsv_to_rgb( 120.0 * hp_percentage, 1.0, 1.0 )
+                        };
+
+                        core.wincan.set_draw_color( hp_color );
+                        // Width remaining: ( hp / max_hp ) * width of healthbar
+                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 30, enemy.get_pos_y() - 67, ( 62.0 * hp_percentage ) as u32, 8 ) )?;
+                    }
                     
                     core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
                     if enemy.recently_attacked() {
