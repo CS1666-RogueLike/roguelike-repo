@@ -595,12 +595,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                 EnemyKind::Attack => &attack_hit
                             };
     
-                            core.wincan.copy(&tex, None,
-                                Rect::new(
-                                    enemy.get_pos_x() - 35 + 4 + x_val,
-                                    enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
-                                    64, 64)
-                            )?;
+                            core.wincan.copy( &tex, None, enemy_rect )?;
                         }
                     }
                     
