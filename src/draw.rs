@@ -30,6 +30,11 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             core.wincan.copy(&main_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
         }
 
+        MenuState::Victory => {
+            let vic = texture_creator.load_texture("assets/victory.png")?;
+            core.wincan.copy(&vic, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+        }
+
         MenuState::GameActive => {
             // Load textures
             let bg = texture_creator.load_texture("assets/test_image.png")?;
@@ -82,6 +87,18 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             let key = texture_creator.load_texture("assets/key.png")?;
             let door_locked = texture_creator.load_texture("assets/door.png")?;
             let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
+
+
+            // Doors
+            let door_up_unlocked = texture_creator.load_texture("assets/door_up_unlocked.png")?;
+            let door_down_unlocked = texture_creator.load_texture("assets/door_down_unlocked.png")?;
+            let door_left_unlocked = texture_creator.load_texture("assets/door_left_unlocked.png")?;
+            let door_right_unlocked = texture_creator.load_texture("assets/door_right_unlocked.png")?;
+
+            let door_up_locked = texture_creator.load_texture("assets/door_up_locked.png")?;
+            let door_down_locked = texture_creator.load_texture("assets/door_down_locked.png")?;
+            let door_left_locked = texture_creator.load_texture("assets/door_left_locked.png")?;
+            let door_right_locked = texture_creator.load_texture("assets/door_right_locked.png")?;
 
             let pl_heart = texture_creator.load_texture("assets/playerheart16x.png")?;
 
@@ -204,8 +221,9 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
                                 }
 
+                                // DOOR CODE
                                 SpriteID::DoorLocked => {
-                                    core.wincan.copy(&door_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&door_up_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
                                 }
                                 SpriteID::DoorUnlocked => {
                                     core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
@@ -326,10 +344,32 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                         }
 
                         SpriteID::DoorLocked => {
-                            core.wincan.copy(&door_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+
+                            if y < 3 {
+                                core.wincan.copy(&door_up_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            } else if y > 7 {
+                                core.wincan.copy(&door_down_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            }
+
+                            if x < 3 {
+                                core.wincan.copy(&door_left_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            } else if x > 10 {
+                                core.wincan.copy(&door_right_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            }
                         }
                         SpriteID::DoorUnlocked => {
-                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+
+                            if y < 3 {
+                                core.wincan.copy(&door_up_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            } else if y > 7 {
+                                core.wincan.copy(&door_down_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            }
+
+                            if x < 3 {
+                                core.wincan.copy(&door_left_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            } else if x > 10 {
+                                core.wincan.copy(&door_right_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            }
                         }
 
                         SpriteID::Key => {
@@ -771,6 +811,11 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                 2 => {
                                     let f3 = texture_creator.load_texture("assets/floor_3.png")?;
                                     core.wincan.copy(&f3, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                                }
+                                3 => {
+                                    let f4 = texture_creator.load_texture("assets/boss_fight.png")?;
+                                    core.wincan.copy(&f4, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+
                                 }
                                 _ => {}
                             }
