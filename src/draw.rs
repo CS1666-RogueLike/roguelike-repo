@@ -93,6 +93,10 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             let attack_idle = texture_creator.load_texture("assets/wizard_attack_enemy.png")?;
             let health_idle = texture_creator.load_texture("assets/health-sprite-down.png")?;
 
+            let speed_hit = texture_creator.load_texture("assets/speed_idle_hit.png")?;
+            let attack_hit = texture_creator.load_texture("assets/wizard_attack_enemy_hit.png")?;
+            let health_hit = texture_creator.load_texture("assets/health-sprite-down_hit.png")?;
+
             let health_atk = texture_creator.load_texture("assets/health-projectile.png")?;
             let speed_atk = texture_creator.load_texture("assets/speed-projectile.png")?;
             let attack_atk = texture_creator.load_texture("assets/attack-projectile.png")?;
@@ -577,6 +581,22 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                         core.wincan.set_draw_color( hp_color );
                         // Width remaining: ( hp / max_hp ) * width of healthbar
                         core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 30, enemy.get_pos_y() - 67, ( 62.0 * hp_percentage ) as u32, 8 ) )?;
+
+                        if enemy.last_invincibility_time.unwrap().elapsed() < Duration::from_millis( 500 ) {
+                            let enemy_rect = Rect::new(
+                                enemy.get_pos_x() - 35 + 4 + x_val,
+                                enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
+                                64, 64);
+    
+                            // Hit overlay
+                            let tex = &match enemy.kind {
+                                EnemyKind::Speed => &speed_hit,
+                                EnemyKind::Health => &health_hit,
+                                EnemyKind::Attack => &attack_hit
+                            };
+    
+                            core.wincan.copy( &tex, None, enemy_rect )?;
+                        }
                     }
                     
                     core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
