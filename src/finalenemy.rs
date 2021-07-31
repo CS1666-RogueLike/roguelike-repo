@@ -1,10 +1,13 @@
 use crate::blackboard::*;
-//use crate::attack::*;
+use crate::attack::*;
 use crate::util::*;
 //use sdl2::rect::Rect;
 //use std::time::{Duration, Instant};
 //use crate::boxes::*;
 use crate::entity::*;
+use crate::game::*;
+use rand::Rng;
+use std::num::*;
 
 
 /*#[derive(Clone)]
@@ -42,12 +45,24 @@ pub fn update(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
-    enemy.signal_attack();
 
-    if !Enemy::player_close(enemy, blackboard)
-    {
-        enemy.state = State::Chase;
-    }
+    println!("Daphne");
+
+    let mut vector = Vec2::new(blackboard.playerpos.x - enemy.pos.x, blackboard.playerpos.y - enemy.pos.y);
+    let length = ((vector.x * vector.x + vector.y * vector.y) as f64).sqrt();
+
+    // normalize vector
+    vector.x /= length as f32;
+    vector.y /= length as f32;
+
+    let new_atk = AtkProjectile::new(enemy.pos, vector, &EnemyKind::Attack);
+    enemy.atk_list.push(new_atk);
+
+    // if blackboard.playerpos.y >= 400.0
+    // {
+    //     enemy.state = State::Chase;
+    // }
+
 
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
     (blackboard.enemy_quantity > 1 &&
@@ -157,21 +172,42 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
             }
         }
     }
-    println!("{}, {}", enemy.movement_vec.x, enemy.movement_vec.y);
-        enemy.pos.x += enemy.movement_vec.x * enemy.speed;
-        enemy.pos.y += enemy.movement_vec.y * enemy.speed;
 
-    if Enemy::player_close(enemy, blackboard)
+        if enemy.pos.y > 200.01 {
+            enemy.movement_vec.y = 0.0;
+        }
+
+        if enemy.dir == Direction::Up {
+            enemy.movement_vec.y = -1.0;
+        }
+        enemy.pos.x += enemy.movement_vec.x * enemy.speed;
+        enemy.box_left_final_pos.x += enemy.movement_vec.x * enemy.speed;
+        enemy.box_right_final_pos.x += enemy.movement_vec.x * enemy.speed;
+        enemy.pos.y += enemy.movement_vec.y * enemy.speed;
+        enemy.box_left_final_pos.y += enemy.movement_vec.y * enemy.speed;
+        enemy.box_right_final_pos.y += enemy.movement_vec.y * enemy.speed;
+
+        let mut rng = rand::thread_rng();
+        enemy.signal_attack();
+        if enemy.is_attacking {
+            match rng.gen_range( 0 ..= 4 ){
+                0 | 1 => {
+                    let mut enemies = Enemy::new(Vec2::new(enemy.box_left_final_pos.x, enemy.box_left_final_pos.y), EnemyKind::Speed);
+                    enemy.add_enemies(enemies);
+                },
+                2 | 3 => {
+                    let mut enemies = Enemy::new(Vec2::new(enemy.box_right_final_pos.x, enemy.box_right_final_pos.y), EnemyKind::Speed);
+                    enemy.add_enemies(enemies);
+                },
+                _ => {enemy.is_attacking = false}
+
+        }
+    }
+
+    if blackboard.playerpos.y > 400.0
     {
         enemy.state = State::Attack;
     }
-
-    //println!("{} vs {}", enemy.hp as f32, (enemy.m_hp as f32 / 3.0));
-    //println!("{}", blackboard.enemy_quantity);
-
-    /*if(!blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health)){
-        println!("true");
-    }*/
 
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
     (blackboard.enemy_quantity > 1 &&
@@ -243,7 +279,7 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
 
         enemy.pos.x += enemy.movement_vec.x * enemy.speed;
         enemy.pos.y += enemy.movement_vec.y * enemy.speed;
-    
+
 
     }
 
@@ -263,6 +299,6 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
 pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
     if blackboard.playerpos.x > 400.0
     {
-        enemy.state = State::Chase;
+        enemy.state = State::Attack;
     }
 }

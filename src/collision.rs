@@ -141,7 +141,8 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
 
             let player_test = game.player.box_es.get_hitbox(game.player.pos);
             // If the test enemy is in the current room of the player...
-
+            // FINAL BOSS projectile
+            enemy.move_projectile();
             if !enemy.death() {
 
                 //If enemy is attacking

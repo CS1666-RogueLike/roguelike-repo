@@ -4,6 +4,7 @@ use crate::util::*;
 use std::time::{Duration, Instant};
 use crate::boxes::*;
 use crate::yellowenemy::*;
+use crate::finalenemy::*;
 use crate::blackboard::*;
 use crate::tile::*;
 use std::collections::VecDeque;
@@ -53,10 +54,6 @@ pub struct Enemy {
     pub pos: Vec2<f32>,
     pub lastpos:Vec2<f32>,
     pub box_es: Box,
-    pub box_left_final: Box,  //USE for FINAL BOSS ONlY
-    pub box_left_final_pos: Vec2<f32>,  //USE for FINAL BOSS ONlY
-    pub box_right_final: Box, //USE for FINAL BOSS ONlY
-    pub box_right_final_pos: Vec2<f32>, //USE for FINAL BOSS ONlY
     pub speed: f32,
     pub dir: Direction,
     pub hp: i32,    //store the health for speed enemy
@@ -73,6 +70,14 @@ pub struct Enemy {
     pub last_attack_time: Option<Instant>,
     pub current_frame_tile: Vec2<i32>,
     pub is_healing: bool,
+
+    //BOSS ONLY
+    pub box_left_final: Box,
+    pub box_left_final_pos: Vec2<f32>,
+    pub box_right_final: Box,
+    pub box_right_final_pos: Vec2<f32>,
+    pub final_enemies_to_spawn: Vec<Enemy>,
+
 }
 
 impl Health for Enemy {
@@ -130,6 +135,7 @@ impl Enemy {
             box_left_final_pos: Vec2::new(position.x - 30.0, position.y + 5.0),
             box_right_final: Box::new(Vec2::new(30, 50), Vec2::new(0, 0), Vec2::new(0, 0)),
             box_right_final_pos: Vec2::new(position.x + 30.0, position.y + 5.0),
+            final_enemies_to_spawn: Vec::<Enemy>::new(),
         }
     }
 
@@ -151,9 +157,14 @@ impl Enemy {
                 crate::yellowenemy::update(self, blackboard);
             }
             EnemyKind::Final => {
-
+                crate::finalenemy::update(self, blackboard);
             }
         }
+    }
+
+    //BOSS ONLY
+    pub fn add_enemies(&mut self, enemy: Enemy){
+        self.final_enemies_to_spawn.push(enemy);
     }
 
     pub fn pathfinding(&mut self, target: Vec2<f32>, blackboard: &BlackBoard){
@@ -301,16 +312,6 @@ impl Enemy {
     }
 
     pub fn player_close(enemy: & mut Enemy, blackboard: &BlackBoard) -> bool{
-        /*
-        let e_x = enemy.pos.x;
-        let e_y = enemy.pos.y;
-        let p_x = blackboard.playerpos.x;
-        let p_y = blackboard.playerpos.y;
-
-        if (e_x == p_x && ((e_y-20.0) <= p_y || (e_y+20.0) >= p_y)) || //If the player is right above or below the enemy
-        (e_y == p_y && ((e_x-20.0) <= p_x || (e_x+20.0) >= p_x)) || //If the player is on either side of the enemy
-        (e_y == p_y && e_x == p_x){ //If the player is on top of the enemy*/
-
         if enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.player_box.get_walkbox(blackboard.playerpos)) {
 
             return true;
@@ -353,16 +354,33 @@ impl Enemy {
     }
 
     pub fn signal_attack(&mut self) {
+        //let res = time.elapsed() <= Duration::from_millis(500+600);
         match self.last_attack_time {
             Some (time) => {
-                let res = time.elapsed() <= Duration::from_millis(500+600);
-                if !res {
-                    self.is_attacking = true;
-                    self.last_attack_time = Some(Instant::now());
+                match self.kind {
+                    EnemyKind::Final => {
+                        let res = time.elapsed() <= Duration::from_millis(4000);
+                        if !res {
+                            self.is_attacking = true;
+                            self.last_attack_time = Some(Instant::now());
+                        }
+                        else {
+                            self.is_attacking = false;
+                        }
+                    }
+                    _ => {
+                        let res = time.elapsed() <= Duration::from_millis(500+600);
+                        if !res {
+                            self.is_attacking = true;
+                            self.last_attack_time = Some(Instant::now());
+                        }
+                        else {
+                            self.is_attacking = false;
+                        }
+                    }
                 }
-                else {
-                    self.is_attacking = false;
-                }
+                //let res = time.elapsed() <= Duration::from_millis(500+600);
+
             }
 
             None => {
@@ -466,6 +484,30 @@ impl Enemy {
         self.pos.y += self.movement_vec.y * self.speed;
         //println!("Speed update!");
 
+        //Moves all the attacks that this enemy shot
+
+        let mut index = 0;
+        let mut to_remove = Vec::new();
+        for mut atk in &mut self.atk_list {
+            atk.pos.x += atk.movement_vec.x * atk.speed;
+            atk.pos.y += atk.movement_vec.y * atk.speed;
+
+            //If the attack is off screen, remove it from the atk vector
+
+            if atk.pos.x < 0.0 || atk.pos.y < 0.0 || atk.pos.x > WINDOW_WIDTH as f32|| atk.pos.y > WINDOW_HEIGHT as f32
+            {
+                to_remove.push(index);
+            }
+            index+=1;
+        }
+
+        for rmv in &mut to_remove {
+            self.atk_list.remove(*rmv);
+            println!("Bullet Removed");
+        }
+    }
+
+    pub fn move_projectile(&mut self){
         //Moves all the attacks that this enemy shot
 
         let mut index = 0;

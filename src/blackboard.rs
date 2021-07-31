@@ -17,10 +17,8 @@ pub struct BlackBoard
     pub health_enemy_pos: Vec<Vec2<f32>>,
     pub health_enemy_tile: Vec<Vec2<i32>>,
     pub health_enemy_hitbox: Vec<Rect>,
-    //pub offset: i32,
-    //pub bomb:
     pub types_in_room: Vec<EnemyKind>,
-    //pub playerGemStatus:
+    
 
     pub cr_tiles: Vec<Vec<std::boxed::Box<dyn Tile>>>,
 

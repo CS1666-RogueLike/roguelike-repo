@@ -15,6 +15,7 @@ mod blackboard;
 use crate::blackboard::*;
 
 mod yellowenemy;
+mod finalenemy;
 
 mod util;
 use crate::util::*;
@@ -45,6 +46,7 @@ use entity::*;
 use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::time::Instant;
+
 
 use std::time::Duration;
 
@@ -329,10 +331,22 @@ impl Demo for Manager {
                             // Move player
                             self.game.player.update_pos(mov_vec);
                             //Update enemy
+                            let mut enemy_to_push = Enemy::new(Vec2::new(0.0, 0.0), EnemyKind::Speed);
+                            let mut push_enemy = false;
                             for enemy in self.game.current_room_mut().enemies.iter_mut() {
                                 if !enemy.death{
                                     enemy.update(& self.blackboard);
+                                    if enemy.kind == EnemyKind::Final && enemy.is_attacking{ //Final Boss Check
+                                        enemy_to_push = enemy.final_enemies_to_spawn.pop().unwrap();
+                                        push_enemy = true;
+                                        //self.game.current_room_mut().additional_enemies(enemy.final_enemies_to_spawn.pop().unwrap());
+                                        enemy.is_attacking = false;
+                                    }
                                 }
+                            }
+                            //FINAL BOSS ONLY
+                            if push_enemy {
+                                self.game.current_room_mut().additional_enemies(enemy_to_push);
                             }
 
                             // Apply collision
