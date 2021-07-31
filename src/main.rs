@@ -177,12 +177,16 @@ impl Demo for Manager {
                 GameActive => {
 
                     match self.game.game_state {
+
+                        // Handles move from main menu to actual gameplay by displaying "Floor 1"
                         GameState::InitialFloorTrans => {
                             if self.game.transition_start.elapsed().as_millis() > 2500 {
                                 self.blackboard.update_room(& self.game);
                                 self.game.game_state = GameState::Gameplay;
                             }
                         }
+
+                        // Sliding transitions between rooms
                         GameState::BetweenRooms => {
                             //sleep(Duration::new(0, 500_000_000)); // 500 mil is half second
                             if self.game.transition_start.elapsed().as_millis() > 400 {
@@ -192,22 +196,31 @@ impl Demo for Manager {
 
                         }
 
+                        // Black bar transitions between rooms + floor number
                         GameState::BetweenFloors => {
                             if self.game.transition_start.elapsed().as_millis() > 3000 {
                                 self.blackboard.update_room(& self.game);
                                 self.game.game_state = GameState::Gameplay;
                             }
 
-                            // TODO Proc gen team this needs to change for additional floors
+                            // Change the room at the appropriate time
+                            // If we change it right away we'll see it before the transition is over
                             if self.game.changed_floors == false && self.game.transition_start.elapsed().as_millis() > 500 {
-                                if self.game.cf == 2 { // 1 WILL PROBABLY NEED TO BECOME 3 OR 4
+                                if self.game.cf == 2 {
                                     self.menu = MenuState::GameOver;
                                 } else {
+                                    // Next floor
                                     self.game.cf += 1;
+
+                                    // Reset current room
                                     self.game.cr.x = START_X;
                                     self.game.cr.y = START_Y;
+
+                                    // Center player in room
                                     self.game.player.pos.x = (LEFT_WALL + 8 * 64) as f32 + 32.0;
                                     self.game.player.pos.y = (TOP_WALL + 5 * 64) as f32 + 40.0;
+
+                                    // Used for drawing code
                                     self.game.changed_floors = true;
                                 }
                             }
@@ -215,8 +228,6 @@ impl Demo for Manager {
                         }
 
                         GameState::Gameplay => {
-                            
-                            
                             // Pause Code
                             esc_prev = esc_curr;
                             if keystate.contains(&Keycode::Escape) && esc_prev == false {
@@ -229,9 +240,11 @@ impl Demo for Manager {
                             else {
                                 esc_curr = false;
                             }
+
                             // Debug on/off
                             if keystate.contains(&Keycode::Num1) { self.debug = false; }
                             if keystate.contains(&Keycode::Num2) { self.debug = true; }
+
                             // Lock doors
                             if keystate.contains(&Keycode::Num3) {
                                 self.game.current_room_mut().tiles[5][0].lock();
@@ -253,12 +266,43 @@ impl Demo for Manager {
                             if keystate.contains(&Keycode::S) { mov_vec.y += 1.0; }
                             if keystate.contains(&Keycode::A) { mov_vec.x -= 1.0; }
                             if keystate.contains(&Keycode::D) { mov_vec.x += 1.0; }
-                            // Direction (will eventually be attacks)
+
+                            // Attacks
                             // TODO: FIX SO THAT NEW KEY OVERRIDES OLD ONE INSTEAD OF HAVING SET PRIORITY
-                            if keystate.contains(&Keycode::Up)    { self.game.player.set_dir(Direction::Up);    }
+                            /*
+                            if keystate.contains(&Keycode::Up)    {
+                                self.game.player.set_dir(Direction::Up);
+                            }
+
                             if keystate.contains(&Keycode::Down)  { self.game.player.set_dir(Direction::Down);  }
                             if keystate.contains(&Keycode::Left)  { self.game.player.set_dir(Direction::Left);  }
                             if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
+                             */
+
+                            if keystate.contains(&Keycode::Up) && matches!(self.menu, MenuState::GameActive) &&
+                                self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
+                                self.game.player.set_dir(Direction::Up);
+                                self.game.player.signal_attack();
+                            }
+                            if keystate.contains(&Keycode::Down) && matches!(self.menu, MenuState::GameActive) &&
+                                self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
+                                self.game.player.set_dir(Direction::Down);
+                                self.game.player.signal_attack();
+                            }
+                            if keystate.contains(&Keycode::Left) && matches!(self.menu, MenuState::GameActive) &&
+                                self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
+                                self.game.player.set_dir(Direction::Left);
+                                self.game.player.signal_attack();
+                            }
+                            if keystate.contains(&Keycode::Right) && matches!(self.menu, MenuState::GameActive) &&
+                                self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
+                                self.game.player.set_dir(Direction::Right);
+                                self.game.player.signal_attack();
+                            }
+
+
+
+                            // Attack without changing direction
                             if keystate.contains(&Keycode::Space) && matches!(self.menu, MenuState::GameActive) &&
                                 self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
                                 self.game.player.signal_attack();

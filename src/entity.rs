@@ -140,6 +140,7 @@ impl Enemy {
             }
         }
     }
+
     pub fn pathfinding(&mut self, target: Vec2<f32>, blackboard: &BlackBoard){
         
         let target_tile = Vec2::new(
@@ -151,10 +152,9 @@ impl Enemy {
         
         let start_tile = self.current_frame_tile;
         let mut cur_tile = start_tile; //The current tile
-        
-        if start_tile == target_tile {
-            return;
-        }
+
+        // Don't do additional code if already in target tile
+        if start_tile == target_tile { return; }
         
         
         let mut queue: VecDeque<Vec2<i32>> = VecDeque::new(); //The queue of tiles to be checked
@@ -229,11 +229,6 @@ impl Enemy {
         
         //path.push(start_tile);
         self.update_dir(path.pop().unwrap());
-        
-        
-        
-        
-        
     }
     
     pub fn update_invincibility_time(&mut self) {
@@ -325,8 +320,7 @@ impl Enemy {
         // }
     }
 
-    pub fn assign_num(a: EnemyKind) -> i32
-    {
+    pub fn assign_num(a: EnemyKind) -> i32 {
         match a {
             EnemyKind::Health => {
                 return 0;
@@ -378,6 +372,9 @@ impl Enemy {
     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32 }
 
     pub fn update_pos(& mut self) {
+
+        println!("UPDATE POS CALLED");
+
         if self.death {
             self.movement_vec.x = 0.0;
             self.movement_vec.y = 0.0;
@@ -449,6 +446,7 @@ impl Enemy {
         // Update position using movement vector and speed
         self.pos.x += self.movement_vec.x * self.speed;
         self.pos.y += self.movement_vec.y * self.speed;
+        //println!("Speed update!");
 
         //Moves all the attacks that this enemy shot
 
@@ -491,7 +489,8 @@ pub fn speed_kind(kind: EnemyKind) -> f32 {
         }
     }
     return speed;
-}pub fn health_kind(kind: EnemyKind) -> i32 {
+}
+pub fn health_kind(kind: EnemyKind) -> i32 {
     let mut health = 0;
     match kind {
         EnemyKind::Health => {

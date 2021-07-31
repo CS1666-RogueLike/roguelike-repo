@@ -127,12 +127,12 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
             enemy.movement_vec.y = 1.0;
         }
         Direction::Right => {
-            if enemy.pos.y < blackboard.playerpos.y {
+            if enemy.pos.y < blackboard.playerpos.y - 5.0 {
 
                 enemy.movement_vec.x = DIAGONAL_VEC;
                 enemy.movement_vec.y = DIAGONAL_VEC;
             }
-            else if enemy.pos.y > blackboard.playerpos.y {
+            else if enemy.pos.y > blackboard.playerpos.y + 5.0 {
                 enemy.movement_vec.x = DIAGONAL_VEC;
                 enemy.movement_vec.y = -DIAGONAL_VEC;
             }
@@ -142,12 +142,12 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
             }
         }
         Direction::Left => {
-            if enemy.pos.y < blackboard.playerpos.y {
+            if enemy.pos.y < blackboard.playerpos.y - 5.0 {
 
                 enemy.movement_vec.x = -DIAGONAL_VEC;
                 enemy.movement_vec.y = DIAGONAL_VEC;
             }
-            else if enemy.pos.y > blackboard.playerpos.y {
+            else if enemy.pos.y > blackboard.playerpos.y + 5.0 {
                 enemy.movement_vec.x = -DIAGONAL_VEC;
                 enemy.movement_vec.y = -DIAGONAL_VEC;
             }
@@ -157,6 +157,7 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
             }
         }
     }
+    println!("{}, {}", enemy.movement_vec.x, enemy.movement_vec.y);
         enemy.pos.x += enemy.movement_vec.x * enemy.speed;
         enemy.pos.y += enemy.movement_vec.y * enemy.speed;
 
