@@ -293,7 +293,7 @@ impl PowerUp for Player {
         if let Some(temp) = self.power_up_vec.get_mut(0){
             *temp += 1;
         }
-        if self.power_up_vec[0] > 3 {
+        if self.power_up_vec[0] > 2 {
             if let Some(temp) = self.power_up_vec.get_mut(0){
                 *temp = 0;
             }

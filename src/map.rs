@@ -27,10 +27,10 @@ impl Map {
         ];
         Map {
             // Actual thing
-            //floors: [Floor::gen_floor(), Floor::gen_floor(), Floor::gen_floor(), Floor::boss_floor()],
+            floors: [Floor::gen_floor(), Floor::gen_floor(), Floor::gen_floor(), Floor::boss_floor()],
 
             // Boss testing
-            floors: [Floor::boss_floor(), Floor::gen_floor(), Floor::gen_floor(), Floor::boss_floor()],
+            //floors: [Floor::boss_floor(), Floor::gen_floor(), Floor::gen_floor(), Floor::boss_floor()],
         }
     }
 

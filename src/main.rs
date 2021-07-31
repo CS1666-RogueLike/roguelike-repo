@@ -164,6 +164,14 @@ impl Demo for Manager {
             // Filter inputs by menu state.
             match self.menu {
 
+                Victory => {
+                    println!("Press Escape to return to main menu.");
+                    if keystate.contains(&Keycode::Escape) {
+                        self.menu = MainMenu;
+                    }
+
+                }
+
                 MainMenu => {
                     if keystate.contains(&Keycode::Space) {
                         self.menu = GameActive;
@@ -206,8 +214,8 @@ impl Demo for Manager {
                             // Change the room at the appropriate time
                             // If we change it right away we'll see it before the transition is over
                             if self.game.changed_floors == false && self.game.transition_start.elapsed().as_millis() > 500 {
-                                if self.game.cf == 2 {
-                                    self.menu = MenuState::GameOver;
+                                if self.game.cf == 0 {
+                                    self.menu = MenuState::Victory;
                                 } else {
                                     // Next floor
                                     self.game.cf += 1;
