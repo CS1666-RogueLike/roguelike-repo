@@ -259,7 +259,13 @@ impl Enemy {
             }
         }
     }
-    
+
+    pub fn was_damaged(&self) -> bool {
+        match self.last_invincibility_time {
+            Some( time ) => time.elapsed() < Duration::from_secs( 1 ),
+            None => false
+        }
+    }
     
     //Old update direction without pathfinding
     pub fn update_dir(& mut self, frame_tile: Vec2<i32>){
