@@ -44,17 +44,20 @@ pub fn update(enemy: & mut Enemy, blackboard: &BlackBoard){
 pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
     enemy.signal_attack();
 
+    // if player is far, chase them
     if !Enemy::player_close(enemy, blackboard)
     {
         enemy.state = State::Chase;
     }
 
+    // if there are other non health enemies in room and low on life, retreat
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
     (blackboard.enemy_quantity > 1 &&
     !blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health)){
         enemy.state = State::Retreat;
     }
 
+    // low on life and health enemy avail to heal
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
     (blackboard.enemy_quantity > 1 &&
     blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health)){
@@ -73,11 +76,11 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
             enemy.movement_vec.y = -1.0;
         }
         Direction::Right => {
-            if enemy.pos.y < blackboard.playerpos.y {
+            if enemy.pos.y < blackboard.playerpos.y - 5.0 {
                 enemy.movement_vec.x = -DIAGONAL_VEC;
                 enemy.movement_vec.y = -DIAGONAL_VEC;
             }
-            else if enemy.pos.y > blackboard.playerpos.y {
+            else if enemy.pos.y > blackboard.playerpos.y + 5.0 {
                 enemy.movement_vec.x = -DIAGONAL_VEC;
                 enemy.movement_vec.y = DIAGONAL_VEC;
             }
@@ -87,11 +90,11 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
             }
         }
         Direction::Left => {
-            if enemy.pos.y < blackboard.playerpos.y {
+            if enemy.pos.y < blackboard.playerpos.y - 5.0{
                 enemy.movement_vec.x = DIAGONAL_VEC;
                 enemy.movement_vec.y = -DIAGONAL_VEC;
             }
-            else if enemy.pos.y > blackboard.playerpos.y {
+            else if enemy.pos.y > blackboard.playerpos.y + 5.0{
                 enemy.movement_vec.x = DIAGONAL_VEC;
                 enemy.movement_vec.y = DIAGONAL_VEC;
             }
@@ -102,9 +105,11 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
         }
     }
 
+    // update movement depending on direction
     enemy.pos.x += enemy.movement_vec.x * enemy.speed;
     enemy.pos.y += enemy.movement_vec.y * enemy.speed;
 
+    // if last enemy in room, switch to chase
     if(blackboard.enemy_quantity == 1)
     {
         enemy.state = State::Chase;
@@ -157,28 +162,24 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
             }
         }
     }
-    println!("{}, {}", enemy.movement_vec.x, enemy.movement_vec.y);
+
         enemy.pos.x += enemy.movement_vec.x * enemy.speed;
         enemy.pos.y += enemy.movement_vec.y * enemy.speed;
 
+    // if close to player, switch to attack
     if Enemy::player_close(enemy, blackboard)
     {
         enemy.state = State::Attack;
     }
 
-    //println!("{} vs {}", enemy.hp as f32, (enemy.m_hp as f32 / 3.0));
-    //println!("{}", blackboard.enemy_quantity);
-
-    /*if(!blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health)){
-        println!("true");
-    }*/
-
+    // if low on life, and no health enemy, retreat
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
     (blackboard.enemy_quantity > 1 &&
     !blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health)){ //True if there isn't a health enemy
         enemy.state = State::Retreat;
     }
 
+    // if low on life, and health enemy avail, go heal
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
     (blackboard.enemy_quantity > 1 &&
     blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health)){ //True if there is a health enemy
@@ -187,9 +188,8 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
-    //let mut heal_close = false;
 
-
+    // if close to health enemy, start to heal
     if enemy.box_es.get_hitbox(enemy.pos).has_intersection(blackboard.health_enemy_hitbox[0])
         && (enemy.hp as f32) < enemy.m_hp as f32 * 0.75 {
         enemy.is_healing = true;
@@ -198,11 +198,13 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
 
     }
     else{
-        enemy.is_healing = false;
+        enemy.is_healing = false; // if not close to heal enemy, change bool
     }
 
+    // when not close to a heal enemy, but need to heal, find one and move to them
     if !enemy.is_healing && blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health){
-        enemy.update_dir(blackboard.health_enemy_tile[0]);
+        //enemy.update_dir(blackboard.health_enemy_tile[0]);
+        enemy.pathfinding(blackboard.health_enemy_pos, blackboard);
 
         match enemy.dir {
             Direction::Up => {
@@ -212,11 +214,11 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
                 enemy.movement_vec.y = 1.0;
             }
             Direction::Right => {
-                if(enemy.pos.y < blackboard.health_enemy_pos[0].y){
+                if(enemy.pos.y < blackboard.health_enemy_pos[0].y - 5.0){
                     enemy.movement_vec.x = DIAGONAL_VEC;
                     enemy.movement_vec.y = DIAGONAL_VEC;
                 }
-                else if(enemy.pos.y > blackboard.health_enemy_pos[0].y){
+                else if(enemy.pos.y > blackboard.health_enemy_pos[0].y + 5.0){
                     enemy.movement_vec.x = DIAGONAL_VEC;
                     enemy.movement_vec.y = -DIAGONAL_VEC;
                 }
@@ -226,11 +228,11 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
                 }
             }
             Direction::Left => {
-                if(enemy.pos.y < blackboard.health_enemy_pos[0].y){
+                if(enemy.pos.y < blackboard.health_enemy_pos[0].y - 5.0){
                     enemy.movement_vec.x = -DIAGONAL_VEC;
                     enemy.movement_vec.y = DIAGONAL_VEC;
                 }
-                else if(enemy.pos.y > blackboard.health_enemy_pos[0].y){
+                else if(enemy.pos.y > blackboard.health_enemy_pos[0].y + 5.0){
                     enemy.movement_vec.x = -DIAGONAL_VEC;
                     enemy.movement_vec.y = -DIAGONAL_VEC;
                 }
@@ -243,17 +245,17 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
 
         enemy.pos.x += enemy.movement_vec.x * enemy.speed;
         enemy.pos.y += enemy.movement_vec.y * enemy.speed;
-    
+
 
     }
 
-    //enemy.update_dir(blackboard.health_enemy_pos.pop());
-
+    // if no health enemies left, move to chase
     if !blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health){
         enemy.is_healing = false;
         enemy.state = State::Chase;
     }
 
+    // if healed move to chase
     if (enemy.hp as f32) >= enemy.m_hp as f32 * 0.75 {
         enemy.is_healing = false;
         enemy.state = State::Chase;
