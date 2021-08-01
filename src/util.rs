@@ -15,7 +15,7 @@ pub const BOT_WALL: i32 = 648 + TILE_WIDTH;
 //-------------------------------Player/Creature Constants---------------------------------
 
 //----Player Stats----
-pub const P_MAX_HP: i32 = 6;
+pub const P_MAX_HP: i32 = 12;
 pub const P_DEATH_HP: i32 = 0;
 pub const P_INVINCIBILITY_TIME: u64 = 1750; //The time (in milliseconds) that the player is invunerable
 //after they take damage
