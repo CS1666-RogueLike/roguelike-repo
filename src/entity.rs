@@ -68,12 +68,14 @@ pub struct Enemy {
     pub last_attack_time: Option<Instant>,
     pub current_frame_tile: Vec2<i32>,
     pub is_healing: bool,
+    pub last_damage_taken: i32,
 }
 
 impl Health for Enemy {
     fn max_hp(&self) -> i32 { self.m_hp }
     fn health(&self) -> i32 { self.hp }
     fn damage(&mut self, d: i32) -> i32 {
+        self.last_damage_taken = d;
         self.hp = (self.hp - d).max(P_DEATH_HP);
         self.death();
         self.hp
@@ -109,6 +111,7 @@ impl Enemy {
             power: false,
             atk_list: Vec::new(),
             state: State::Idle,
+            last_damage_taken: 0,
 
             current_frame_tile: Vec2::new(0,0),
             last_invincibility_time: None,
