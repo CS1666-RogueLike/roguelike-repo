@@ -128,4 +128,10 @@ impl Room {
     pub fn additional_enemies(&mut self, enemy: Enemy) {
         self.enemies.push(enemy);
     }
+    // Repositions enemies to be a certain distance from player
+    // Avoids player taking immediate damage they can't prevent
+    pub fn reposition_enemies(&mut self, player_pos: Vec2<f32>) {
+
+        println!("Repositioning enemies...")
+    }
 }

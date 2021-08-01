@@ -163,6 +163,8 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
         }
     }
 
+    //println!("{}, {}", enemy.movement_vec.x, enemy.movement_vec.y);
+
         enemy.pos.x += enemy.movement_vec.x * enemy.speed;
         enemy.pos.y += enemy.movement_vec.y * enemy.speed;
 
@@ -189,8 +191,12 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
 
 pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
 
+
     // if close to health enemy, start to heal
-    if enemy.box_es.get_hitbox(enemy.pos).has_intersection(blackboard.health_enemy_hitbox[0])
+
+    //let mut heal_close = false;
+
+    if !blackboard.health_enemy_hitbox.is_empty() && enemy.box_es.get_hitbox(enemy.pos).has_intersection(blackboard.health_enemy_hitbox[0])
         && (enemy.hp as f32) < enemy.m_hp as f32 * 0.75 {
         enemy.is_healing = true;
         enemy.take_damage(-1, HEAL_TIME);

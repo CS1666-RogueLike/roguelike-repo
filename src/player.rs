@@ -22,6 +22,7 @@ pub struct Player {
     pub m_hp: i32,
     pub death: bool, //trying bool for death state
     pub attack: i32, // modifier for attack
+    pub last_damage_taken: i32, // amount of hp lost in last damage taken
 
     pub power_up_vec: Vec<i32>, //[Health, Speed, Attack]
 
@@ -30,7 +31,7 @@ pub struct Player {
 
     pub has_bomb: bool,
     pub using_bomb: bool,
-    last_bomb_time: Option<Instant>,
+    pub last_bomb_time: Option<Instant>,
     pub has_key: bool,
     pub last_invincibility_time: Option<Instant>,
     pub time_between_frames: Option<Instant>,
@@ -66,14 +67,18 @@ impl Player {
         Player {
             pos: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
             pos_static: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
-            box_es: Box::new(Vec2::new(48, 52), Vec2::new(40, 24), Vec2::new(32, 48)),
+            box_es: Box::new(Vec2::new(48, 52), Vec2::new(40, 24), Vec2::new(48, 64)),
             speed: PLAYER_SPEED,
             stored_speed: PLAYER_SPEED,
             dir: Direction::Down,
             hp: P_MAX_HP,
             m_hp: P_MAX_HP,
             death: false,
+
             attack: P_DEFAULT_ATK,
+
+            last_damage_taken: 0,
+
 
             power_up_vec: vec![0; 3],
 
@@ -89,7 +94,7 @@ impl Player {
 
             //timing attacks so they aren't just 'on'
             is_attacking: false,
-            last_attack_time: None,
+            last_attack_time: Some(Instant::now()),
 
             walkover_action: WalkoverAction::DoNothing,
 
@@ -163,7 +168,7 @@ impl Player {
     pub fn recently_attacked(&mut self) -> bool {
         match self.last_attack_time {
             Some( time ) => {
-                let res = time.elapsed() <= Duration::from_millis(500);
+                let res = time.elapsed() <= Duration::from_millis(250);
                 if !res {
                     self.is_attacking = false;
                 }
@@ -263,6 +268,7 @@ impl Health for Player {
     fn max_hp(&self) -> i32 { return self.m_hp; }
 	fn health(&self) -> i32 { return self.hp; }
     fn damage(&mut self, d: i32) -> i32 {
+        self.last_damage_taken = d;
         self.hp -= d;
         if self.hp <= 0 {
             self.hp = 0;

@@ -11,13 +11,67 @@ use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
 use sdl2::image::LoadTexture;
+use sdl2::render::TextureQuery;
 
+// Pseudo-code credits to Max Agoston in Computer Graphics and Geometric Modeling book, page 303
+pub fn hsv_to_rgb( h: f32, s: f32, v: f32 ) -> Color {
+    let rgb : (f32, f32, f32);
 
+    // H must be in [0, 360]
+    let new_h = if h >= 360.0 {
+        0.0
+    } else {
+        // H' = H / 60deg
+        // used to get the sextant of the hue
+        h / 60.0
+    };
+
+    // H' = H / 60deg
+    // used to get the sextant of the hue
+    let i = new_h as i32;
+
+    // Fractional part of hue
+    let frac = ( new_h as i32 - i ) as f32;
+    
+    // According to the algorithm:
+    // p := v * ( 1 - s )
+    // q := v * ( 1 - ( s * frac ) )
+    // t := v * ( 1 - ( s * ( 1 - frac ) )
+
+    // All values below are scaled by 255 for Color::RGBA format
+    let p = ( v * ( 1.0 - s ) ) * 255.0;
+    let q = v * ( 1.0 - ( s * frac ) ) * 255.0;
+    let t = v * ( 1.0 - ( s * ( 1.0 - frac ) ) ) * 255.0;
+
+    // Scale the value as well
+    let scaled_v = v * 255.0;
+
+    // Also from the alg:
+    // Determine R, G, and B based off of the sextant of H
+    rgb = match i {
+        0 => (scaled_v, t, p),
+        1 => (q, scaled_v, p),
+        2 => (p, scaled_v, t),
+        3 => (p, q, scaled_v),
+        4 => (t, p, scaled_v),
+        5 | _ => (scaled_v, p, q)
+    };
+
+    Color::RGBA( rgb.0 as u8, rgb.1 as u8, rgb.2 as u8, 255 )
+}
 
 pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug: &bool) -> Result<(), String> {
 
 // MOVE SOMEWHERE ELSE, TEXTURES SHOULD ONLY BE INITIALIZED ONCE
     let texture_creator = core.wincan.texture_creator();
+
+    let ttf_context = sdl2::ttf::init().map_err( |e| e.to_string() )?;
+    let font = ttf_context.load_font( "assets/earlygameboy.ttf", 32 )?;
+
+    // IF WE WANT A MAIN MENU DRAWN W/ FONT:
+    //let font_lg = ttf_context.load_font( "assets/earlygameboy.ttf", 128 )?;
+    
+    
 
     // Scope enums for readability
    	//use::MenuState::*;
@@ -26,8 +80,40 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
     match menu {
 
         MenuState::MainMenu => {
+
+            // IF WE WANT A MAIN MENU DRAWN W/ FONT:
+            // core.wincan.set_draw_color(Color::BLACK);
+            // core.wincan.clear();
+
+            // let font_surface = font_lg.render( "Roguelike" ).blended( Color::RGBA( 255, 255, 255, 255 ) )
+            //     .map_err( |e| e.to_string() )?;     
+
+            // let title_tex = texture_creator.create_texture_from_surface( &font_surface )
+            //     .map_err( |e| e.to_string() )?;
+
+            // let space_surface = font.render( "Press Space to Continue" ).blended( Color::RGBA( 255, 255, 255, 255 ) )
+            //                         .map_err( |e| e.to_string() )?;
+            // let space_tex = texture_creator.create_texture_from_surface( &space_surface )
+            //                         .map_err( |e| e.to_string() )?;
+
+            // let TextureQuery { width, height, .. } = title_tex.query();
+
+            // let cx = ( WINDOW_WIDTH as i32 - width as i32 ) / 2;
+
+            // core.wincan.copy(&title_tex, None, Rect::new( cx as i32, ( height / 2 ) as i32, width, height ))?;
+
+            // let TextureQuery { width, height, .. } = space_tex.query();
+
+            // let cx = ( WINDOW_WIDTH as i32 - width as i32 ) / 2;
+            // core.wincan.copy(&space_tex, None, Rect::new( cx as i32, ( WINDOW_HEIGHT - 256 ) as i32, width, height ))?;
+
             let main_menu = texture_creator.load_texture("assets/main_menu.png")?;
             core.wincan.copy(&main_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+        }
+
+        MenuState::Victory => {
+            let vic = texture_creator.load_texture("assets/victory.png")?;
+            core.wincan.copy(&vic, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
         }
 
         MenuState::GameActive => {
@@ -42,6 +128,10 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
             let attack_idle = texture_creator.load_texture("assets/wizard_attack_enemy.png")?;
             let health_idle = texture_creator.load_texture("assets/health-sprite-down.png")?;
+
+            let mut speed_hit = texture_creator.load_texture("assets/speed_idle_hit.png")?;
+            let mut attack_hit = texture_creator.load_texture("assets/wizard_attack_enemy_hit.png")?;
+            let mut health_hit = texture_creator.load_texture("assets/health-sprite-down_hit.png")?;
 
             let health_atk = texture_creator.load_texture("assets/health-projectile.png")?;
             let speed_atk = texture_creator.load_texture("assets/speed-projectile.png")?;
@@ -82,6 +172,18 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             let key = texture_creator.load_texture("assets/key.png")?;
             let door_locked = texture_creator.load_texture("assets/door.png")?;
             let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
+
+
+            // Doors
+            let door_up_unlocked = texture_creator.load_texture("assets/door_up_unlocked.png")?;
+            let door_down_unlocked = texture_creator.load_texture("assets/door_down_unlocked.png")?;
+            let door_left_unlocked = texture_creator.load_texture("assets/door_left_unlocked.png")?;
+            let door_right_unlocked = texture_creator.load_texture("assets/door_right_unlocked.png")?;
+
+            let door_up_locked = texture_creator.load_texture("assets/door_up_locked.png")?;
+            let door_down_locked = texture_creator.load_texture("assets/door_down_locked.png")?;
+            let door_left_locked = texture_creator.load_texture("assets/door_left_locked.png")?;
+            let door_right_locked = texture_creator.load_texture("assets/door_right_locked.png")?;
 
             let pl_heart = texture_creator.load_texture("assets/playerheart16x.png")?;
 
@@ -204,8 +306,9 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
                                 }
 
+                                // DOOR CODE
                                 SpriteID::DoorLocked => {
-                                    core.wincan.copy(&door_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&door_up_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
                                 }
                                 SpriteID::DoorUnlocked => {
                                     core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
@@ -326,10 +429,32 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                         }
 
                         SpriteID::DoorLocked => {
-                            core.wincan.copy(&door_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+
+                            if y < 3 {
+                                core.wincan.copy(&door_up_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            } else if y > 7 {
+                                core.wincan.copy(&door_down_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            }
+
+                            if x < 3 {
+                                core.wincan.copy(&door_left_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            } else if x > 10 {
+                                core.wincan.copy(&door_right_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            }
                         }
                         SpriteID::DoorUnlocked => {
-                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+
+                            if y < 3 {
+                                core.wincan.copy(&door_up_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            } else if y > 7 {
+                                core.wincan.copy(&door_down_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            }
+
+                            if x < 3 {
+                                core.wincan.copy(&door_left_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            } else if x > 10 {
+                                core.wincan.copy(&door_right_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            }
                         }
 
                         SpriteID::Key => {
@@ -473,6 +598,53 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                             64, 64)
                     )?;
 
+                    // If the enemy was recently damaged..
+                    if enemy.was_damaged() {
+                        // Outline (healthbar backdrop)
+                        core.wincan.set_draw_color( Color::RGBA( 0, 0, 0, 255 ) );
+                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 32, enemy.get_pos_y() - 69, 64, 12 ) )?;
+                        // Fill color (healthbar)
+                        let hp_percentage: f32 = enemy.hp as f32 / enemy.m_hp as f32;
+
+                        // Determine healthbar color.
+                        // Speed enemies only have 2 hp, so it is okay for damage to immediately become yellow.
+                        let hp_color = if enemy.hp == enemy.m_hp - 1 && enemy.kind != EnemyKind::Speed {
+                            Color::RGBA( 0, 255, 0, 255 )
+                        } else {
+                            // Cool trick to use HSV to modulate color from green to red
+                            // Converted to RGBA as SDL2 doesn't have an HSV color structure
+                            hsv_to_rgb( 120.0 * hp_percentage, 1.0, 1.0 )
+                        };
+
+                        core.wincan.set_draw_color( hp_color );
+                        // Width remaining: ( hp / max_hp ) * width of healthbar
+                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 30, enemy.get_pos_y() - 67, ( 60.0 * hp_percentage ) as u32, 8 ) )?;
+
+                        if enemy.last_invincibility_time.unwrap().elapsed() < Duration::from_millis( 500 ) {
+                            let enemy_rect = Rect::new(
+                                enemy.get_pos_x() - 35 + 4 + x_val,
+                                enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
+                                64, 64);
+    
+                            // Hit overlay
+                            let tex = match enemy.kind {
+                                EnemyKind::Speed => &mut speed_hit,
+                                EnemyKind::Health => &mut health_hit,
+                                EnemyKind::Attack => &mut attack_hit
+                            };
+
+                            // The enemy is being healed here. Color modulate the texture
+                            if enemy.last_damage_taken < 0 {
+                                tex.set_color_mod( 0, 255, 0 );
+                            } else {
+                                tex.set_color_mod( 255, 0, 0 );
+                            }
+    
+                            core.wincan.copy( &tex, None, enemy_rect )?;
+                        }
+                    }
+                    
+
                     core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
                     if enemy.recently_attacked() {
                         core.wincan.fill_rect(enemy.box_es.get_attackbox(enemy.pos, enemy.dir))?;
@@ -482,7 +654,14 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
 
             // If the player was attacked, show a quick damage indicator ("-1" in red)
             if game.player.was_attacked() {
-                core.wincan.copy(&hp_indicator, None, Rect::new(game.player.get_pos_x() as i32, game.player.get_pos_y() as i32, 64, 64))?;
+                let font_surface = font.render( format!( "-{}", game.player.last_damage_taken ).as_str() )
+                                    .blended( Color::RGBA( 255, 0, 0, 255 ) )
+                                    .map_err( |e| e.to_string() )?;
+
+                let dmg_tex = texture_creator.create_texture_from_surface( &font_surface )
+                                .map_err( |e| e.to_string() )?;
+
+                core.wincan.copy(&dmg_tex, None, Rect::new(game.player.get_pos_x() as i32, game.player.get_pos_y() as i32, 64, 64))?;
             }
 
             let mut flip_heart = false;
@@ -782,6 +961,11 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                 2 => {
                                     let f3 = texture_creator.load_texture("assets/floor_3.png")?;
                                     core.wincan.copy(&f3, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                                }
+                                3 => {
+                                    let f4 = texture_creator.load_texture("assets/boss_fight.png")?;
+                                    core.wincan.copy(&f4, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+
                                 }
                                 _ => {}
                             }

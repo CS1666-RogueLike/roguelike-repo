@@ -70,6 +70,7 @@ pub struct Enemy {
     pub last_attack_time: Option<Instant>,
     pub current_frame_tile: Vec2<i32>,
     pub is_healing: bool,
+    pub last_damage_taken: i32,
 
     //BOSS ONLY
     pub box_left_final: Box,
@@ -80,12 +81,14 @@ pub struct Enemy {
     pub last_shot_time: Option<Instant>,
     pub is_shooting: bool,
 
+
 }
 
 impl Health for Enemy {
     fn max_hp(&self) -> i32 { self.m_hp }
     fn health(&self) -> i32 { self.hp }
     fn damage(&mut self, d: i32) -> i32 {
+        self.last_damage_taken = d;
         self.hp = (self.hp - d).max(P_DEATH_HP);
         self.death();
         self.hp
@@ -122,6 +125,7 @@ impl Enemy {
             power: false,
             atk_list: Vec::new(),
             state: State::Idle,
+            last_damage_taken: 0,
 
             current_frame_tile: Vec2::new(0,0),
             last_invincibility_time: None,
@@ -166,10 +170,20 @@ impl Enemy {
         }
     }
 
+
     //BOSS ONLY
     pub fn add_enemies(&mut self, enemy: Enemy){
         self.final_enemies_to_spawn.push(enemy);
-    }
+  }
+
+    pub fn attack_damage(&self) -> i32 {
+        use EnemyKind::*;
+        match self.kind {
+            Health => { 1 }
+            Speed  => { 1 }
+            Attack => { 2 }
+        }
+  }
 
     pub fn pathfinding(&mut self, target: Vec2<f32>, blackboard: &BlackBoard){
 
@@ -285,6 +299,14 @@ impl Enemy {
         }
     }
 
+
+    pub fn was_damaged(&self) -> bool {
+        match self.last_invincibility_time {
+            Some( time ) => time.elapsed() < Duration::from_secs( 1 ),
+            None => false
+        }
+    }
+    
 
     //Old update direction without pathfinding
     pub fn update_dir(& mut self, frame_tile: Vec2<i32>){
