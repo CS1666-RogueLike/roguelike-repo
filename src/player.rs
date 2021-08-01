@@ -22,6 +22,7 @@ pub struct Player {
     pub m_hp: i32,
     pub death: bool, //trying bool for death state
     pub attack: i32, // modifier for attack
+    pub last_damage_taken: i32, // amount of hp lost in last damage taken
 
     pub power_up_vec: Vec<i32>, //[Health, Speed, Attack]
 
@@ -74,6 +75,7 @@ impl Player {
             m_hp: P_MAX_HP,
             death: false,
             attack: 1,
+            last_damage_taken: 0,
 
             power_up_vec: vec![0; 3],
 
@@ -263,6 +265,7 @@ impl Health for Player {
     fn max_hp(&self) -> i32 { return self.m_hp; }
 	fn health(&self) -> i32 { return self.hp; }
     fn damage(&mut self, d: i32) -> i32 {
+        self.last_damage_taken = d;
         self.hp -= d;
         if self.hp <= 0 {
             self.hp = 0;
