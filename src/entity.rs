@@ -144,6 +144,15 @@ impl Enemy {
         }
     }
 
+    pub fn attack_damage(&self) -> i32 {
+        use EnemyKind::*;
+        match self.kind {
+            Health => { 1 }
+            Speed  => { 1 }
+            Attack => { 2 }
+        }
+    }
+
     pub fn pathfinding(&mut self, target: Vec2<f32>, blackboard: &BlackBoard){
         
         let target_tile = Vec2::new(

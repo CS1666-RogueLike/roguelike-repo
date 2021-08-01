@@ -8,7 +8,7 @@ use crate::player::PowerUp;
 use std::time::Instant;
 
 
-pub fn base(game : &mut Game, menu : &mut MenuState){
+pub fn base(game: &mut Game, menu: &mut MenuState) {
 
     // Branch for tiles that should only be called once (doors, pickups
     if game.player.current_frame_tile != game.player.prev_frame_tile {
@@ -34,87 +34,89 @@ pub fn base(game : &mut Game, menu : &mut MenuState){
                     game.current_room_mut().tiles[5][16].lock();
                     game.current_room_mut().tiles[0][8].lock();
                     game.current_room_mut().tiles[10][8].lock();
-                }
-                else {
+                } else {
                     game.current_room_mut().tiles[5][0].unlock();
                     game.current_room_mut().tiles[5][16].unlock();
                     game.current_room_mut().tiles[0][8].unlock();
                     game.current_room_mut().tiles[10][8].unlock();
                 }
                 game.player.speed_adjust(WalkoverAction::DoNothing);
-            },
+            }
             WalkoverAction::ChangeRooms => {
-                    //println!("Door tile walked over.");
-                    if game.player.current_frame_tile.x == 0 { // LEFT DOOR
-                        // Current room one to the right
-                        game.cr.x -= 1;
-                        // Move player position to just outside of right door in new room
-                        game.player.pos = Vec2::new(
-                            (LEFT_WALL + 15 * TILE_WIDTH) as f32 + (TILE_WIDTH - 1) as f32,
-                            (TOP_WALL + 5 * TILE_WIDTH) as f32 + 40.0
-                        );
-                        game.trans_dir = Direction::Left;
-                    }
-                    if game.player.current_frame_tile.x == 16 { // RIGHT DOOR
-                        // Current room one to the right
-                        game.cr.x += 1;
-                        // Move player position to just outside of left door in new room
-                        game.player.pos = Vec2::new(
-                            (LEFT_WALL + 1 * TILE_WIDTH) as f32 + 1.0,
-                            (TOP_WALL + 5 * TILE_WIDTH) as f32 + 40.0
-                        );
-                        game.trans_dir = Direction::Right;
-                    }
-                    if game.player.current_frame_tile.y == 0 { // TOP DOOR
-                        // Current room one up
-                        game.cr.y -= 1;
-                        // Move player position to just outside of bottom door in new room
-                        game.player.pos = Vec2::new(
-                            (LEFT_WALL + 8 * TILE_WIDTH) as f32 + 32.0,
-                            (TOP_WALL + 9 * TILE_WIDTH) as f32 + 50.0
-                        );
-                        game.trans_dir = Direction::Up;
-                    }
-                    if game.player.current_frame_tile.y == 10 { // BOTTOM DOOR
-                        // Current room one down
-                        game.cr.y += 1;
-                        // Move player position to just outside of bottom door in new room
-                        game.player.pos = Vec2::new(
-                            (LEFT_WALL + 8 * TILE_WIDTH) as f32 + 32.0,
-                            (TOP_WALL + 1 * TILE_WIDTH) as f32 + 10.0
-                        );
-                        game.trans_dir = Direction::Down;
-                    }
+                //println!("Door tile walked over.");
+                if game.player.current_frame_tile.x == 0 { // LEFT DOOR
+                    // Current room one to the right
+                    game.cr.x -= 1;
+                    // Move player position to just outside of right door in new room
+                    game.player.pos = Vec2::new(
+                        (LEFT_WALL + 15 * TILE_WIDTH) as f32 + (TILE_WIDTH - 1) as f32,
+                        (TOP_WALL + 5 * TILE_WIDTH) as f32 + 40.0,
+                    );
+                    game.trans_dir = Direction::Left;
+                }
+                if game.player.current_frame_tile.x == 16 { // RIGHT DOOR
+                    // Current room one to the right
+                    game.cr.x += 1;
+                    // Move player position to just outside of left door in new room
+                    game.player.pos = Vec2::new(
+                        (LEFT_WALL + 1 * TILE_WIDTH) as f32 + 1.0,
+                        (TOP_WALL + 5 * TILE_WIDTH) as f32 + 40.0,
+                    );
+                    game.trans_dir = Direction::Right;
+                }
+                if game.player.current_frame_tile.y == 0 { // TOP DOOR
+                    // Current room one up
+                    game.cr.y -= 1;
+                    // Move player position to just outside of bottom door in new room
+                    game.player.pos = Vec2::new(
+                        (LEFT_WALL + 8 * TILE_WIDTH) as f32 + 32.0,
+                        (TOP_WALL + 9 * TILE_WIDTH) as f32 + 50.0,
+                    );
+                    game.trans_dir = Direction::Up;
+                }
+                if game.player.current_frame_tile.y == 10 { // BOTTOM DOOR
+                    // Current room one down
+                    game.cr.y += 1;
+                    // Move player position to just outside of bottom door in new room
+                    game.player.pos = Vec2::new(
+                        (LEFT_WALL + 8 * TILE_WIDTH) as f32 + 32.0,
+                        (TOP_WALL + 1 * TILE_WIDTH) as f32 + 10.0,
+                    );
+                    game.trans_dir = Direction::Down;
+                }
 
-                    game.game_state = GameState::BetweenRooms;
-                    game.transition_start = Instant::now();
-                    // sleep(Duration::new(2, 0));
-            },
+                // Player position has already been set, so we can reposition enemies right here.
+                game.map.floors[game.cf].rooms[game.cr.y as usize][game.cr.x as usize].reposition_enemies(game.player.pos);
+
+                game.game_state = GameState::BetweenRooms;
+                game.transition_start = Instant::now();
+                // sleep(Duration::new(2, 0));
+            }
 
             // Gem pickups
-            WalkoverAction::BuffDamage => { 
+            WalkoverAction::BuffDamage => {
                 if current_tile.walkability() == Walkability::Spike {
-                    damage_and_adjust( game, menu );
+                    damage_and_adjust(game, menu);
                 }
-                game.player.plus_power_attack(); 
-            },
-            WalkoverAction::BuffHealth => { 
+                game.player.plus_power_attack();
+            }
+            WalkoverAction::BuffHealth => {
                 if current_tile.walkability() == Walkability::Spike {
-                    damage_and_adjust( game, menu );
+                    damage_and_adjust(game, menu);
                 }
                 game.player.plus_power_health();
-            },
-            WalkoverAction::BuffSpeed => { 
+            }
+            WalkoverAction::BuffSpeed => {
                 if current_tile.walkability() == Walkability::Spike {
-                    damage_and_adjust( game, menu );
+                    damage_and_adjust(game, menu);
                 }
-                game.player.plus_power_speed(); 
+                game.player.plus_power_speed();
             }
 
             WalkoverAction::GivePlayerKey => {
                 println!("Key has been picked up!!!");
                 game.player.has_key = true;
-            },
+            }
 
             WalkoverAction::GivePlayerBomb => {
                 println!("Bomb was picked up!!!");
@@ -123,8 +125,8 @@ pub fn base(game : &mut Game, menu : &mut MenuState){
 
             WalkoverAction::Damage => {
                 println!("You've stepped on spikes!");
-                damage_and_adjust( game, menu );
-            },
+                damage_and_adjust(game, menu);
+            }
 
             WalkoverAction::GoToNextFloor => {
                 if game.player.has_key {
@@ -141,14 +143,10 @@ pub fn base(game : &mut Game, menu : &mut MenuState){
                     game.changed_floors = false;
                     game.transition_start = Instant::now();
                     game.game_state = GameState::BetweenFloors;
-
-                }
-                else {
+                } else {
                     println!("You need a key to unlock this door!");
                 }
-
             }
-
         }
     }
     // TODO: else branch for continuous tiles (spike tile)

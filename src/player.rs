@@ -31,7 +31,7 @@ pub struct Player {
 
     pub has_bomb: bool,
     pub using_bomb: bool,
-    last_bomb_time: Option<Instant>,
+    pub last_bomb_time: Option<Instant>,
     pub has_key: bool,
     pub last_invincibility_time: Option<Instant>,
     pub time_between_frames: Option<Instant>,
@@ -67,7 +67,7 @@ impl Player {
         Player {
             pos: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
             pos_static: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
-            box_es: Box::new(Vec2::new(48, 52), Vec2::new(40, 24), Vec2::new(32, 48)),
+            box_es: Box::new(Vec2::new(48, 52), Vec2::new(40, 24), Vec2::new(48, 64)),
             speed: PLAYER_SPEED,
             stored_speed: PLAYER_SPEED,
             dir: Direction::Down,
@@ -91,7 +91,7 @@ impl Player {
 
             //timing attacks so they aren't just 'on'
             is_attacking: false,
-            last_attack_time: None,
+            last_attack_time: Some(Instant::now()),
 
             walkover_action: WalkoverAction::DoNothing,
 
@@ -165,7 +165,7 @@ impl Player {
     pub fn recently_attacked(&mut self) -> bool {
         match self.last_attack_time {
             Some( time ) => {
-                let res = time.elapsed() <= Duration::from_millis(500);
+                let res = time.elapsed() <= Duration::from_millis(250);
                 if !res {
                     self.is_attacking = false;
                 }
