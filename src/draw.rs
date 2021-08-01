@@ -630,7 +630,8 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                             let tex = match enemy.kind {
                                 EnemyKind::Speed => &mut speed_hit,
                                 EnemyKind::Health => &mut health_hit,
-                                EnemyKind::Attack => &mut attack_hit
+                                EnemyKind::Attack => &mut attack_hit,
+                                EnemyKind::Final => &mut attack_hit,
                             };
 
                             // The enemy is being healed here. Color modulate the texture

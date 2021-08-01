@@ -182,6 +182,7 @@ impl Enemy {
             Health => { 1 }
             Speed  => { 1 }
             Attack => { 2 }
+            Final =>  { 1 }
         }
   }
 
