@@ -214,23 +214,23 @@ impl Demo for Manager {
                             // Change the room at the appropriate time
                             // If we change it right away we'll see it before the transition is over
                             if self.game.changed_floors == false && self.game.transition_start.elapsed().as_millis() > 500 {
-                                // Next floor
-                                self.game.cf += 1;
-                                
-                                if self.game.cf > 2 {
+                                if self.game.cf == 0 {
                                     self.menu = MenuState::Victory;
+                                } else {
+                                    // Next floor
+                                    self.game.cf += 1;
+
+                                    // Reset current room
+                                    self.game.cr.x = START_X;
+                                    self.game.cr.y = START_Y;
+
+                                    // Center player in room
+                                    self.game.player.pos.x = (LEFT_WALL + 8 * 64) as f32 + 32.0;
+                                    self.game.player.pos.y = (TOP_WALL + 5 * 64) as f32 + 40.0;
+
+                                    // Used for drawing code
+                                    self.game.changed_floors = true;
                                 }
-
-                                // Reset current room
-                                self.game.cr.x = START_X;
-                                self.game.cr.y = START_Y;
-
-                                // Center player in room
-                                self.game.player.pos.x = (LEFT_WALL + 8 * 64) as f32 + 32.0;
-                                self.game.player.pos.y = (TOP_WALL + 5 * 64) as f32 + 40.0;
-
-                                // Used for drawing code
-                                self.game.changed_floors = true;
                             }
 
                         }
