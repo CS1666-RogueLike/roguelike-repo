@@ -150,7 +150,8 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                     let enemy_attack = enemy.box_es.get_attackbox(enemy.pos, enemy.dir);
                     if player_test.has_intersection(enemy_attack) {
                         //Enemy attacked player
-                        game.player.take_damage(2, P_INVINCIBILITY_TIME);
+                        //game.player.take_damage(1, P_INVINCIBILITY_TIME);
+                        game.player.take_damage(enemy.attack_damage(), P_INVINCIBILITY_TIME);
                         if game.player.death() {
                             *menu = MenuState::GameOver;
                         }

@@ -157,7 +157,7 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
             }
         }
     }
-    println!("{}, {}", enemy.movement_vec.x, enemy.movement_vec.y);
+    //println!("{}, {}", enemy.movement_vec.x, enemy.movement_vec.y);
         enemy.pos.x += enemy.movement_vec.x * enemy.speed;
         enemy.pos.y += enemy.movement_vec.y * enemy.speed;
 

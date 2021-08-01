@@ -214,7 +214,7 @@ impl Demo for Manager {
                             // Change the room at the appropriate time
                             // If we change it right away we'll see it before the transition is over
                             if self.game.changed_floors == false && self.game.transition_start.elapsed().as_millis() > 500 {
-                                if self.game.cf == 0 {
+                                if self.game.cf == 3 {
                                     self.menu = MenuState::Victory;
                                 } else {
                                     // Next floor
@@ -276,34 +276,30 @@ impl Demo for Manager {
                             if keystate.contains(&Keycode::D) { mov_vec.x += 1.0; }
 
                             // Attacks
-                            // TODO: FIX SO THAT NEW KEY OVERRIDES OLD ONE INSTEAD OF HAVING SET PRIORITY
-                            /*
-                            if keystate.contains(&Keycode::Up)    {
-                                self.game.player.set_dir(Direction::Up);
-                            }
 
+                            // These stay to update direction even when player can't attack
+                            if keystate.contains(&Keycode::Up)    { self.game.player.set_dir(Direction::Up); }
                             if keystate.contains(&Keycode::Down)  { self.game.player.set_dir(Direction::Down);  }
                             if keystate.contains(&Keycode::Left)  { self.game.player.set_dir(Direction::Left);  }
                             if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
-                             */
 
                             if keystate.contains(&Keycode::Up) && matches!(self.menu, MenuState::GameActive) &&
-                                self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
+                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking {
                                 self.game.player.set_dir(Direction::Up);
                                 self.game.player.signal_attack();
                             }
                             if keystate.contains(&Keycode::Down) && matches!(self.menu, MenuState::GameActive) &&
-                                self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
+                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking {
                                 self.game.player.set_dir(Direction::Down);
                                 self.game.player.signal_attack();
                             }
                             if keystate.contains(&Keycode::Left) && matches!(self.menu, MenuState::GameActive) &&
-                                self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
+                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking {
                                 self.game.player.set_dir(Direction::Left);
                                 self.game.player.signal_attack();
                             }
                             if keystate.contains(&Keycode::Right) && matches!(self.menu, MenuState::GameActive) &&
-                                self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
+                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking {
                                 self.game.player.set_dir(Direction::Right);
                                 self.game.player.signal_attack();
                             }
@@ -312,7 +308,7 @@ impl Demo for Manager {
 
                             // Attack without changing direction
                             if keystate.contains(&Keycode::Space) && matches!(self.menu, MenuState::GameActive) &&
-                                self.game.init_time.elapsed() >= Duration::from_secs(1) && !self.game.player.is_attacking {
+                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking {
                                 self.game.player.signal_attack();
                             }
 
