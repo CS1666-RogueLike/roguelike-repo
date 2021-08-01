@@ -204,7 +204,7 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
     // when not close to a heal enemy, but need to heal, find one and move to them
     if !enemy.is_healing && blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health){
         //enemy.update_dir(blackboard.health_enemy_tile[0]);
-        enemy.pathfinding(blackboard.health_enemy_pos, blackboard);
+        enemy.pathfinding(blackboard.health_enemy_pos[0], blackboard);
 
         match enemy.dir {
             Direction::Up => {

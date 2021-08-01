@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 use crate::tile::*;
 
 
-const PLAYER_SPEED: f32 = 300.0;
+pub const PLAYER_SPEED: f32 = 300.0;
 
 pub struct Player {
     pub pos: Vec2<f32>, // Position of middle of player.
@@ -73,7 +73,7 @@ impl Player {
             hp: P_MAX_HP,
             m_hp: P_MAX_HP,
             death: false,
-            attack: 1,
+            attack: P_DEFAULT_ATK,
 
             power_up_vec: vec![0; 3],
 

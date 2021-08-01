@@ -13,6 +13,9 @@ pub struct BlackBoard
     pub player_frame_tile: Vec2<i32>,
     pub player_box: Box,
     pub player_health: i32,
+    pub player_max_health: i32,
+    pub player_speed: f32,
+    pub player_attack: i32,
     pub enemy_quantity: i32,
     pub health_enemy_pos: Vec<Vec2<f32>>,
     pub health_enemy_tile: Vec<Vec2<i32>>,
@@ -31,6 +34,9 @@ impl BlackBoard{
             player_frame_tile : Vec2::new(0, 0),
             player_box : Box::new(Vec2::new(0,0), Vec2::new(0,0), Vec2::new(0,0)),
             player_health: -1,
+            player_max_health: -1,
+            player_speed: -1.0,
+            player_attack: -1,
             enemy_quantity: -1,
             //offset: 0,
             health_enemy_pos:Vec::new(),
@@ -48,6 +54,9 @@ impl BlackBoard{
         self.player_frame_tile = game.player.current_frame_tile;
         self.player_box = game.player.box_es;
         self.player_health = game.player.hp;
+        self.player_max_health = game.player.m_hp;
+        self.player_speed = game.player.speed;
+        self.player_attack = game.player.attack;
         self.enemy_quantity = BlackBoard::get_enemy_quantity(game);
         self.health_enemy_pos = BlackBoard::get_health_enemy_pos(game);
         self.health_enemy_tile = BlackBoard::get_health_enemy_tile(&self.health_enemy_pos);

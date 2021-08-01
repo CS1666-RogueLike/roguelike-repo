@@ -77,6 +77,8 @@ pub struct Enemy {
     pub box_right_final: Box,
     pub box_right_final_pos: Vec2<f32>,
     pub final_enemies_to_spawn: Vec<Enemy>,
+    pub last_shot_time: Option<Instant>,
+    pub is_shooting: bool,
 
 }
 
@@ -136,6 +138,8 @@ impl Enemy {
             box_right_final: Box::new(Vec2::new(30, 50), Vec2::new(0, 0), Vec2::new(0, 0)),
             box_right_final_pos: Vec2::new(position.x + 30.0, position.y + 5.0),
             final_enemies_to_spawn: Vec::<Enemy>::new(),
+            last_shot_time: None,
+            is_shooting: false,
         }
     }
 
@@ -389,13 +393,36 @@ impl Enemy {
             }
         }
     }
+    
+    pub fn signal_shot(&mut self) {
+        //let res = time.elapsed() <= Duration::from_millis(500+600);
+        match self.last_shot_time {
+            Some (time) => {
+                    let res = time.elapsed() <= Duration::from_millis(750); //Time in between shots
+                    if !res {
+                        self.is_shooting = true;
+                        self.last_shot_time = Some(Instant::now());
+                        }
+                        else {
+                            self.is_shooting = false;
+                        }
+                    }
+                
+                //let res = time.elapsed() <= Duration::from_millis(500+600);
+            None => {
+                self.is_shooting = true;
+                self.last_shot_time = Some(Instant::now());
+            }
+        }
+        
+    }
 
     pub fn recently_attacked(&mut self) -> bool {
         match self.last_attack_time {
             Some( time ) => {
                 let res = time.elapsed() <= Duration::from_millis(500);
                 if !res {
-                    self.is_attacking = false;
+                    self.is_shooting = false;
                 }
 
                 res
@@ -503,7 +530,6 @@ impl Enemy {
 
         for rmv in &mut to_remove {
             self.atk_list.remove(*rmv);
-            println!("Bullet Removed");
         }
     }
 
