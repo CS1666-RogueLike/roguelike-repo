@@ -15,6 +15,7 @@ mod blackboard;
 use crate::blackboard::*;
 
 mod yellowenemy;
+mod finalenemy;
 
 mod util;
 use crate::util::*;
@@ -38,11 +39,14 @@ use roguelike::Demo;
 use entity::Health;
 use player::PowerUp;
 
+use entity::*;
+
 
 //use std::cmp::min;
 use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::time::Instant;
+
 
 use std::time::Duration;
 
@@ -266,8 +270,8 @@ impl Demo for Manager {
                                 self.game.current_room_mut().tiles[0][8].unlock();
                                 self.game.current_room_mut().tiles[10][8].unlock();
                             }
-                               
-                            
+
+
                             // -------------------------------------- GAMEPLAY CODE -------------------------
                             // Movement
                             if keystate.contains(&Keycode::W) { mov_vec.y -= 1.0; }
@@ -316,16 +320,37 @@ impl Demo for Manager {
                                 self.game.init_time.elapsed() >= Duration::from_secs(1) && self.game.player.has_bomb {
                                 self.game.player.use_bomb();
                             }
-                            
+
+                            // add enemies to the room
+                            if keystate.contains(&Keycode::Z) && matches!(self.menu, MenuState::GameActive) {
+                                let mut enemies = Enemy::new(Vec2::new((LEFT_WALL + 6 * 64) as f32 + 32.0, (TOP_WALL + 7 * 64) as f32 + 40.0), EnemyKind::Speed);
+                                //enemies.push(Enemy::new(Vec2::new((LEFT_WALL + 6 * 64) as f32 + 32.0, (TOP_WALL + 7 * 64) as f32 + 40.0), EnemyKind::Speed));
+                                // rooms[START_Y as usize][START_X as usize].add_enemies(enemies);
+                                self.game.current_room_mut().additional_enemies(enemies);
+                            }
+
                             self.blackboard.update(& self.game);
-                        
+
+
                             // Move player
                             self.game.player.update_pos(mov_vec);
                             //Update enemy
+                            let mut enemy_to_push = Enemy::new(Vec2::new(0.0, 0.0), EnemyKind::Speed);
+                            let mut push_enemy = false;
                             for enemy in self.game.current_room_mut().enemies.iter_mut() {
                                 if !enemy.death{
                                     enemy.update(& self.blackboard);
+                                    if enemy.kind == EnemyKind::Final && enemy.is_attacking{ //Final Boss Check
+                                        enemy_to_push = enemy.final_enemies_to_spawn.pop().unwrap();
+                                        push_enemy = true;
+                                        //self.game.current_room_mut().additional_enemies(enemy.final_enemies_to_spawn.pop().unwrap());
+                                        enemy.is_attacking = false;
+                                    }
                                 }
+                            }
+                            //FINAL BOSS ONLY
+                            if push_enemy {
+                                self.game.current_room_mut().additional_enemies(enemy_to_push);
                             }
 
                             // Apply collision
