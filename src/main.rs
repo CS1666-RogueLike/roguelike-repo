@@ -353,7 +353,7 @@ impl Demo for Manager {
                                 else{
                                     self.game.player.signal_attack();
                                 }
-                                
+
                             }
 
 
@@ -403,7 +403,7 @@ impl Demo for Manager {
                                         // }
                                         if (enemy_walkbox != enemy_walk_walkbox) && enemy.kind == EnemyKind::Health && enemy_walk.is_healing && enemy_walkbox.has_intersection(enemy_walk_walkbox) {
                                             // if red enemy is intersection with another enemy that is 'healing'
-                                            println!("Im red and intersection with non red that is_heal");
+                                            //println!("Im red and intersection with non red that is_heal");
                                             enemy.is_healing = true;
                                             enemy.state = State::Heal;
                                         }

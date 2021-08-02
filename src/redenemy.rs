@@ -207,7 +207,7 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
-    println!("Im healing somebody else");
+    //println!("Im healing somebody else");
     if !enemy.is_healing {
         enemy.state = State::Chase;
     }
