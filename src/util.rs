@@ -19,6 +19,7 @@ pub const P_MAX_HP: i32 = 6;
 pub const P_DEATH_HP: i32 = 0;
 pub const P_INVINCIBILITY_TIME: u64 = 1750; //The time (in milliseconds) that the player is invunerable
 pub const P_DEFAULT_ATK: i32 = 1;
+pub const P_ATTACK_DUR: i32 = 250;
 //after they take damage
 
 pub const DIAGONAL_VEC: f32 = 0.7071067;

@@ -11,6 +11,7 @@ pub struct Room {
     pub visited: bool,
     pub tiles: Vec<Vec<Box<dyn Tile>>>,
     pub enemies: Vec<Enemy>,
+    pub gemCount: i32,
 }
 
 /*
@@ -26,7 +27,7 @@ pub struct Room {
 impl Room {
     // Returns a room that the developer sets every tile of manually.
     pub fn non_room() -> Room {
-        Room { exists: false, visited: false, tiles: Vec::new(), enemies: Vec::new() }
+        Room { exists: false, visited: false, tiles: Vec::new(), enemies: Vec::new(), gemCount: 0 }
 
     }
     pub fn new_test_room(blueprint: [[char; 17]; 11]) -> Room {
@@ -109,7 +110,8 @@ impl Room {
             exists: true,
             visited: false,
             tiles: tiles,
-            enemies: Vec::new()
+            enemies: Vec::new(),
+            gemCount: 0,
         }
     }
 
@@ -123,6 +125,10 @@ impl Room {
 
     pub fn add_enemies(&mut self, enemies: Vec<Enemy>) {
         self.enemies = enemies;
+    }
+
+    pub fn increment_gem(&mut self){
+        self.gemCount += 1
     }
 
     pub fn additional_enemies(&mut self, enemy: Enemy) {
