@@ -288,19 +288,34 @@ impl Demo for Manager {
                             if keystate.contains(&Keycode::Right) { self.game.player.set_dir(Direction::Right); }
 
                             if keystate.contains(&Keycode::Up) && matches!(self.menu, MenuState::GameActive) &&
-                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking {
+                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking && !self.game.player.is_charging {
                                 self.game.player.set_dir(Direction::Up);
-                                self.game.player.signal_attack();
+                                if keystate.contains(&Keycode::LShift){
+                                    self.game.player.signal_charge();
+                                }
+                                else{
+                                    self.game.player.signal_attack();
+                                }
                             }
                             if keystate.contains(&Keycode::Down) && matches!(self.menu, MenuState::GameActive) &&
-                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking {
+                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking && !self.game.player.is_charging {
                                 self.game.player.set_dir(Direction::Down);
-                                self.game.player.signal_attack();
+                                if keystate.contains(&Keycode::LShift){
+                                    self.game.player.signal_charge();
+                                }
+                                else{
+                                    self.game.player.signal_attack();
+                                }
                             }
                             if keystate.contains(&Keycode::Left) && matches!(self.menu, MenuState::GameActive) &&
-                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking {
+                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking && !self.game.player.is_charging{
                                 self.game.player.set_dir(Direction::Left);
-                                self.game.player.signal_attack();
+                                if keystate.contains(&Keycode::LShift){
+                                    self.game.player.signal_charge();
+                                }
+                                else{
+                                    self.game.player.signal_attack();
+                                }
                             }
                             if keystate.contains(&Keycode::Right) && matches!(self.menu, MenuState::GameActive) &&
                                 self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking && !self.game.player.is_charging {

@@ -170,7 +170,7 @@ impl Player {
     pub fn recently_charged(&mut self) -> bool {
         match self.last_attack_time {
             Some( time ) => {
-                let res = time.elapsed() <= Duration::from_millis(850);
+                let res = time.elapsed() <= Duration::from_millis(1000);
                 if !res {
                     self.is_charging = false;
                 }
