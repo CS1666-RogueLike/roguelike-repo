@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 use crate::tile::*;
 
 
-const PLAYER_SPEED: f32 = 300.0;
+pub const PLAYER_SPEED: f32 = 300.0;
 
 pub struct Player {
     pub pos: Vec2<f32>, // Position of middle of player.
@@ -38,6 +38,7 @@ pub struct Player {
     
 
     pub is_attacking: bool,
+    pub is_charging: bool,
     pub last_attack_time: Option<Instant>,
 
     pub walkover_action: WalkoverAction,
@@ -74,8 +75,11 @@ impl Player {
             hp: P_MAX_HP,
             m_hp: P_MAX_HP,
             death: false,
-            attack: 1,
+
+            attack: P_DEFAULT_ATK,
+
             last_damage_taken: 0,
+
 
             power_up_vec: vec![0; 3],
 
@@ -91,6 +95,7 @@ impl Player {
 
             //timing attacks so they aren't just 'on'
             is_attacking: false,
+            is_charging: false,
             last_attack_time: Some(Instant::now()),
 
             walkover_action: WalkoverAction::DoNothing,
@@ -155,6 +160,25 @@ impl Player {
     pub fn update_static_pos(&mut self)
     {
         self.pos_static = self.pos;
+    }
+
+    pub fn signal_charge(&mut self) {
+        self.is_charging = true;
+        self.last_attack_time = Some(Instant::now());
+    }
+
+    pub fn recently_charged(&mut self) -> bool {
+        match self.last_attack_time {
+            Some( time ) => {
+                let res = time.elapsed() <= Duration::from_millis(1000);
+                if !res {
+                    self.is_charging = false;
+                }
+
+                res
+            },
+            None => false
+        }
     }
 
     pub fn signal_attack(&mut self) {
@@ -298,7 +322,7 @@ impl PowerUp for Player {
         }
         if self.power_up_vec[0] > 3 {
             if let Some(temp) = self.power_up_vec.get_mut(0){
-                *temp = 0;
+                *temp = 1;
             }
             if self.hp != self.m_hp {
                 self.heal(self.m_hp);
@@ -315,7 +339,7 @@ impl PowerUp for Player {
         }
         if self.power_up_vec[1] > 3 {
             if let Some(temp) = self.power_up_vec.get_mut(1){
-                *temp = 0;
+                *temp = 1;
             }
             self.speed += 20.0;
         }
@@ -326,7 +350,7 @@ impl PowerUp for Player {
         }
         if self.power_up_vec[2] > 3 {
             if let Some(temp) = self.power_up_vec.get_mut(2){
-                *temp = 0;
+                *temp = 1;
             }
             self.attack += 1;
         }

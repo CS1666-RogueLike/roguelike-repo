@@ -4,6 +4,7 @@ use crate::player::PowerUp;
 use crate::entity::*;
 use crate::tile::*;
 use crate::menu::*;
+use crate::blackboard::*;
 use std::time::Duration;
 use sdl2::rect::Rect;
 use sdl2::pixels::Color;
@@ -12,9 +13,9 @@ use crate::boxes::*;
 
 pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
     let intersection = enemy.box_es.get_walkbox(enemy.pos).intersection(Rect::new(
-        LEFT_WALL + x * TILE_WIDTH, 
-        TOP_WALL + y * TILE_WIDTH, 
-        TILE_WIDTH as u32, 
+        LEFT_WALL + x * TILE_WIDTH,
+        TOP_WALL + y * TILE_WIDTH,
+        TILE_WIDTH as u32,
         TILE_WIDTH as u32
     ));
 
@@ -83,7 +84,7 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
                 println!("What? I think I might be in hell");
             }
         }
-        
+
     }else if enemy.pos.x < inter_rect.x() as f32 {
         // TO THE LEFT OF ROCK
         y_offset = 0;
@@ -111,7 +112,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
             RIGHT_WALL as f32 - (game.player.box_es.walkbox.x/2) as f32
         );
         game.player.pos.y = game.player.pos.y.clamp(
-            TOP_WALL as f32 + (game.player.box_es.walkbox.y/2) as f32, 
+            TOP_WALL as f32 + (game.player.box_es.walkbox.y/2) as f32,
             BOT_WALL as f32 - (game.player.box_es.walkbox.y/2) as f32
         );
 
@@ -135,15 +136,32 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                 (RIGHT_WALL as f32 - (enemy.box_es.walkbox.x * 4) as f32) + TILE_WIDTH as f32
             );
             enemy.pos.y = enemy.pos.y.clamp(
-                (TOP_WALL as f32 + (enemy.box_es.walkbox.y * 4) as f32) - TILE_WIDTH as f32, 
+                (TOP_WALL as f32 + (enemy.box_es.walkbox.y * 4) as f32) - TILE_WIDTH as f32,
                 (BOT_WALL as f32 - (enemy.box_es.walkbox.y * 4) as f32) + TILE_WIDTH as f32
-            ); 
-            
+            );
+
             let player_test = game.player.box_es.get_hitbox(game.player.pos);
             // If the test enemy is in the current room of the player...
 
+            //handles two + enemies dying at once for power up, spawns random power up from enemy types in room
+            if game.current_room().gemCount != 1 &&  BlackBoard::get_enemy_quantity(game) == 0 {
+                game.current_room_mut().increment_gem();
+                game.current_room_mut()
+                    .tile_at(288, 100)
+                    .place_gem(match enemy.kind {
+                        EnemyKind::Health => Gem::Red,
+                        EnemyKind::Speed => Gem::Blue,
+                        EnemyKind::Attack => Gem::Yellow,
+                        EnemyKind::Final => Gem::None,
+                    });
+            }
+
+
+            // FINAL BOSS projectile
+            enemy.move_projectile();
             if !enemy.death() {
-                
+
+
                 //If enemy is attacking
                 if enemy.recently_attacked() {
                     //See if player collides with attackbox
@@ -157,7 +175,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                         }
                     }
                 }
-                
+
                 // If the test enemy's walkbox intersects with the player walkbox...
                 let wb_test = enemy.box_es.get_walkbox(enemy.pos);
                 // Attempt at collision with attackbox
@@ -166,10 +184,16 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                     //let player_attack = game.player.get_attackbox_world();
                     if wb_test.has_intersection(player_attack) {
                         enemy.take_damage(game.player.attack, E_INVINCIBILITY_TIME);
-                        if enemy.death == true && live_count == 1
-                        {
+                        //edge case for enemies dying for power up
+                        if game.current_room().gemCount != 1 &&  BlackBoard::get_enemy_quantity(game) == 0 {
                             enemy.power = true;
                         }
+                        //main case to determine power up
+                        if enemy.death == true && live_count == 1 {
+                            enemy.power = true;
+                            game.current_room_mut().increment_gem();
+                        }
+                        //executes if power up is true meaning a power up should be dropped as its the last enemy
                         if enemy.power == true {
                             // Place gem on enemy's current tile.
                             // TODO: Factor in walkability for tile that the gem drops on.
@@ -179,6 +203,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                                     EnemyKind::Health => Gem::Red,
                                     EnemyKind::Speed => Gem::Blue,
                                     EnemyKind::Attack => Gem::Yellow,
+                                    EnemyKind::Final => Gem::None,
                                 });
                             enemy.power = false;
                         }
@@ -203,6 +228,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                                     EnemyKind::Health => Gem::Red,
                                     EnemyKind::Speed => Gem::Blue,
                                     EnemyKind::Attack => Gem::Yellow,
+                                    EnemyKind::Final => Gem::None,
                                 });
 
                             enemy.power = false;
@@ -240,6 +266,9 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
             }
         }
 
+
+
+
         core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
         let mut x = 0;
         let mut y = 0;
@@ -250,9 +279,9 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                     Walkability::Wall | Walkability::Rock | Walkability::Pit => {
                         // Hacky af block collision that needs to be changed later
                         let opt = game.player.box_es.get_walkbox(game.player.pos).intersection(Rect::new(
-                            LEFT_WALL + x * TILE_WIDTH, 
-                            TOP_WALL + y * TILE_WIDTH, 
-                            TILE_WIDTH as u32, 
+                            LEFT_WALL + x * TILE_WIDTH,
+                            TOP_WALL + y * TILE_WIDTH,
+                            TILE_WIDTH as u32,
                             TILE_WIDTH as u32
                         ));
                         for enemy in enemy_list.iter_mut() {
