@@ -96,4 +96,3 @@ fn get_boxes(enemy_kind : & EnemyKind) -> Box {
 	}
 	return box_es;
 }
-

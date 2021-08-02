@@ -225,8 +225,6 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
         && (enemy.hp as f32) < enemy.m_hp as f32 * 0.75 {
         enemy.is_healing = true;
         enemy.take_damage(-1, HEAL_TIME);
-        //println!("{}", enemy.hp);
-
     }
     else{
         enemy.is_healing = false; // if not close to heal enemy, change bool
@@ -297,6 +295,7 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
+
     if blackboard.playerpos.x > 400.0
     {
         enemy.state = State::Chase;

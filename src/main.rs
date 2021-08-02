@@ -15,6 +15,7 @@ mod blackboard;
 use crate::blackboard::*;
 
 mod yellowenemy;
+mod redenemy;
 
 
 mod finalenemy;
@@ -365,9 +366,29 @@ impl Demo for Manager {
                             let mut enemy_to_push2 = Enemy::new(Vec2::new(0.0, 0.0), EnemyKind::Speed);
                             let mut push_enemy = false;
                             let mut boss_dead = false;
+                            let mut v = vec![];
+
                             for enemy in self.game.current_room_mut().enemies.iter_mut() {
                                 if !enemy.death{
                                     enemy.update(& self.blackboard);
+                                    v.push(enemy.clone());
+                                    let enemy_walkbox = enemy.box_es.get_walkbox(enemy.pos);
+                                    for enemy_walk in v.iter(){
+                                        let enemy_walk_walkbox = enemy_walk.box_es.get_walkbox(enemy_walk.pos);
+                                        // to stop overlap of enemies
+                                        // if (enemy.pos != enemy_walk.pos) && (enemy_walkbox.has_intersection(enemy_walk_walkbox)){
+                                        //     println!("inter_rect");
+                                        //     enemy.state = State::Idle;
+                                        // }
+                                        if (enemy_walkbox != enemy_walk_walkbox) && enemy.kind == EnemyKind::Health && enemy_walk.is_healing && enemy_walkbox.has_intersection(enemy_walk_walkbox) {
+                                            // if red enemy is intersection with another enemy that is 'healing'
+                                            println!("Im red and intersection with non red that is_heal");
+                                            enemy.is_healing = true;
+                                            enemy.state = State::Heal;
+                                        }
+                                    }
+
+
                                     if enemy.kind == EnemyKind::Final && enemy.is_attacking{ //Final Boss Check
                                         println!("Before pops");
                                         enemy_to_push = enemy.final_enemies_to_spawn.pop().unwrap();

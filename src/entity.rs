@@ -167,7 +167,7 @@ impl Enemy {
         //println!("{:?}", self.current_frame_tile);
         match self.kind {
             EnemyKind::Health => {
-                crate::yellowenemy::update(self, blackboard)
+                crate::redenemy::update(self, blackboard)
             }
             EnemyKind::Speed => {
                 crate::yellowenemy::update(self, blackboard)
@@ -196,6 +196,14 @@ impl Enemy {
             Final =>  { 1 }
         }
   }
+
+    pub fn switch_heal(&mut self) {
+        if self.is_healing {
+            self.is_healing = false;
+        } else {
+            self.is_healing = true;
+        }
+    }
 
     pub fn pathfinding(&mut self, target: Vec2<f32>, blackboard: &BlackBoard){
 
@@ -582,8 +590,8 @@ impl Enemy {
         let mut index = 0;
         let mut to_remove = Vec::new();
         for mut atk in &mut self.atk_list {
-            atk.pos.x += atk.movement_vec.x * atk.speed;
-            atk.pos.y += atk.movement_vec.y * atk.speed;
+            atk.pos.x += atk.movement_vec.x * atk.speed * self.time_scale;
+            atk.pos.y += atk.movement_vec.y * atk.speed * self.time_scale;
 
             //If the attack is off screen, remove it from the atk vector
 
