@@ -301,7 +301,7 @@ impl PowerUp for Player {
         }
         if self.power_up_vec[0] > 3 {
             if let Some(temp) = self.power_up_vec.get_mut(0){
-                *temp = 0;
+                *temp = 1;
             }
             if self.hp != self.m_hp {
                 self.heal(self.m_hp);
@@ -318,7 +318,7 @@ impl PowerUp for Player {
         }
         if self.power_up_vec[1] > 3 {
             if let Some(temp) = self.power_up_vec.get_mut(1){
-                *temp = 0;
+                *temp = 1;
             }
             self.speed += 20.0;
         }
@@ -329,7 +329,7 @@ impl PowerUp for Player {
         }
         if self.power_up_vec[2] > 3 {
             if let Some(temp) = self.power_up_vec.get_mut(2){
-                *temp = 0;
+                *temp = 1;
             }
             self.attack += 1;
         }

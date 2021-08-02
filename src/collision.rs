@@ -4,6 +4,7 @@ use crate::player::PowerUp;
 use crate::entity::*;
 use crate::tile::*;
 use crate::menu::*;
+use crate::blackboard::*;
 use std::time::Duration;
 use sdl2::rect::Rect;
 use sdl2::pixels::Color;
@@ -141,9 +142,24 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
 
             let player_test = game.player.box_es.get_hitbox(game.player.pos);
             // If the test enemy is in the current room of the player...
+
+            //handles two + enemies dying at once for power up, spawns random power up from enemy types in room
+            if game.current_room().gemCount != 1 &&  BlackBoard::get_enemy_quantity(game) == 0 {
+                game.current_room_mut().increment_gem();
+                game.current_room_mut()
+                    .tile_at(288, 100)
+                    .place_gem(match enemy.kind {
+                        EnemyKind::Health => Gem::Red,
+                        EnemyKind::Speed => Gem::Blue,
+                        EnemyKind::Attack => Gem::Yellow,
+                    });
+            }
+
+
             // FINAL BOSS projectile
             enemy.move_projectile();
             if !enemy.death() {
+
 
                 //If enemy is attacking
                 if enemy.recently_attacked() {
@@ -167,10 +183,16 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                     //let player_attack = game.player.get_attackbox_world();
                     if wb_test.has_intersection(player_attack) {
                         enemy.take_damage(game.player.attack, E_INVINCIBILITY_TIME);
-                        if enemy.death == true && live_count == 1
-                        {
+                        //edge case for enemies dying for power up
+                        if game.current_room().gemCount != 1 &&  BlackBoard::get_enemy_quantity(game) == 0 {
                             enemy.power = true;
                         }
+                        //main case to determine power up
+                        if enemy.death == true && live_count == 1 {
+                            enemy.power = true;
+                            game.current_room_mut().increment_gem();
+                        }
+                        //executes if power up is true meaning a power up should be dropped as its the last enemy
                         if enemy.power == true {
                             // Place gem on enemy's current tile.
                             // TODO: Factor in walkability for tile that the gem drops on.
@@ -242,6 +264,9 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
 
             }
         }
+
+
+
 
         core.wincan.set_draw_color(Color::RGBA(128, 0, 0, 255));
         let mut x = 0;
