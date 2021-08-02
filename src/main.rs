@@ -303,9 +303,15 @@ impl Demo for Manager {
                                 self.game.player.signal_attack();
                             }
                             if keystate.contains(&Keycode::Right) && matches!(self.menu, MenuState::GameActive) &&
-                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking {
+                                self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking && !self.game.player.is_charging {
                                 self.game.player.set_dir(Direction::Right);
-                                self.game.player.signal_attack();
+                                if keystate.contains(&Keycode::LShift){
+                                    self.game.player.signal_charge();
+                                }
+                                else{
+                                    self.game.player.signal_attack();
+                                }
+                                
                             }
 
 
