@@ -141,4 +141,11 @@ impl Room {
 
         println!("Repositioning enemies...")
     }
+
+    // Provides enemies with time_scale so they can do frame independent movement
+    pub fn update_enemies(&mut self, ts: f32) {
+        for mut x in &mut self.enemies {
+            x.time_scale = ts;
+        }
+    }
 }
