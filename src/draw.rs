@@ -126,6 +126,10 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             let slime_right = texture_creator.load_texture("assets/slime_right.png")?;
 
             /* slime attack textures */
+            let slime_down_at01 = texture_creator.load_texture("assets/slime_front_attack01.png")?;
+            let slime_down_at02 = texture_creator.load_texture("assets/slime_front_attack02.png")?;
+            let slime_down_at03 = texture_creator.load_texture("assets/slime_front_attack03.png")?;
+
             let slime_right_at01 = texture_creator.load_texture("assets/slime_right_attack01.png")?;
             let slime_right_at02 = texture_creator.load_texture("assets/slime_right_attack02.png")?;
             let slime_right_at03 = texture_creator.load_texture("assets/slime_right_attack03.png")?;
@@ -585,12 +589,38 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                     }
                     Direction::Down => {
                         if game.player.recently_attacked() || game.player.recently_charged() {
+                            if (timeSinceAttack.as_millis() % 250 < 50 && game.player.is_attacking){
+                            core.wincan.copy(&slime_down_at01, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val ,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 250 < 100 && game.player.is_attacking){
+                            core.wincan.copy(&slime_down_at02, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val ,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64, 64+20)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 250  < 250 && game.player.is_attacking){
+                            core.wincan.copy(&slime_down_at03, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val ,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64, 64+60)
+                                )?;
+                            }
+                            else {
                             core.wincan.copy(&slime_down, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val,
                                     game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
                                     64, 64)
                                 )?;
+                            }
                         }
                         else {
                             core.wincan.copy(&slime_down, None,
