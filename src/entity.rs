@@ -170,7 +170,7 @@ impl Enemy {
                 crate::redenemy::update(self, blackboard)
             }
             EnemyKind::Speed => {
-                crate::yellowenemy::update(self, blackboard)
+                crate::blueenemy::update(self, blackboard)
             }
             EnemyKind::Attack => {
                 crate::yellowenemy::update(self, blackboard);

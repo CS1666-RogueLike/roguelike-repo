@@ -71,13 +71,11 @@ pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
         enemy.state = State::Chase;
     }
 
-    // if there are other non health enemies in room and low on life, player high health, retreat
+    // if there are other non health enemies in room and low on life, retreat
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
-    blackboard.player_health as f32 > (blackboard.player_max_health as f32 * 0.5) &&
     (blackboard.enemy_quantity > 1 &&
     !blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health))&&
     !blackboard.boss_fight{
-        println!("switching to retreat");
         enemy.state = State::Retreat;
     }
 
@@ -200,9 +198,8 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
         enemy.state = State::Attack;
     }
 
-    // if low on life, and no health enemy, and player high on life retreat
+    // if low on life, and no health enemy, retreat
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
-    blackboard.player_health as f32 > (blackboard.player_max_health as f32 * 0.5) &&
     (blackboard.enemy_quantity > 1 &&
     !blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health))&&
     !blackboard.boss_fight{ //True if there isn't a health enemy
