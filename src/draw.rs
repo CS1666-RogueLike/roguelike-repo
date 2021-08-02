@@ -308,7 +308,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                 }
                                 else {
                                     TOP_WALL + y * 64
-                                };use crate::finalenemy::*;
+                                };
 
                             match t.sprite() {
                                 SpriteID::Ground => {
