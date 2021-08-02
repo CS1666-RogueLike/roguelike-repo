@@ -80,6 +80,8 @@ pub struct Enemy {
     pub final_enemies_to_spawn: Vec<Enemy>,
     pub last_shot_time: Option<Instant>,
     pub is_shooting: bool,
+    pub g_kind: EnemyKind,
+    pub state_timer: Instant,
 
 
 }
@@ -144,6 +146,9 @@ impl Enemy {
             final_enemies_to_spawn: Vec::<Enemy>::new(),
             last_shot_time: None,
             is_shooting: false,
+            g_kind: EnemyKind::Attack,
+            state_timer: Instant::now(),
+            
         }
     }
 
@@ -576,7 +581,7 @@ impl Enemy {
 
         for rmv in &mut to_remove {
             self.atk_list.remove(*rmv);
-            println!("Bullet Removed");
+            //println!("Bullet Removed");
         }
     }
 
@@ -615,7 +620,7 @@ pub fn health_kind(kind: EnemyKind) -> i32 {
             health = 3;
         }
         EnemyKind::Final => {
-            health = 20;
+            health = 10;
         }
 
     }

@@ -4,6 +4,7 @@ use crate::tile::*;
 use crate::menu::*;
 use crate::player::PowerUp;
 use crate::entity::*;
+use crate::finalenemy::*;
 use roguelike::SDLCore;
 
 use std::time::Duration;
@@ -271,7 +272,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                 }
                                 else {
                                     TOP_WALL + y * 64
-                                };
+                                };use crate::finalenemy::*;
 
                             match t.sprite() {
                                 SpriteID::Ground => {
@@ -567,14 +568,14 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
 
             let enemies = &mut game.current_room_mut().enemies;
             for enemy in enemies.iter_mut()  {
-                    let tex_a = match &enemy.kind {
+
+                for atk in &enemy.atk_list {
+                    let tex_a = match atk.kind {
                         EnemyKind::Attack => &attack_atk,
                         EnemyKind::Health => &health_atk,
                         EnemyKind::Speed => &speed_atk,
-                        EnemyKind::Final => &health_atk, //TODO: match statement to choose projectile
+                        EnemyKind::Final => &health_atk, //Should not run
                     };
-
-                for atk in &enemy.atk_list {
                     core.wincan.copy(&tex_a, None,
                         Rect::new(
                                 atk.pos.x as i32 - (atk.box_es.hitbox.x/2) as i32,
@@ -588,7 +589,14 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                         EnemyKind::Attack => &attack_idle,
                         EnemyKind::Health => &health_idle,
                         EnemyKind::Speed => &speed_idle,
-                        EnemyKind::Final => &health_idle, //TODO: sprite for final boss
+                        EnemyKind::Final => {
+                            match enemy.g_kind {
+                                EnemyKind::Attack => &attack_idle,
+                                EnemyKind::Health => &health_idle,
+                                EnemyKind::Speed => &speed_idle,
+                                _ => {&speed_idle}
+                            }
+                        }
                     };
 
                     core.wincan.copy(&tex, None,

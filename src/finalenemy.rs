@@ -2,7 +2,7 @@ use crate::blackboard::*;
 use crate::attack::*;
 use crate::util::*;
 //use sdl2::rect::Rect;
-//use std::time::{Duration, Instant};
+use std::time::{Duration, Instant};
 //use crate::boxes::*;
 use crate::player::*;
 use crate::entity::*;
@@ -22,7 +22,6 @@ pub enum State{
 }*/
 
 pub fn update(enemy: & mut Enemy, blackboard: &BlackBoard){
-
     match enemy.state {
         State::Attack => {
             attack(enemy, blackboard);
@@ -45,6 +44,7 @@ pub fn update(enemy: & mut Enemy, blackboard: &BlackBoard){
     }
 }
 
+
 pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
 
 
@@ -58,14 +58,56 @@ pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
         vector.x /= length as f32;
         vector.y /= length as f32;
     
-        let new_atk = AtkProjectile::new(enemy.pos, vector, &EnemyKind::Attack);
+//        let mut rng = rand::thread_rng();
+//        let mut kindvec = Vec::new(); //Declared
+//        let mut enemyKind = EnemyKind::Final; //Declared, never actually final
+//        match generate_kind(enemy, blackboard){
+//            EnemyKind::Attack => {
+//                kindvec = vec![EnemyKind::Attack, EnemyKind::Speed, EnemyKind::Health];
+//            }
+//            EnemyKind::Speed => {
+//                kindvec = vec![EnemyKind::Speed, EnemyKind::Attack, EnemyKind::Health];
+//            }
+//            EnemyKind::Health => {
+//                kindvec = vec![EnemyKind::Health, EnemyKind::Speed, EnemyKind::Attack];
+//            }
+//            _=>{println!("This isn't right, in fact its dead wrong, and also in attack");}
+//        }
+//
+//        match rng.gen_range( 0 ..= 4 ){
+//            0 | 1 | 2 => {
+//                enemyKind = kindvec[0];
+//            },
+//            3 => {
+//                enemyKind = kindvec[1];
+//            },
+//            4 => {
+//                enemyKind = kindvec[2];
+//            },
+//            _ => {println!("This isnt right, in fact its.. wrong, ans also in attack");}
+//
+//        }
+
+        
+        let mut new_atk = AtkProjectile::new(enemy.pos, Vec2::new(-1.0, 0.0), &enemy.g_kind);
+        enemy.atk_list.push(new_atk);
+        
+        new_atk = AtkProjectile::new(enemy.pos, Vec2::new(-DIAGONAL_VEC, DIAGONAL_VEC), &enemy.g_kind);
+        enemy.atk_list.push(new_atk);
+        
+        new_atk = AtkProjectile::new(enemy.pos, Vec2::new(0.0, 1.0), &enemy.g_kind);
+        enemy.atk_list.push(new_atk);
+        
+        new_atk = AtkProjectile::new(enemy.pos, Vec2::new(DIAGONAL_VEC, DIAGONAL_VEC), &enemy.g_kind);
+        enemy.atk_list.push(new_atk);
+        
+        new_atk = AtkProjectile::new(enemy.pos, Vec2::new(1.0, 0.0), &enemy.g_kind);
         enemy.atk_list.push(new_atk);
         
         enemy.is_shooting = false;
     }
 
-     if blackboard.playerpos.y >= 250.0
-     {
+     if enemy.state_timer.elapsed().as_millis()  % 6000 > 2000{
          enemy.state = State::Chase;
      }
 
@@ -131,7 +173,55 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn take_cover(enemy: & mut Enemy, blackboard: &BlackBoard){
+    enemy.signal_shot();
+    if enemy.is_shooting{
+        let mut vector = Vec2::new(blackboard.playerpos.x - enemy.pos.x, blackboard.playerpos.y - enemy.pos.y);
+        let length = ((vector.x * vector.x + vector.y * vector.y) as f64).sqrt();
+    
+        // normalize vector
+        vector.x /= length as f32;
+        vector.y /= length as f32;
+    
+//        let mut rng = rand::thread_rng();
+//        let mut kindvec = Vec::new(); //Declared
+//        let mut enemyKind = EnemyKind::Final; //Declared, never actually final
+//        match generate_kind(enemy, blackboard){
+//            EnemyKind::Attack => {
+//                kindvec = vec![EnemyKind::Attack, EnemyKind::Speed, EnemyKind::Health];
+//            }
+//            EnemyKind::Speed => {
+//                kindvec = vec![EnemyKind::Speed, EnemyKind::Attack, EnemyKind::Health];
+//            }
+//            EnemyKind::Health => {
+//                kindvec = vec![EnemyKind::Health, EnemyKind::Speed, EnemyKind::Attack];
+//            }
+//            _=>{println!("This isn't right, in fact its dead wrong, and also in attack");}
+//        }
+//
+//        match rng.gen_range( 0 ..= 4 ){
+//            0 | 1 | 2 => {
+//                enemyKind = kindvec[0];
+//            },
+//            3 => {
+//                enemyKind = kindvec[1];
+//            },
+//            4 => {
+//                enemyKind = kindvec[2];
+//            },
+//            _ => {println!("This isnt right, in fact its.. wrong, ans also in attack");}
+//
+//        }
 
+        
+        let mut new_atk = AtkProjectile::new(enemy.pos, vector, &enemy.g_kind);
+        enemy.atk_list.push(new_atk);
+        
+        enemy.is_shooting = false;
+        }
+        
+        if enemy.state_timer.elapsed().as_millis() % 6000 <= 2000 {
+        enemy.state = State::Attack;
+    }
 }
 
 pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
@@ -197,13 +287,13 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
             let mut kindvec = Vec::new(); //Declared
             let mut enemyKind = EnemyKind::Final; //Declared, never actually final
             match generate_kind(enemy, blackboard){
-                Attack => {
+                EnemyKind::Attack => {
                     kindvec = vec![EnemyKind::Attack, EnemyKind::Speed, EnemyKind::Health];
                 }
-                Speed => {
+                EnemyKind::Speed => {
                     kindvec = vec![EnemyKind::Speed, EnemyKind::Attack, EnemyKind::Health];
                 }
-                Health => {
+                EnemyKind::Health => {
                     kindvec = vec![EnemyKind::Health, EnemyKind::Speed, EnemyKind::Attack];
                 }
                 _=>{println!("This isn't right, in fact its dead wrong");}
@@ -223,22 +313,27 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
 
             }
         
-            match rng.gen_range( 0 ..= 4 ){
-                0 | 1 => {
-                    let mut enemies = Enemy::new(Vec2::new(enemy.box_left_final_pos.x, enemy.box_left_final_pos.y), enemyKind);
-                    enemy.add_enemies(enemies);
-                },
-                2 | 3 => {
-                    let mut enemies = Enemy::new(Vec2::new(enemy.box_right_final_pos.x, enemy.box_right_final_pos.y), enemyKind);
-                    enemy.add_enemies(enemies);
-                },
-                _ => {enemy.is_attacking = false}
+//            match rng.gen_range( 0 ..= 4 ){
+//                0 | 1 => {
+//                    let mut enemies = Enemy::new(Vec2::new(enemy.box_left_final_pos.x - 200.0, enemy.box_left_final_pos.y), enemyKind);
+//                    enemy.add_enemies(enemies);
+//                },
+//                2 | 3 => {
+//                    let mut enemies = Enemy::new(Vec2::new(enemy.box_right_final_pos.x + 200.0, enemy.box_right_final_pos.y), enemyKind);
+//                    enemy.add_enemies(enemies);
+//                },
+//                _ => {enemy.is_attacking = false}
+//
+//            }
 
-            }
+                let mut enemies = Enemy::new(Vec2::new(enemy.box_left_final_pos.x - 200.0, enemy.box_left_final_pos.y), enemyKind);
+                enemy.add_enemies(enemies);
+                enemies = Enemy::new(Vec2::new(enemy.box_right_final_pos.x + 200.0, enemy.box_right_final_pos.y), enemyKind);
+                enemy.add_enemies(enemies);
         }
 
-    if blackboard.playerpos.y < 250.0 {
-        enemy.state = State::Attack;
+    if enemy.state_timer.elapsed().as_millis() % 6000 > 4000 {
+        enemy.state = State::TakeCover;
     }
 
 
@@ -356,6 +451,8 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
+     enemy.g_kind = generate_kind(enemy, blackboard);
+     enemy.state_timer = Instant::now();
     if blackboard.playerpos.x > 300.0
     {
         enemy.state = State::Attack;

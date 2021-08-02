@@ -53,7 +53,8 @@ pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
     // if there are other non health enemies in room and low on life, retreat
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
     (blackboard.enemy_quantity > 1 &&
-    !blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health)){
+    !blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health))&&
+    !blackboard.boss_fight{
         enemy.state = State::Retreat;
     }
 
@@ -177,7 +178,8 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
     // if low on life, and no health enemy, retreat
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
     (blackboard.enemy_quantity > 1 &&
-    !blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health)){ //True if there isn't a health enemy
+    !blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health))&&
+    !blackboard.boss_fight{ //True if there isn't a health enemy
         enemy.state = State::Retreat;
     }
 
@@ -266,6 +268,8 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
         enemy.is_healing = false;
         enemy.state = State::Chase;
     }
+    
+
 }
 
 pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){

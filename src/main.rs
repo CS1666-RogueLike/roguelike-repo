@@ -15,7 +15,10 @@ mod blackboard;
 use crate::blackboard::*;
 
 mod yellowenemy;
+
+
 mod finalenemy;
+use crate::finalenemy::*;
 
 mod util;
 use crate::util::*;
@@ -336,21 +339,36 @@ impl Demo for Manager {
                             self.game.player.update_pos(mov_vec);
                             //Update enemy
                             let mut enemy_to_push = Enemy::new(Vec2::new(0.0, 0.0), EnemyKind::Speed);
+                            let mut enemy_to_push2 = Enemy::new(Vec2::new(0.0, 0.0), EnemyKind::Speed);
                             let mut push_enemy = false;
+                            let mut boss_dead = false;
                             for enemy in self.game.current_room_mut().enemies.iter_mut() {
                                 if !enemy.death{
                                     enemy.update(& self.blackboard);
                                     if enemy.kind == EnemyKind::Final && enemy.is_attacking{ //Final Boss Check
+                                        println!("Before pops");
                                         enemy_to_push = enemy.final_enemies_to_spawn.pop().unwrap();
+                                        println!("First pop");
+                                        enemy_to_push2 = enemy.final_enemies_to_spawn.pop().unwrap();
+                                        println!("Second pop");
                                         push_enemy = true;
                                         //self.game.current_room_mut().additional_enemies(enemy.final_enemies_to_spawn.pop().unwrap());
                                         enemy.is_attacking = false;
                                     }
                                 }
+                                if enemy.death && enemy.kind == EnemyKind::Final{
+                                    boss_dead = true;
+                                }
                             }
                             //FINAL BOSS ONLY
                             if push_enemy {
                                 self.game.current_room_mut().additional_enemies(enemy_to_push);
+                                self.game.current_room_mut().additional_enemies(enemy_to_push2);
+                            }
+                            if boss_dead {
+                                self.game.changed_floors = false;
+                                self.game.transition_start = Instant::now();
+                                self.game.game_state = GameState::BetweenFloors;
                             }
 
                             // Apply collision

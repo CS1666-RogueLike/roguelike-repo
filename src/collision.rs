@@ -26,7 +26,7 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
     let mut x_offset = inter_rect.width() as i32;
     let mut y_offset = inter_rect.height() as i32;
 
-    println!("{:?}", enemy.dir);
+    //println!("{:?}", enemy.dir);
     if enemy.pos.x < inter_rect.x() as f32 && //To left
     enemy.pos.y < inter_rect.y() as f32 { //And Above
         match enemy.dir{
