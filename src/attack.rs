@@ -10,6 +10,7 @@ pub struct AtkProjectile {
 	pub speed: f32,
     pub movement_vec: Vec2<f32>,
     pub damage: i32,
+    pub kind: EnemyKind,
 }
 
 impl AtkProjectile {
@@ -20,6 +21,7 @@ impl AtkProjectile {
         	speed : get_speed(enemy_kind), //How fast it is
         	damage : get_damage(enemy_kind), //How much it will damage the player when collided with
         	box_es : get_boxes(enemy_kind), //The hitbox of it
+            kind : *enemy_kind, //What kind of attack it is
         }
     }
 }

@@ -22,6 +22,8 @@ pub struct BlackBoard
     pub health_enemy_hitbox: Vec<Rect>,
     pub types_in_room: Vec<EnemyKind>,
     
+    pub boss_fight: bool,
+    
 
     pub cr_tiles: Vec<Vec<std::boxed::Box<dyn Tile>>>,
 
@@ -43,7 +45,8 @@ impl BlackBoard{
             health_enemy_tile:Vec::new(),
             health_enemy_hitbox:Vec::<Rect>::new(),
             types_in_room: Vec::<EnemyKind>::new(),
-
+            
+            boss_fight: false,
             //Not updated normally, updated only when the room changes
             cr_tiles : Vec::new(),
         }
@@ -62,6 +65,7 @@ impl BlackBoard{
         self.health_enemy_tile = BlackBoard::get_health_enemy_tile(&self.health_enemy_pos);
         self.health_enemy_hitbox = BlackBoard::get_health_enemy_hitbox(game);
         self.types_in_room = BlackBoard::get_types_in_room(game);
+        self.boss_fight = self.check_boss_fight();
     }
 
     pub fn update_room(&mut self, game: &Game){
@@ -96,7 +100,8 @@ impl BlackBoard{
         }
 
         v.dedup_by(|a, b| Enemy::type_eq(*a, *b));
-
+        
+        
         return v;
 
     }
@@ -153,5 +158,12 @@ impl BlackBoard{
             _ => {true}
 
         }
+    }
+    
+    pub fn check_boss_fight(&self) -> bool{
+        if self.types_in_room.iter().any(|&i| i==EnemyKind::Final){
+            return true;
+        }
+        false
     }
 }

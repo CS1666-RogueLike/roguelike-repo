@@ -71,6 +71,9 @@ pub struct Enemy {
     pub current_frame_tile: Vec2<i32>,
     pub is_healing: bool,
     pub last_damage_taken: i32,
+    pub is_ranged: bool,
+
+    pub time_scale: f32,
 
     //BOSS ONLY
     pub box_left_final: Box,
@@ -80,6 +83,8 @@ pub struct Enemy {
     pub final_enemies_to_spawn: Vec<Enemy>,
     pub last_shot_time: Option<Instant>,
     pub is_shooting: bool,
+    pub g_kind: EnemyKind,
+    pub state_timer: Instant,
 
 
 }
@@ -126,6 +131,7 @@ impl Enemy {
             atk_list: Vec::new(),
             state: State::Idle,
             last_damage_taken: 0,
+            is_ranged: set_ranged(),
 
             current_frame_tile: Vec2::new(0,0),
             last_invincibility_time: None,
@@ -136,6 +142,8 @@ impl Enemy {
 
             is_healing: false,
 
+            time_scale: 1.0,
+
             //FINAL BOSS ONLY
             box_left_final: Box::new(Vec2::new(30, 50), Vec2::new(0, 0), Vec2::new(0, 0)),
             box_left_final_pos: Vec2::new(position.x - 30.0, position.y + 5.0),
@@ -144,6 +152,9 @@ impl Enemy {
             final_enemies_to_spawn: Vec::<Enemy>::new(),
             last_shot_time: None,
             is_shooting: false,
+            g_kind: EnemyKind::Attack,
+            state_timer: Instant::now(),
+
         }
     }
 
@@ -156,7 +167,7 @@ impl Enemy {
         //println!("{:?}", self.current_frame_tile);
         match self.kind {
             EnemyKind::Health => {
-                crate::yellowenemy::update(self, blackboard)
+                crate::redenemy::update(self, blackboard)
             }
             EnemyKind::Speed => {
                 crate::yellowenemy::update(self, blackboard)
@@ -185,6 +196,14 @@ impl Enemy {
             Final =>  { 1 }
         }
   }
+
+    pub fn switch_heal(&mut self) {
+        if self.is_healing {
+            self.is_healing = false;
+        } else {
+            self.is_healing = true;
+        }
+    }
 
     pub fn pathfinding(&mut self, target: Vec2<f32>, blackboard: &BlackBoard){
 
@@ -307,7 +326,7 @@ impl Enemy {
             None => false
         }
     }
-    
+
 
     //Old update direction without pathfinding
     pub fn update_dir(& mut self, frame_tile: Vec2<i32>){
@@ -339,12 +358,20 @@ impl Enemy {
     }
 
     pub fn player_close(enemy: & mut Enemy, blackboard: &BlackBoard) -> bool{
-        if enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.player_box.get_walkbox(blackboard.playerpos)) {
+        // getting hyp
+        let mut vector = Vec2::new(blackboard.playerpos.x - enemy.pos.x, blackboard.playerpos.y - enemy.pos.y);
+        let length = ((vector.x * vector.x + vector.y * vector.y) as f64).sqrt();
 
-            return true;
-        }
-        else{
-            return false;
+        if enemy.is_ranged  && length < 300.0{
+                return true;
+        } else {
+            if enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.player_box.get_walkbox(blackboard.playerpos)) {
+
+                return true;
+            }
+            else{
+                return false;
+            }
         }
     }
     // Using Connor's player implementation for this design:
@@ -416,7 +443,7 @@ impl Enemy {
             }
         }
     }
-    
+
     pub fn signal_shot(&mut self) {
         //let res = time.elapsed() <= Duration::from_millis(500+600);
         match self.last_shot_time {
@@ -430,14 +457,14 @@ impl Enemy {
                             self.is_shooting = false;
                         }
                     }
-                
+
                 //let res = time.elapsed() <= Duration::from_millis(500+600);
             None => {
                 self.is_shooting = true;
                 self.last_shot_time = Some(Instant::now());
             }
         }
-        
+
     }
 
     pub fn recently_attacked(&mut self) -> bool {
@@ -530,6 +557,7 @@ impl Enemy {
         }
 
         // Update position using movement vector and speed
+        // TODO
         self.pos.x += self.movement_vec.x * self.speed;
         self.pos.y += self.movement_vec.y * self.speed;
         //println!("Speed update!");
@@ -562,8 +590,8 @@ impl Enemy {
         let mut index = 0;
         let mut to_remove = Vec::new();
         for mut atk in &mut self.atk_list {
-            atk.pos.x += atk.movement_vec.x * atk.speed;
-            atk.pos.y += atk.movement_vec.y * atk.speed;
+            atk.pos.x += atk.movement_vec.x * atk.speed * self.time_scale;
+            atk.pos.y += atk.movement_vec.y * atk.speed * self.time_scale;
 
             //If the attack is off screen, remove it from the atk vector
 
@@ -576,7 +604,7 @@ impl Enemy {
 
         for rmv in &mut to_remove {
             self.atk_list.remove(*rmv);
-            println!("Bullet Removed");
+            //println!("Bullet Removed");
         }
     }
 
@@ -615,11 +643,22 @@ pub fn health_kind(kind: EnemyKind) -> i32 {
             health = 3;
         }
         EnemyKind::Final => {
-            health = 20;
+            health = 10;
         }
 
     }
     return health;
+}
+
+pub fn set_ranged() -> bool {
+    let mut rng = rand::thread_rng();
+
+    match rng.gen_range( 0 ..= 6 ){
+               0 | 1 | 2 | 4 => {
+                   return false;
+               },
+               _ => {return true;}
+           }
 }
 
 pub fn box_kind(kind: EnemyKind) -> Box {

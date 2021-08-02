@@ -4,6 +4,7 @@ use crate::tile::*;
 use crate::menu::*;
 use crate::player::PowerUp;
 use crate::entity::*;
+use crate::finalenemy::*;
 use roguelike::SDLCore;
 
 use std::time::Duration;
@@ -32,7 +33,7 @@ pub fn hsv_to_rgb( h: f32, s: f32, v: f32 ) -> Color {
 
     // Fractional part of hue
     let frac = ( new_h as i32 - i ) as f32;
-    
+
     // According to the algorithm:
     // p := v * ( 1 - s )
     // q := v * ( 1 - ( s * frac ) )
@@ -70,8 +71,8 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
 
     // IF WE WANT A MAIN MENU DRAWN W/ FONT:
     //let font_lg = ttf_context.load_font( "assets/earlygameboy.ttf", 128 )?;
-    
-    
+
+
 
     // Scope enums for readability
    	//use::MenuState::*;
@@ -86,7 +87,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             // core.wincan.clear();
 
             // let font_surface = font_lg.render( "Roguelike" ).blended( Color::RGBA( 255, 255, 255, 255 ) )
-            //     .map_err( |e| e.to_string() )?;     
+            //     .map_err( |e| e.to_string() )?;
 
             // let title_tex = texture_creator.create_texture_from_surface( &font_surface )
             //     .map_err( |e| e.to_string() )?;
@@ -175,7 +176,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
 
             let attack_boss01 = texture_creator.load_texture("assets/boss_attack01.png")?;
             let attack_boss02 = texture_creator.load_texture("assets/boss_attack02.png")?;
-    
+
             //power assets
             let p_text = texture_creator.load_texture("assets/p_text.png")?;
             let p_text_health = texture_creator.load_texture("assets/p_text_health.png")?;
@@ -307,7 +308,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                 }
                                 else {
                                     TOP_WALL + y * 64
-                                };
+                                };use crate::finalenemy::*;
 
                             match t.sprite() {
                                 SpriteID::Ground => {
@@ -549,7 +550,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                 };
 
             //Draw player
-            
+
             //Get how long ago the player became invincible
             let mut timeSinceDmg = Duration::new(69, 420); //A number that is big enough to get ignored by the if statement below
             match game.player.last_invincibility_time{
@@ -726,7 +727,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                         game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
                                         64, 64)
                                     )?;
-                            
+
                             }
                         }
                         else {
@@ -803,7 +804,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                         game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
                                         64, 64)
                                     )?;
-                            
+
                             }
                         }
                         else {
@@ -815,9 +816,9 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                 )?;
                         }
                     }
-                        
-        
-                    
+
+
+
                 }
             }
 
@@ -826,14 +827,14 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
 
             let enemies = &mut game.current_room_mut().enemies;
             for enemy in enemies.iter_mut()  {
-                    let tex_a = match &enemy.kind {
+
+                for atk in &enemy.atk_list {
+                    let tex_a = match atk.kind {
                         EnemyKind::Attack => &attack_atk,
                         EnemyKind::Health => &health_atk,
                         EnemyKind::Speed => &speed_atk,
-                        EnemyKind::Final => &health_atk, //TODO: match statement to choose projectile
+                        EnemyKind::Final => &health_atk, //Should not run
                     };
-
-                for atk in &enemy.atk_list {
                     core.wincan.copy(&tex_a, None,
                         Rect::new(
                                 atk.pos.x as i32 - (atk.box_es.hitbox.x/2) as i32,
@@ -865,7 +866,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                 64, 64)
                         )?;
                     }
-                    
+
 
                     // If the enemy was recently damaged..
                     if enemy.was_damaged() {
@@ -894,7 +895,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                 enemy.get_pos_x() - 35 + 4 + x_val,
                                 enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
                                 64, 64);
-    
+
                             // Hit overlay
                             let tex = match enemy.kind {
                                 EnemyKind::Speed => &mut speed_hit,
@@ -909,11 +910,11 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                             } else {
                                 tex.set_color_mod( 255, 0, 0 );
                             }
-    
+
                             core.wincan.copy( &tex, None, enemy_rect )?;
                         }
                     }
-                    
+
 
                     core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
                     if enemy.recently_attacked() {

@@ -15,7 +15,11 @@ mod blackboard;
 use crate::blackboard::*;
 
 mod yellowenemy;
+mod redenemy;
+
+
 mod finalenemy;
+use crate::finalenemy::*;
 
 mod util;
 use crate::util::*;
@@ -66,6 +70,9 @@ pub struct Manager {
     menu: MenuState, // Enum that controls the control flow via the menu.
     game: Game, // Struct holding all game related data.
     blackboard: BlackBoard, //Struct for holding game data that the enemy needs to access
+    prev_frame: Instant,
+    cur_frame: Instant,
+    time_scale: f32,
 }
 
 impl Demo for Manager {
@@ -78,8 +85,11 @@ impl Demo for Manager {
         let mut game = Game::new();
         game.changed_floors = false;
         game.transition_start = Instant::now();
+        let prev_frame = Instant::now();
+        let cur_frame = Instant::now();
+        let time_scale = 1.0;
 
-        Ok(Manager{core, debug, menu, game, blackboard})
+        Ok(Manager{core, debug, menu, game, blackboard, prev_frame, cur_frame, time_scale })
     }
 
     fn run(&mut self) -> Result<(), String> {
@@ -116,6 +126,7 @@ impl Demo for Manager {
         println!("Health is: {}", self.game.player.health());
         println!("Max Health is: {}", self.game.player.max_hp());
 
+
         // Hacky solution for pause menu
         let mut esc_prev = false;
         let mut esc_curr = false;
@@ -130,6 +141,22 @@ impl Demo for Manager {
         //println!("DOES THE ROOM EXIST? {}", self.game.current_room().exists);
 
         'gameloop: loop {
+
+            // Record time at current frame + set prev frame time
+            // This is used for frame independent movement
+            self.prev_frame = self.cur_frame;
+            self.cur_frame = Instant::now();
+
+            // One frame at 60fps is 16.6 ms
+            // This gives us a scale value to adjust movements
+            self.time_scale = (self.cur_frame - self.prev_frame).as_micros() as f32 * 0.001 / 16.6;
+            //println!("{}", dif);
+
+            // Pass time scale to player
+            self.game.player.time_scale = self.time_scale;
+
+            // Pass time scale to enemies in current room
+            self.game.current_room_mut().update_enemies(self.time_scale);
 
             // Check for press of close window button.
             for event in self.core.event_pump.poll_iter() {
@@ -326,7 +353,7 @@ impl Demo for Manager {
                                 else{
                                     self.game.player.signal_attack();
                                 }
-                                
+
                             }
 
 
@@ -357,21 +384,56 @@ impl Demo for Manager {
                             self.game.player.update_pos(mov_vec);
                             //Update enemy
                             let mut enemy_to_push = Enemy::new(Vec2::new(0.0, 0.0), EnemyKind::Speed);
+                            let mut enemy_to_push2 = Enemy::new(Vec2::new(0.0, 0.0), EnemyKind::Speed);
                             let mut push_enemy = false;
+                            let mut boss_dead = false;
+                            let mut v = vec![];
+
                             for enemy in self.game.current_room_mut().enemies.iter_mut() {
                                 if !enemy.death{
                                     enemy.update(& self.blackboard);
+                                    v.push(enemy.clone());
+                                    let enemy_walkbox = enemy.box_es.get_walkbox(enemy.pos);
+                                    for enemy_walk in v.iter(){
+                                        let enemy_walk_walkbox = enemy_walk.box_es.get_walkbox(enemy_walk.pos);
+                                        // to stop overlap of enemies
+                                        // if (enemy.pos != enemy_walk.pos) && (enemy_walkbox.has_intersection(enemy_walk_walkbox)){
+                                        //     println!("inter_rect");
+                                        //     enemy.state = State::Idle;
+                                        // }
+                                        if (enemy_walkbox != enemy_walk_walkbox) && enemy.kind == EnemyKind::Health && enemy_walk.is_healing && enemy_walkbox.has_intersection(enemy_walk_walkbox) {
+                                            // if red enemy is intersection with another enemy that is 'healing'
+                                            //println!("Im red and intersection with non red that is_heal");
+                                            enemy.is_healing = true;
+                                            enemy.state = State::Heal;
+                                        }
+                                    }
+
+
                                     if enemy.kind == EnemyKind::Final && enemy.is_attacking{ //Final Boss Check
+                                        println!("Before pops");
                                         enemy_to_push = enemy.final_enemies_to_spawn.pop().unwrap();
+                                        println!("First pop");
+                                        enemy_to_push2 = enemy.final_enemies_to_spawn.pop().unwrap();
+                                        println!("Second pop");
                                         push_enemy = true;
                                         //self.game.current_room_mut().additional_enemies(enemy.final_enemies_to_spawn.pop().unwrap());
                                         enemy.is_attacking = false;
                                     }
                                 }
+                                if enemy.death && enemy.kind == EnemyKind::Final{
+                                    boss_dead = true;
+                                }
                             }
                             //FINAL BOSS ONLY
                             if push_enemy {
                                 self.game.current_room_mut().additional_enemies(enemy_to_push);
+                                self.game.current_room_mut().additional_enemies(enemy_to_push2);
+                            }
+                            if boss_dead {
+                                self.game.changed_floors = false;
+                                self.game.transition_start = Instant::now();
+                                self.game.game_state = GameState::BetweenFloors;
                             }
 
                             // Apply collision
