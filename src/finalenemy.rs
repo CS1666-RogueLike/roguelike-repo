@@ -163,8 +163,9 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
         }
     }
 
-    enemy.pos.x += enemy.movement_vec.x * enemy.speed;
-    enemy.pos.y += enemy.movement_vec.y * enemy.speed;
+    // TODO
+    enemy.pos.x += enemy.movement_vec.x * enemy.speed * enemy.time_scale;
+    enemy.pos.y += enemy.movement_vec.y * enemy.speed * enemy.time_scale;
 
     if(blackboard.enemy_quantity == 1)
     {

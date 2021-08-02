@@ -42,6 +42,8 @@ pub struct Player {
 
     pub walkover_action: WalkoverAction,
 
+    pub time_scale: f32,
+
 
 
 }
@@ -98,6 +100,8 @@ impl Player {
 
             walkover_action: WalkoverAction::DoNothing,
 
+            time_scale: 1.0,
+
         }
     }
 
@@ -124,10 +128,8 @@ impl Player {
                 // as they enter the room. It adds a natural snappiness to each room transition;
                 // still allowing player movement to occur, but delaying it slightly until
                 // the room transition is essentially finished.
-                if ( val < 300.0 ) {
-                    self.pos.x += mov_vec.x * self.speed * ( val / 1000.0 );
-                    self.pos.y += mov_vec.y * self.speed * ( val / 1000.0 );
-                }
+                self.pos.x += mov_vec.x * self.speed * 0.015 * self.time_scale;
+                self.pos.y += mov_vec.y * self.speed * 0.015 * self.time_scale;
             },
             None => {}
         }

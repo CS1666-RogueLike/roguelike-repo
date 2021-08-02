@@ -69,6 +69,9 @@ pub struct Manager {
     menu: MenuState, // Enum that controls the control flow via the menu.
     game: Game, // Struct holding all game related data.
     blackboard: BlackBoard, //Struct for holding game data that the enemy needs to access
+    prev_frame: Instant,
+    cur_frame: Instant,
+    time_scale: f32,
 }
 
 impl Demo for Manager {
@@ -81,8 +84,11 @@ impl Demo for Manager {
         let mut game = Game::new();
         game.changed_floors = false;
         game.transition_start = Instant::now();
+        let prev_frame = Instant::now();
+        let cur_frame = Instant::now();
+        let time_scale = 1.0;
 
-        Ok(Manager{core, debug, menu, game, blackboard})
+        Ok(Manager{core, debug, menu, game, blackboard, prev_frame, cur_frame, time_scale })
     }
 
     fn run(&mut self) -> Result<(), String> {
@@ -119,6 +125,7 @@ impl Demo for Manager {
         println!("Health is: {}", self.game.player.health());
         println!("Max Health is: {}", self.game.player.max_hp());
 
+
         // Hacky solution for pause menu
         let mut esc_prev = false;
         let mut esc_curr = false;
@@ -133,6 +140,22 @@ impl Demo for Manager {
         //println!("DOES THE ROOM EXIST? {}", self.game.current_room().exists);
 
         'gameloop: loop {
+
+            // Record time at current frame + set prev frame time
+            // This is used for frame independent movement
+            self.prev_frame = self.cur_frame;
+            self.cur_frame = Instant::now();
+
+            // One frame at 60fps is 16.6 ms
+            // This gives us a scale value to adjust movements
+            self.time_scale = (self.cur_frame - self.prev_frame).as_micros() as f32 * 0.001 / 16.6;
+            //println!("{}", dif);
+
+            // Pass time scale to player
+            self.game.player.time_scale = self.time_scale;
+
+            // Pass time scale to enemies in current room
+            self.game.current_room_mut().update_enemies(self.time_scale);
 
             // Check for press of close window button.
             for event in self.core.event_pump.poll_iter() {

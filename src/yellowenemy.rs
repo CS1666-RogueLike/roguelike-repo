@@ -107,8 +107,9 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
     }
 
     // update movement depending on direction
-    enemy.pos.x += enemy.movement_vec.x * enemy.speed;
-    enemy.pos.y += enemy.movement_vec.y * enemy.speed;
+    // TODO
+    enemy.pos.x += enemy.movement_vec.x * enemy.speed * enemy.time_scale;
+    enemy.pos.y += enemy.movement_vec.y * enemy.speed * enemy.time_scale;
 
     // if last enemy in room, switch to chase
     if(blackboard.enemy_quantity == 1)
@@ -166,8 +167,9 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
 
     //println!("{}, {}", enemy.movement_vec.x, enemy.movement_vec.y);
 
-        enemy.pos.x += enemy.movement_vec.x * enemy.speed;
-        enemy.pos.y += enemy.movement_vec.y * enemy.speed;
+    // TODO
+        enemy.pos.x += enemy.movement_vec.x * enemy.speed * enemy.time_scale;
+        enemy.pos.y += enemy.movement_vec.y * enemy.speed * enemy.time_scale;
 
     // if close to player, switch to attack
     if Enemy::player_close(enemy, blackboard)
@@ -251,8 +253,9 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
             }
         }
 
-        enemy.pos.x += enemy.movement_vec.x * enemy.speed;
-        enemy.pos.y += enemy.movement_vec.y * enemy.speed;
+        // TODO
+        enemy.pos.x += enemy.movement_vec.x * enemy.speed * enemy.time_scale;
+        enemy.pos.y += enemy.movement_vec.y * enemy.speed * enemy.time_scale;
 
 
     }

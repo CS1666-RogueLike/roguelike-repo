@@ -72,6 +72,8 @@ pub struct Enemy {
     pub is_healing: bool,
     pub last_damage_taken: i32,
 
+    pub time_scale: f32,
+
     //BOSS ONLY
     pub box_left_final: Box,
     pub box_left_final_pos: Vec2<f32>,
@@ -137,6 +139,8 @@ impl Enemy {
             last_attack_time: None,
 
             is_healing: false,
+
+            time_scale: 1.0,
 
             //FINAL BOSS ONLY
             box_left_final: Box::new(Vec2::new(30, 50), Vec2::new(0, 0), Vec2::new(0, 0)),
@@ -535,6 +539,7 @@ impl Enemy {
         }
 
         // Update position using movement vector and speed
+        // TODO
         self.pos.x += self.movement_vec.x * self.speed;
         self.pos.y += self.movement_vec.y * self.speed;
         //println!("Speed update!");
