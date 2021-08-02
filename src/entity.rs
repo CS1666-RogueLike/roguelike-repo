@@ -71,6 +71,7 @@ pub struct Enemy {
     pub current_frame_tile: Vec2<i32>,
     pub is_healing: bool,
     pub last_damage_taken: i32,
+    pub is_ranged: bool,
 
     pub time_scale: f32,
 
@@ -130,6 +131,7 @@ impl Enemy {
             atk_list: Vec::new(),
             state: State::Idle,
             last_damage_taken: 0,
+            is_ranged: set_ranged(),
 
             current_frame_tile: Vec2::new(0,0),
             last_invincibility_time: None,
@@ -152,7 +154,7 @@ impl Enemy {
             is_shooting: false,
             g_kind: EnemyKind::Attack,
             state_timer: Instant::now(),
-            
+
         }
     }
 
@@ -316,7 +318,7 @@ impl Enemy {
             None => false
         }
     }
-    
+
 
     //Old update direction without pathfinding
     pub fn update_dir(& mut self, frame_tile: Vec2<i32>){
@@ -348,12 +350,20 @@ impl Enemy {
     }
 
     pub fn player_close(enemy: & mut Enemy, blackboard: &BlackBoard) -> bool{
-        if enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.player_box.get_walkbox(blackboard.playerpos)) {
+        // getting hyp
+        let mut vector = Vec2::new(blackboard.playerpos.x - enemy.pos.x, blackboard.playerpos.y - enemy.pos.y);
+        let length = ((vector.x * vector.x + vector.y * vector.y) as f64).sqrt();
 
-            return true;
-        }
-        else{
-            return false;
+        if enemy.is_ranged  && length < 300.0{
+                return true;
+        } else {
+            if enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.player_box.get_walkbox(blackboard.playerpos)) {
+
+                return true;
+            }
+            else{
+                return false;
+            }
         }
     }
     // Using Connor's player implementation for this design:
@@ -425,7 +435,7 @@ impl Enemy {
             }
         }
     }
-    
+
     pub fn signal_shot(&mut self) {
         //let res = time.elapsed() <= Duration::from_millis(500+600);
         match self.last_shot_time {
@@ -439,14 +449,14 @@ impl Enemy {
                             self.is_shooting = false;
                         }
                     }
-                
+
                 //let res = time.elapsed() <= Duration::from_millis(500+600);
             None => {
                 self.is_shooting = true;
                 self.last_shot_time = Some(Instant::now());
             }
         }
-        
+
     }
 
     pub fn recently_attacked(&mut self) -> bool {
@@ -630,6 +640,17 @@ pub fn health_kind(kind: EnemyKind) -> i32 {
 
     }
     return health;
+}
+
+pub fn set_ranged() -> bool {
+    let mut rng = rand::thread_rng();
+
+    match rng.gen_range( 0 ..= 6 ){
+               0 | 1 | 2 | 4 => {
+                   return false;
+               },
+               _ => {return true;}
+           }
 }
 
 pub fn box_kind(kind: EnemyKind) -> Box {

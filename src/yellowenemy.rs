@@ -5,7 +5,7 @@ use crate::util::*;
 //use std::time::{Duration, Instant};
 //use crate::boxes::*;
 use crate::entity::*;
-
+use crate::attack::*;
 
 /*#[derive(Clone)]
 pub enum State{
@@ -42,7 +42,28 @@ pub fn update(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
-    enemy.signal_attack();
+    if enemy.is_ranged{
+        enemy.signal_shot();
+        if enemy.is_shooting{
+            let mut vector = Vec2::new(blackboard.playerpos.x - enemy.pos.x, blackboard.playerpos.y - enemy.pos.y);
+            let length = ((vector.x * vector.x + vector.y * vector.y) as f64).sqrt();
+
+            // normalize vector
+            vector.x /= length as f32;
+            vector.y /= length as f32;
+            let mut new_atk = AtkProjectile::new(enemy.pos, vector, &enemy.kind);
+            enemy.atk_list.push(new_atk);
+
+            enemy.is_shooting = false;
+            }
+
+            if enemy.state_timer.elapsed().as_millis() % 6000 <= 2000 {
+            enemy.state = State::Attack;
+        }
+    } else {
+        enemy.signal_attack();
+    }
+
 
     // if player is far, chase them
     if !Enemy::player_close(enemy, blackboard)
@@ -271,7 +292,7 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
         enemy.is_healing = false;
         enemy.state = State::Chase;
     }
-    
+
 
 }
 
