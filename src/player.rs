@@ -38,6 +38,7 @@ pub struct Player {
     
 
     pub is_attacking: bool,
+    pub is_charging: bool,
     pub last_attack_time: Option<Instant>,
 
     pub walkover_action: WalkoverAction,
@@ -94,6 +95,7 @@ impl Player {
 
             //timing attacks so they aren't just 'on'
             is_attacking: false,
+            is_charging: false,
             last_attack_time: Some(Instant::now()),
 
             walkover_action: WalkoverAction::DoNothing,
@@ -158,6 +160,25 @@ impl Player {
     pub fn update_static_pos(&mut self)
     {
         self.pos_static = self.pos;
+    }
+
+    pub fn signal_charge(&mut self) {
+        self.is_charging = true;
+        self.last_attack_time = Some(Instant::now());
+    }
+
+    pub fn recently_charged(&mut self) -> bool {
+        match self.last_attack_time {
+            Some( time ) => {
+                let res = time.elapsed() <= Duration::from_millis(1000);
+                if !res {
+                    self.is_charging = false;
+                }
+
+                res
+            },
+            None => false
+        }
     }
 
     pub fn signal_attack(&mut self) {
