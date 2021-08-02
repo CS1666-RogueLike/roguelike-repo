@@ -125,6 +125,11 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             let slime_left = texture_creator.load_texture("assets/slime_left.png")?;
             let slime_right = texture_creator.load_texture("assets/slime_right.png")?;
 
+            /* slime attack textures */
+            let slime_right_at01 = texture_creator.load_texture("assets/slime_right_attack01.png")?;
+            let slime_right_at02 = texture_creator.load_texture("assets/slime_right_attack02.png")?;
+            let slime_right_at03 = texture_creator.load_texture("assets/slime_right_attack03.png")?;
+
             let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
             let attack_idle = texture_creator.load_texture("assets/wizard_attack_enemy.png")?;
             let health_idle = texture_creator.load_texture("assets/health-sprite-down.png")?;
@@ -513,7 +518,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                 };
 
             //Draw player
-
+            
             //Get how long ago the player became invincible
             let mut timeSinceDmg = Duration::new(69, 420); //A number that is big enough to get ignored by the if statement below
             match game.player.last_invincibility_time{
@@ -524,9 +529,19 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
 
                 }
             }
+            let mut timeSinceAttack = Duration::new(69, 420); // haha funny number
+            match game.player.last_attack_time{
+                Some(time) =>{
+                    timeSinceAttack = time.elapsed();
+                },
+                None=>{
+
+                }
+            }
             if !(timeSinceDmg <= Duration::from_millis(P_INVINCIBILITY_TIME - P_INVINCIBILITY_TIME/2) && timeSinceDmg.as_millis()%100 < 50) &&
             !(timeSinceDmg <= Duration::from_millis(P_INVINCIBILITY_TIME)&& timeSinceDmg > Duration::from_millis(P_INVINCIBILITY_TIME - P_INVINCIBILITY_TIME/2) && timeSinceDmg.as_millis()%200 < 100){
                 match game.player.get_dir() {
+
                     Direction::Up => {
                         core.wincan.copy(&slime_up, None,
                             Rect::new(
@@ -552,13 +567,53 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                             )?;
                     }
                     Direction::Right => {
-                        core.wincan.copy(&slime_right, None,
-                            Rect::new(
-                                game.player.get_pos_x() - 35 + x_val,
-                                game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
-                                64, 64)
-                            )?;
+                        if game.player.recently_attacked() {
+                            if (timeSinceAttack.as_millis() % P_ATTACK_DUR < 50 && game.player.is_attacking){
+                            core.wincan.copy(&slime_right_at01, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64+8, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % P_ATTACK_DUR < 100 && game.player.is_attacking){
+                            core.wincan.copy(&slime_right_at02, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64+36, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % P_ATTACK_DUR  < P_ATTACK_DUR && game.player.is_attacking){
+                                core.wincan.copy(&slime_right_at03, None,
+                                    Rect::new(
+                                        game.player.get_pos_x() - 35 + x_val,
+                                        game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                        64+60, 64)
+                                    )?;
+                                }
+                            else {
+                                core.wincan.copy(&slime_right, None,
+                                    Rect::new(
+                                        game.player.get_pos_x() - 35 + x_val,
+                                        game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                        64, 64)
+                                    )?;
+                            
+                            }
+                        }
+                        else {
+                            core.wincan.copy(&slime_right, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64, 64)
+                                )?;
+                        }
                     }
+                        
+        
+                    
                 }
             }
 
@@ -900,11 +955,11 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             }
 
             // Draw attackbox
-            core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
-            if game.player.recently_attacked() {
-                //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
-                core.wincan.fill_rect(game.player.box_es.get_attackbox(game.player.pos, game.player.dir))?;
-            }
+            // core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
+            // if game.player.recently_attacked() {
+            //     //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
+            //     core.wincan.fill_rect(game.player.box_es.get_attackbox(game.player.pos, game.player.dir))?;
+            // }
 
             if game.player.recently_bombed() {
                 //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es

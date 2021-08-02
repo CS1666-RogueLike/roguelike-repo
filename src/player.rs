@@ -168,7 +168,7 @@ impl Player {
     pub fn recently_attacked(&mut self) -> bool {
         match self.last_attack_time {
             Some( time ) => {
-                let res = time.elapsed() <= Duration::from_millis(250);
+                let res = time.elapsed() <= Duration::from_millis(P_ATTACK_DUR);
                 if !res {
                     self.is_attacking = false;
                 }
