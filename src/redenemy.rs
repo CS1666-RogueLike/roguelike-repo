@@ -217,7 +217,7 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
-    if blackboard.playerpos.x > 400.0
+    if Enemy::distance_to_player(enemy, blackboard) < 400.0
     {
         enemy.state = State::Chase;
     }

@@ -192,6 +192,13 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
         enemy.pos.x += enemy.movement_vec.x * enemy.speed * enemy.time_scale;
         enemy.pos.y += enemy.movement_vec.y * enemy.speed * enemy.time_scale;
 
+
+
+    if Enemy::distance_to_player(enemy, blackboard) > 100.0 {
+        //println!("moving to idle");
+        enemy.state = State::Idle;
+    }
+
     // if close to player, switch to attack
     if Enemy::player_close(enemy, blackboard)
     {
@@ -291,12 +298,11 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
         enemy.state = State::Chase;
     }
 
-
 }
 
 pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
-
-    if blackboard.playerpos.x > 400.0
+//Enemy::distance_to_player(enemy, blackboard)
+    if Enemy::distance_to_player(enemy, blackboard) < 400.0
     {
         enemy.state = State::Chase;
     }
