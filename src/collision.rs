@@ -152,6 +152,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                         EnemyKind::Health => Gem::Red,
                         EnemyKind::Speed => Gem::Blue,
                         EnemyKind::Attack => Gem::Yellow,
+                        EnemyKind::Final => Gem::None,
                     });
             }
 
