@@ -42,6 +42,12 @@ pub fn update(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
+
+    if blackboard.player_charged && Enemy::distance_to_player(enemy, blackboard) < 100.0{
+        enemy.state = State::TakeCover;
+        return;
+    }
+
     if enemy.is_ranged{
         enemy.signal_shot();
         if enemy.is_shooting{
@@ -135,17 +141,69 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
     enemy.pos.y += enemy.movement_vec.y * enemy.speed * enemy.time_scale;
 
     // if last enemy in room, switch to chase
-    if(blackboard.enemy_quantity == 1)
+    if(blackboard.enemy_quantity == 1 && !blackboard.player_charged)
     {
         enemy.state = State::Chase;
     }
 }
 
 pub fn take_cover(enemy: & mut Enemy, blackboard: &BlackBoard){
+    match enemy.dir {
+        Direction::Up => {
+            enemy.movement_vec.y = 1.0;
+        }
+        Direction::Down => {
+            enemy.movement_vec.y = -1.0;
+        }
+        Direction::Right => {
+            if enemy.pos.y < blackboard.playerpos.y - 5.0 {
+                enemy.movement_vec.x = -DIAGONAL_VEC;
+                enemy.movement_vec.y = -DIAGONAL_VEC;
+            }
+            else if enemy.pos.y > blackboard.playerpos.y + 5.0 {
+                enemy.movement_vec.x = -DIAGONAL_VEC;
+                enemy.movement_vec.y = DIAGONAL_VEC;
+            }
+            else {
+                enemy.movement_vec.x = -1.0;
+                enemy.movement_vec.y = 0.0;
+            }
+        }
+        Direction::Left => {
+            if enemy.pos.y < blackboard.playerpos.y - 5.0{
+                enemy.movement_vec.x = DIAGONAL_VEC;
+                enemy.movement_vec.y = -DIAGONAL_VEC;
+            }
+            else if enemy.pos.y > blackboard.playerpos.y + 5.0{
+                enemy.movement_vec.x = DIAGONAL_VEC;
+                enemy.movement_vec.y = DIAGONAL_VEC;
+            }
+            else{
+                enemy.movement_vec.x = 1.0;
+                enemy.movement_vec.y = 0.0;
+            }
+        }
+
+    }
+
+    // update movement depending on direction
+    // TODO
+    enemy.pos.x += enemy.movement_vec.x * enemy.speed * enemy.time_scale;
+    enemy.pos.y += enemy.movement_vec.y * enemy.speed * enemy.time_scale;
+
+    if !blackboard.player_charged && Enemy::distance_to_player(enemy, blackboard) >= 100.0{
+        enemy.state = State::Chase;
+    }
 
 }
 
 pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
+
+    if blackboard.player_charged && Enemy::distance_to_player(enemy, blackboard) < 100.0{
+        enemy.state = State::TakeCover;
+        return;
+    }
+
     enemy.pathfinding(blackboard.playerpos, blackboard);
     match enemy.dir {
         Direction::Up => {
