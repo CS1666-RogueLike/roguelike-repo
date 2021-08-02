@@ -152,9 +152,6 @@ impl Demo for Manager {
             self.time_scale = (self.cur_frame - self.prev_frame).as_micros() as f32 * 0.001 / 16.6;
             //println!("{}", dif);
 
-            // Pass time scale to player
-            self.game.player.time_scale = self.time_scale;
-
             // Pass time scale to enemies in current room
             self.game.current_room_mut().update_enemies(self.time_scale);
 
