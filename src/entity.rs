@@ -448,7 +448,7 @@ impl Enemy {
         //let res = time.elapsed() <= Duration::from_millis(500+600);
         match self.last_shot_time {
             Some (time) => {
-                    let res = time.elapsed() <= Duration::from_millis(750); //Time in between shots
+                    let res = time.elapsed() <= Duration::from_millis(1000); //Time in between shots
                     if !res {
                         self.is_shooting = true;
                         self.last_shot_time = Some(Instant::now());

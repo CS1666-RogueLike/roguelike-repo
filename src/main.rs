@@ -245,6 +245,10 @@ impl Demo for Manager {
                                 if self.game.cf == 3 {
                                     self.menu = MenuState::Victory;
                                 } else {
+                                    //Tell the game which type of final boss to generate
+                                    if self.game.cf == 2 {
+                                        self.blackboard.set_boss_type();
+                                    }
                                     // Next floor
                                     self.game.cf += 1;
 
@@ -368,10 +372,11 @@ impl Demo for Manager {
 
                             // add enemies to the room
                             if keystate.contains(&Keycode::Z) && matches!(self.menu, MenuState::GameActive) {
-                                let mut enemies = Enemy::new(Vec2::new((LEFT_WALL + 6 * 64) as f32 + 32.0, (TOP_WALL + 7 * 64) as f32 + 40.0), EnemyKind::Speed);
+                                //let mut enemies = Enemy::new(Vec2::new((LEFT_WALL + 6 * 64) as f32 + 32.0, (TOP_WALL + 7 * 64) as f32 + 40.0), EnemyKind::Speed);
                                 //enemies.push(Enemy::new(Vec2::new((LEFT_WALL + 6 * 64) as f32 + 32.0, (TOP_WALL + 7 * 64) as f32 + 40.0), EnemyKind::Speed));
                                 // rooms[START_Y as usize][START_X as usize].add_enemies(enemies);
-                                self.game.current_room_mut().additional_enemies(enemies);
+                                //self.game.current_room_mut().additional_enemies(enemies);
+                                self.blackboard.set_boss_type();
                             }
 
                             self.blackboard.update(& self.game);
@@ -408,11 +413,8 @@ impl Demo for Manager {
 
 
                                     if enemy.kind == EnemyKind::Final && enemy.is_attacking{ //Final Boss Check
-                                        println!("Before pops");
                                         enemy_to_push = enemy.final_enemies_to_spawn.pop().unwrap();
-                                        println!("First pop");
                                         enemy_to_push2 = enemy.final_enemies_to_spawn.pop().unwrap();
-                                        println!("Second pop");
                                         push_enemy = true;
                                         //self.game.current_room_mut().additional_enemies(enemy.final_enemies_to_spawn.pop().unwrap());
                                         enemy.is_attacking = false;
@@ -508,7 +510,7 @@ impl Manager {
     // }
 
     fn collide(& mut self) {
-        collision::base(&mut self.game, &mut self.core, &mut self.menu);
+        collision::base(&mut self.game, &mut self.core, &mut self.menu, & self.blackboard);
     }
 
     fn walkover(& mut self) {
@@ -523,6 +525,6 @@ impl Manager {
 
     // Draw entire game state on screen.
     fn draw(& mut self) -> Result<(), String> {
-        draw::base(&mut self.game, &mut self.core, &mut self.menu, & self.debug)
+        draw::base(&mut self.game, &mut self.core, &mut self.menu, & self.debug, & self.blackboard)
     }
 }

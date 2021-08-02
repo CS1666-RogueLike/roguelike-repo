@@ -4,7 +4,10 @@ use crate::entity::*;
 use crate::boxes::*;
 use crate::tile::*;
 use crate::room::*;
+use crate::player::*;
 use sdl2::rect::Rect;
+
+use rand::Rng;
 
 
 pub struct BlackBoard
@@ -22,6 +25,7 @@ pub struct BlackBoard
     pub health_enemy_hitbox: Vec<Rect>,
     pub types_in_room: Vec<EnemyKind>,
     
+    pub boss_kind: EnemyKind,
     pub boss_fight: bool,
     
 
@@ -46,6 +50,7 @@ impl BlackBoard{
             health_enemy_hitbox:Vec::<Rect>::new(),
             types_in_room: Vec::<EnemyKind>::new(),
             
+            boss_kind: EnemyKind::Final,
             boss_fight: false,
             //Not updated normally, updated only when the room changes
             cr_tiles : Vec::new(),
@@ -148,7 +153,7 @@ impl BlackBoard{
                 qty += 1;
             }
         }
-
+        //println!("{}", qty);
         return qty;
     }
 
@@ -160,6 +165,78 @@ impl BlackBoard{
         }
     }
     
+    pub fn set_boss_type(&mut self){
+    let speed_powerups = ((self.player_speed - PLAYER_SPEED)/20.0) as i32;
+    let atk_powerups = self.player_attack - P_DEFAULT_ATK;
+    let health_powerups= (self.player_max_health - P_MAX_HP)/2;
+    let mut high_kind = EnemyKind::Final;
+    
+    if speed_powerups > atk_powerups && speed_powerups > health_powerups{
+        high_kind = EnemyKind::Speed;
+    }
+    else if atk_powerups > speed_powerups && atk_powerups > health_powerups{
+        high_kind = EnemyKind::Health;
+    }
+    else if health_powerups > atk_powerups && health_powerups > speed_powerups{
+        high_kind = EnemyKind::Attack;
+    }
+    else if health_powerups == atk_powerups && atk_powerups == speed_powerups{
+        let mut rng = rand::thread_rng();
+        match rng.gen_range( 0 ..= 2 ){
+            0=>{
+                high_kind = EnemyKind::Speed;  
+            }
+            1=>{
+                high_kind = EnemyKind::Health;
+            }
+            2=>{
+                high_kind = EnemyKind::Attack;
+            }
+            _ => {}
+        }
+    }
+    else if health_powerups == atk_powerups{
+        let mut rng = rand::thread_rng();
+        match rng.gen_range( 0 ..= 1 ){
+            0=>{
+                high_kind = EnemyKind::Attack;  
+            }
+            1=>{
+                high_kind = EnemyKind::Health;
+            }
+            _ => {}
+        }
+    }
+    else if health_powerups == speed_powerups{
+        let mut rng = rand::thread_rng();
+        match rng.gen_range( 0 ..= 1 ){
+            0=>{
+                high_kind = EnemyKind::Speed;  
+            }
+            1=>{
+                high_kind = EnemyKind::Attack;
+            }
+            _ => {}
+        }
+    }
+    else if atk_powerups == speed_powerups{
+        let mut rng = rand::thread_rng();
+        match rng.gen_range( 0 ..= 1 ){
+            0=>{
+                high_kind = EnemyKind::Health;  
+            }
+            1=>{
+                high_kind = EnemyKind::Speed;
+            }
+            _ => {}
+        }
+    }
+    else{
+        println!{"Scrappy Doo, i guess"};
+    }
+    self.boss_kind = high_kind;
+    
+}
     pub fn check_boss_fight(&self) -> bool{
         if self.types_in_room.iter().any(|&i| i==EnemyKind::Final){
             return true;
