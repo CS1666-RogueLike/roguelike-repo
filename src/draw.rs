@@ -908,9 +908,15 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                             }
                         }
 
+                        let hp_offset = if enemy.kind == EnemyKind::Final {
+                            enemy.box_es.walkbox.y * 2
+                        } else {
+                            enemy.box_es.walkbox.y
+                        } as i32;
+
                         // Outline (healthbar backdrop)
                         core.wincan.set_draw_color( Color::RGBA( 0, 0, 0, 255 ) );
-                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 32, enemy.get_pos_y() - enemy.box_es.walkbox.y as i32 - 24, 64, 12 ) )?;
+                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 32, enemy.get_pos_y() - hp_offset - 24, 64, 12 ) )?;
                         // Fill color (healthbar)
                         let hp_percentage: f32 = enemy.hp as f32 / enemy.m_hp as f32;
 
@@ -926,7 +932,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
 
                         core.wincan.set_draw_color( hp_color );
                         // Width remaining: ( hp / max_hp ) * width of healthbar
-                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 30, enemy.get_pos_y() - enemy.box_es.walkbox.y as i32 - 22, ( 60.0 * hp_percentage ) as u32, 8 ) )?;
+                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 30, enemy.get_pos_y() - hp_offset - 22, ( 60.0 * hp_percentage ) as u32, 8 ) )?;
                     }
 
 
