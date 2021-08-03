@@ -159,6 +159,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             let mut speed_hit = texture_creator.load_texture("assets/speed_idle_hit.png")?;
             let mut attack_hit = texture_creator.load_texture("assets/wizard_attack_enemy_hit.png")?;
             let mut health_hit = texture_creator.load_texture("assets/health-sprite-down_hit.png")?;
+            let mut boss_hit = texture_creator.load_texture( "assets/boss_hit.png" )?;
 
             let health_atk = texture_creator.load_texture("assets/health-projectile.png")?;
             let speed_atk = texture_creator.load_texture("assets/speed-projectile.png")?;
@@ -877,6 +878,36 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
 
                     // If the enemy was recently damaged..
                     if enemy.was_damaged() {
+                        if enemy.last_invincibility_time.unwrap().elapsed() < Duration::from_millis( 500 ) {
+                            let enemy_rect = Rect::new(
+                                enemy.get_pos_x() - 35 + 4 + x_val,
+                                enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
+                                64, 64);
+
+                            // Hit overlay
+                            let tex = match enemy.kind {
+                                EnemyKind::Speed => &mut speed_hit,
+                                EnemyKind::Health => &mut health_hit,
+                                EnemyKind::Attack => &mut attack_hit,
+                                EnemyKind::Final => &mut boss_hit,
+                            };
+
+                            // The enemy is being healed here. Color modulate the texture
+                            if enemy.last_damage_taken < 0 {
+                                tex.set_color_mod( 0, 255, 0 );
+                            } else {
+                                tex.set_color_mod( 255, 0, 0 );
+                            }
+
+                            let TextureQuery { width, height, .. } = tex.query();
+
+                            if enemy.kind == EnemyKind::Final {
+                                core.wincan.copy( &tex, None, Rect::new( enemy.get_pos_x() - (width * 2) as i32, enemy.get_pos_y() + 27 - (height * 4) as i32, width * 4, height * 4 ) )?;
+                            } else {
+                                core.wincan.copy( &tex, None, Rect::new( enemy_rect.x, enemy_rect.y, width * 4, height * 4 ) )?;
+                            }
+                        }
+
                         // Outline (healthbar backdrop)
                         core.wincan.set_draw_color( Color::RGBA( 0, 0, 0, 255 ) );
                         core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 32, enemy.get_pos_y() - enemy.box_es.walkbox.y as i32 - 24, 64, 12 ) )?;
@@ -896,30 +927,6 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                         core.wincan.set_draw_color( hp_color );
                         // Width remaining: ( hp / max_hp ) * width of healthbar
                         core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 30, enemy.get_pos_y() - enemy.box_es.walkbox.y as i32 - 22, ( 60.0 * hp_percentage ) as u32, 8 ) )?;
-
-                        if enemy.last_invincibility_time.unwrap().elapsed() < Duration::from_millis( 500 ) {
-                            let enemy_rect = Rect::new(
-                                enemy.get_pos_x() - 35 + 4 + x_val,
-                                enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
-                                64, 64);
-
-                            // Hit overlay
-                            let tex = match enemy.kind {
-                                EnemyKind::Speed => &mut speed_hit,
-                                EnemyKind::Health => &mut health_hit,
-                                EnemyKind::Attack => &mut attack_hit,
-                                EnemyKind::Final => &mut attack_hit,
-                            };
-
-                            // The enemy is being healed here. Color modulate the texture
-                            if enemy.last_damage_taken < 0 {
-                                tex.set_color_mod( 0, 255, 0 );
-                            } else {
-                                tex.set_color_mod( 255, 0, 0 );
-                            }
-
-                            core.wincan.copy( &tex, None, enemy_rect )?;
-                        }
                     }
 
 

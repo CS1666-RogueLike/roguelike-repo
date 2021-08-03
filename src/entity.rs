@@ -293,7 +293,10 @@ impl Enemy {
         }
 
         //path.push(start_tile);
-        self.update_dir(path.pop().unwrap());
+        match path.pop() {
+            Some( next ) => self.update_dir( next ),
+            None => {}
+        }
     }
 
     pub fn update_invincibility_time(&mut self) {
