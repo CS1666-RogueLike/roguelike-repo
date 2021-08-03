@@ -16,6 +16,7 @@ use crate::blackboard::*;
 
 mod yellowenemy;
 mod redenemy;
+mod blueenemy;
 
 
 mod finalenemy;

@@ -42,6 +42,14 @@ pub fn update(enemy: & mut Enemy, blackboard: &BlackBoard){
 }
 
 pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
+
+    // if player charging, and high on life, take cover
+    if blackboard.player_charged && Enemy::distance_to_player(enemy, blackboard) < 100.0 &&
+    blackboard.player_health as f32 > (blackboard.player_max_health as f32 * 0.5) {
+        enemy.state = State::TakeCover;
+        return;
+    }
+
     if enemy.is_ranged{
         enemy.signal_shot();
         if enemy.is_shooting{
@@ -71,11 +79,13 @@ pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
         enemy.state = State::Chase;
     }
 
-    // if there are other non health enemies in room and low on life, retreat
+    // if there are other non health enemies in room and low on life, player high health, retreat
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
+    blackboard.player_health as f32 > (blackboard.player_max_health as f32 * 0.5) &&
     (blackboard.enemy_quantity > 1 &&
     !blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health))&&
     !blackboard.boss_fight{
+        println!("switching to retreat");
         enemy.state = State::Retreat;
     }
 
@@ -133,17 +143,71 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
     enemy.pos.y += enemy.movement_vec.y * enemy.speed * enemy.time_scale;
 
     // if last enemy in room, switch to chase
-    if(blackboard.enemy_quantity == 1)
+    if(blackboard.enemy_quantity == 1 && !blackboard.player_charged)
     {
         enemy.state = State::Chase;
     }
 }
 
 pub fn take_cover(enemy: & mut Enemy, blackboard: &BlackBoard){
+    match enemy.dir {
+        Direction::Up => {
+            enemy.movement_vec.y = 1.0;
+        }
+        Direction::Down => {
+            enemy.movement_vec.y = -1.0;
+        }
+        Direction::Right => {
+            if enemy.pos.y < blackboard.playerpos.y - 5.0 {
+                enemy.movement_vec.x = -DIAGONAL_VEC;
+                enemy.movement_vec.y = -DIAGONAL_VEC;
+            }
+            else if enemy.pos.y > blackboard.playerpos.y + 5.0 {
+                enemy.movement_vec.x = -DIAGONAL_VEC;
+                enemy.movement_vec.y = DIAGONAL_VEC;
+            }
+            else {
+                enemy.movement_vec.x = -1.0;
+                enemy.movement_vec.y = 0.0;
+            }
+        }
+        Direction::Left => {
+            if enemy.pos.y < blackboard.playerpos.y - 5.0{
+                enemy.movement_vec.x = DIAGONAL_VEC;
+                enemy.movement_vec.y = -DIAGONAL_VEC;
+            }
+            else if enemy.pos.y > blackboard.playerpos.y + 5.0{
+                enemy.movement_vec.x = DIAGONAL_VEC;
+                enemy.movement_vec.y = DIAGONAL_VEC;
+            }
+            else{
+                enemy.movement_vec.x = 1.0;
+                enemy.movement_vec.y = 0.0;
+            }
+        }
+
+    }
+
+    // update movement depending on direction
+    // TODO
+    enemy.pos.x += enemy.movement_vec.x * enemy.speed * enemy.time_scale;
+    enemy.pos.y += enemy.movement_vec.y * enemy.speed * enemy.time_scale;
+
+    if !blackboard.player_charged && Enemy::distance_to_player(enemy, blackboard) >= 100.0{
+        enemy.state = State::Chase;
+    }
 
 }
 
 pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
+
+    // if player charging, and high on life, take cover
+    if blackboard.player_charged && Enemy::distance_to_player(enemy, blackboard) < 100.0
+    && blackboard.player_health as f32 > (blackboard.player_max_health as f32 * 0.5) {
+        enemy.state = State::TakeCover;
+        return;
+    }
+
     enemy.pathfinding(blackboard.playerpos, blackboard);
     match enemy.dir {
         Direction::Up => {
@@ -198,8 +262,9 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
         enemy.state = State::Attack;
     }
 
-    // if low on life, and no health enemy, retreat
+    // if low on life, and no health enemy, and player high on life retreat
     if (enemy.hp as f32) <= enemy.m_hp as f32/3.0 &&
+    blackboard.player_health as f32 > (blackboard.player_max_health as f32 * 0.5) &&
     (blackboard.enemy_quantity > 1 &&
     !blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health))&&
     !blackboard.boss_fight{ //True if there isn't a health enemy
@@ -296,7 +361,7 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
 
 pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
 
-    if blackboard.playerpos.x > 400.0
+    if Enemy::distance_to_player(enemy, blackboard) < 400.0
     {
         enemy.state = State::Chase;
     }

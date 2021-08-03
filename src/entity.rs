@@ -170,7 +170,7 @@ impl Enemy {
                 crate::redenemy::update(self, blackboard)
             }
             EnemyKind::Speed => {
-                crate::yellowenemy::update(self, blackboard)
+                crate::blueenemy::update(self, blackboard)
             }
             EnemyKind::Attack => {
                 crate::yellowenemy::update(self, blackboard);
@@ -357,12 +357,15 @@ impl Enemy {
         }
     }
 
-    pub fn player_close(enemy: & mut Enemy, blackboard: &BlackBoard) -> bool{
-        // getting hyp
+    pub fn distance_to_player(enemy: & mut Enemy, blackboard: &BlackBoard) -> f64 {
         let mut vector = Vec2::new(blackboard.playerpos.x - enemy.pos.x, blackboard.playerpos.y - enemy.pos.y);
         let length = ((vector.x * vector.x + vector.y * vector.y) as f64).sqrt();
 
-        if enemy.is_ranged  && length < 300.0{
+        return length;
+    }
+
+    pub fn player_close(enemy: & mut Enemy, blackboard: &BlackBoard) -> bool{
+        if enemy.is_ranged  && Enemy::distance_to_player(enemy, blackboard) < 300.0{
                 return true;
         } else {
             if enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.player_box.get_walkbox(blackboard.playerpos)) {

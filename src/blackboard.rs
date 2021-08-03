@@ -16,14 +16,16 @@ pub struct BlackBoard
     pub player_max_health: i32,
     pub player_speed: f32,
     pub player_attack: i32,
+    pub player_charged: bool,
     pub enemy_quantity: i32,
     pub health_enemy_pos: Vec<Vec2<f32>>,
     pub health_enemy_tile: Vec<Vec2<i32>>,
     pub health_enemy_hitbox: Vec<Rect>,
     pub types_in_room: Vec<EnemyKind>,
-    
+
+
     pub boss_fight: bool,
-    
+
 
     pub cr_tiles: Vec<Vec<std::boxed::Box<dyn Tile>>>,
 
@@ -39,13 +41,14 @@ impl BlackBoard{
             player_max_health: -1,
             player_speed: -1.0,
             player_attack: -1,
+            player_charged: false,
             enemy_quantity: -1,
             //offset: 0,
             health_enemy_pos:Vec::new(),
             health_enemy_tile:Vec::new(),
             health_enemy_hitbox:Vec::<Rect>::new(),
             types_in_room: Vec::<EnemyKind>::new(),
-            
+
             boss_fight: false,
             //Not updated normally, updated only when the room changes
             cr_tiles : Vec::new(),
@@ -60,6 +63,7 @@ impl BlackBoard{
         self.player_max_health = game.player.m_hp;
         self.player_speed = game.player.speed;
         self.player_attack = game.player.attack;
+        self.player_charged = game.player.is_charging;
         self.enemy_quantity = BlackBoard::get_enemy_quantity(game);
         self.health_enemy_pos = BlackBoard::get_health_enemy_pos(game);
         self.health_enemy_tile = BlackBoard::get_health_enemy_tile(&self.health_enemy_pos);
@@ -100,8 +104,8 @@ impl BlackBoard{
         }
 
         v.dedup_by(|a, b| Enemy::type_eq(*a, *b));
-        
-        
+
+
         return v;
 
     }
@@ -159,7 +163,7 @@ impl BlackBoard{
 
         }
     }
-    
+
     pub fn check_boss_fight(&self) -> bool{
         if self.types_in_room.iter().any(|&i| i==EnemyKind::Final){
             return true;
