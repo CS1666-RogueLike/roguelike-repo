@@ -39,7 +39,7 @@ pub enum EnemyKind {
     Final
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum State{
     Attack,
     Retreat,
@@ -488,6 +488,88 @@ impl Enemy {
     pub fn get_pos_x(&self) -> i32 { self.pos.x as i32 }
     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32 }
 
+    pub fn float_in_place(& mut self) {
+        println!("I'm floating Biatch!");
+
+        if self.death {
+            self.movement_vec.x = 0.0;
+            self.movement_vec.y = 0.0;
+            return;
+        }
+
+        // pub fn pathfinding(&mut self, target: Vec2<f32>, blackboard: &BlackBoard){
+        //
+        //     let target_tile = Vec2::new(
+        //         (target.x as i32 - LEFT_WALL) / TILE_WIDTH,
+        //         (target.y as i32 - TOP_WALL) / TILE_WIDTH
+        //     ); //The target tile
+
+        let now = Instant::now();
+
+        let mut rng = rand::thread_rng();
+
+        match self.last_dir_update {
+            Some(update_time) => {
+                if update_time.elapsed() >= Duration::from_millis(400) {
+
+                    //Make a new attack projectile every time the enemy moves. For test things
+                    //let new_atk = AtkProjectile::new(self.pos, self.movement_vec, &self.kind);
+                    //self.atk_list.push(new_atk);
+
+                    match rng.gen_range( 0 ..= 15 ) {
+                        0 => {
+                            self.movement_vec.x = 0.0;
+                            self.movement_vec.y = -1.0;
+                        },
+                        1 | 2 => {
+                            self.movement_vec.x = 0.0;
+                            self.movement_vec.y = 1.0;
+                        },
+                        3 | 4 => {
+                            self.movement_vec.x = -1.0;
+                            self.movement_vec.y = 0.0;
+                        },
+                        5 | 6 => {
+                            self.movement_vec.x = 1.0;
+                            self.movement_vec.y = 0.0;
+                        },
+                        7 | 8 => {
+                            self.movement_vec.x = DIAGONAL_VEC;
+                            self.movement_vec.y = DIAGONAL_VEC;
+                        },
+                        9 | 10 => {
+                            self.movement_vec.x = -DIAGONAL_VEC;
+                            self.movement_vec.y = -DIAGONAL_VEC;
+                        },
+                        11 | 12 => {
+                            self.movement_vec.x = DIAGONAL_VEC;
+                            self.movement_vec.y = -DIAGONAL_VEC;
+                        },
+                        13 | 14 => {
+                            self.movement_vec.x = -DIAGONAL_VEC;
+                            self.movement_vec.y = DIAGONAL_VEC;
+                        },
+                        15 => {
+                            self.movement_vec.x = 0.0;
+                            self.movement_vec.y = 0.0;
+                        }
+                        _ => {}
+                    }
+                    self.last_dir_update = Some(now);
+                }
+            },
+            None => {
+                self.last_dir_update = Some(now);
+            }
+        }
+
+        // Update position using movement vector and speed
+        // TODO
+        self.pos.x += self.movement_vec.x * self.speed;
+        self.pos.y += self.movement_vec.y * self.speed;
+
+    }
+
     pub fn update_pos(& mut self) {
 
         println!("UPDATE POS CALLED");
@@ -682,4 +764,5 @@ pub fn box_kind(kind: EnemyKind) -> Box {
             return Box::new(Vec2::new(150, 100), Vec2::new(60, 60), Vec2::new(0, 0));
         }
     }
+
 }

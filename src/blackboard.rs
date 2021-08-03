@@ -25,7 +25,8 @@ pub struct BlackBoard
     pub health_enemy_tile: Vec<Vec2<i32>>,
     pub health_enemy_hitbox: Vec<Rect>,
     pub types_in_room: Vec<EnemyKind>,
-    
+    pub yellow_chicken: bool,
+
     pub boss_kind: EnemyKind,
 
     pub boss_fight: bool,
@@ -52,7 +53,8 @@ impl BlackBoard{
             health_enemy_tile:Vec::new(),
             health_enemy_hitbox:Vec::<Rect>::new(),
             types_in_room: Vec::<EnemyKind>::new(),
-            
+            yellow_chicken: false,
+
             boss_kind: EnemyKind::Final,
 
             boss_fight: false,
@@ -75,6 +77,7 @@ impl BlackBoard{
         self.health_enemy_tile = BlackBoard::get_health_enemy_tile(&self.health_enemy_pos);
         self.health_enemy_hitbox = BlackBoard::get_health_enemy_hitbox(game);
         self.types_in_room = BlackBoard::get_types_in_room(game);
+        self.yellow_chicken = BlackBoard::active_yellow_retreat(game);
         self.boss_fight = self.check_boss_fight();
     }
 
@@ -113,6 +116,17 @@ impl BlackBoard{
 
 
         return v;
+
+    }
+
+    pub fn active_yellow_retreat(game: &Game) -> bool {
+        for enemy in game.current_room().enemies.iter() {
+            if !enemy.death && enemy.kind==EnemyKind::Attack && enemy.state == State::Retreat {
+                return true;
+            }
+        }
+
+        return false;
 
     }
     // i think it would be easier to just get the whole health enemy if possible
@@ -169,13 +183,13 @@ impl BlackBoard{
 
         }
     }
-    
+
     pub fn set_boss_type(&mut self){
     let speed_powerups = ((self.player_speed - PLAYER_SPEED)/20.0) as i32;
     let atk_powerups = self.player_attack - P_DEFAULT_ATK;
     let health_powerups= (self.player_max_health - P_MAX_HP)/2;
     let mut high_kind = EnemyKind::Final;
-    
+
     if speed_powerups > atk_powerups && speed_powerups > health_powerups{
         high_kind = EnemyKind::Speed;
     }
@@ -189,7 +203,7 @@ impl BlackBoard{
         let mut rng = rand::thread_rng();
         match rng.gen_range( 0 ..= 2 ){
             0=>{
-                high_kind = EnemyKind::Speed;  
+                high_kind = EnemyKind::Speed;
             }
             1=>{
                 high_kind = EnemyKind::Health;
@@ -204,7 +218,7 @@ impl BlackBoard{
         let mut rng = rand::thread_rng();
         match rng.gen_range( 0 ..= 1 ){
             0=>{
-                high_kind = EnemyKind::Attack;  
+                high_kind = EnemyKind::Attack;
             }
             1=>{
                 high_kind = EnemyKind::Health;
@@ -216,7 +230,7 @@ impl BlackBoard{
         let mut rng = rand::thread_rng();
         match rng.gen_range( 0 ..= 1 ){
             0=>{
-                high_kind = EnemyKind::Speed;  
+                high_kind = EnemyKind::Speed;
             }
             1=>{
                 high_kind = EnemyKind::Attack;
@@ -228,7 +242,7 @@ impl BlackBoard{
         let mut rng = rand::thread_rng();
         match rng.gen_range( 0 ..= 1 ){
             0=>{
-                high_kind = EnemyKind::Health;  
+                high_kind = EnemyKind::Health;
             }
             1=>{
                 high_kind = EnemyKind::Speed;
@@ -240,7 +254,7 @@ impl BlackBoard{
         println!{"Scrappy Doo, i guess"};
     }
     self.boss_kind = high_kind;
-    
+
 }
 
     pub fn check_boss_fight(&self) -> bool{
