@@ -146,9 +146,9 @@ impl Enemy {
 
             //FINAL BOSS ONLY
             box_left_final: Box::new(Vec2::new(30, 70), Vec2::new(0, 0), Vec2::new(0, 0)),
-            box_left_final_pos: Vec2::new(position.x - 60.0, position.y + 50.0),
+            box_left_final_pos: Vec2::new(position.x - 60.0, position.y),
             box_right_final: Box::new(Vec2::new(30, 70), Vec2::new(0, 0), Vec2::new(0, 0)),
-            box_right_final_pos: Vec2::new(position.x + 60.0, position.y + 50.0),
+            box_right_final_pos: Vec2::new(position.x + 60.0, position.y),
             final_enemies_to_spawn: Vec::<Enemy>::new(),
             last_shot_time: None,
             is_shooting: false,
@@ -674,7 +674,7 @@ pub fn box_kind(kind: EnemyKind) -> Box {
         }
         EnemyKind::Final => {
             // Final doesn't attack itself so no attackbox
-            return Box::new(Vec2::new(100, 100), Vec2::new(60, 60), Vec2::new(0, 0));
+            return Box::new(Vec2::new(150, 100), Vec2::new(60, 60), Vec2::new(0, 0));
         }
     }
 }

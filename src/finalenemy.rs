@@ -137,6 +137,9 @@ pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
 //        enemy.state = State::Heal;
 //    }
 
+    if Enemy::distance_to_player(enemy, blackboard) > 200.0{
+        enemy.state = State::Chase;
+    }
 
 }
 
@@ -354,8 +357,8 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
                 }
         }
 
-    if enemy.state_timer.elapsed().as_millis() % 6000 > 4000 {
-        enemy.state = State::TakeCover;
+    if Enemy::distance_to_player(enemy, blackboard) <= 200.0{
+        enemy.state = State::Chase;
     }
 
 
@@ -478,8 +481,8 @@ pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
 //    if blackboard.playerpos.x > 300.0{
 //        enemy.state = State::Attack;
 //    }
-    //enemy.state = State::Chase;
-    enemy.pos.x -= 1.0;
+    enemy.state = State::Chase;
+    //enemy.pos.x -= 1.0;
 }
 
 pub fn generate_kind(enemy: & mut Enemy, blackboard: &BlackBoard) -> EnemyKind{
