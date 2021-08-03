@@ -599,11 +599,6 @@ impl Enemy {
 
             //If the attack is off screen, remove it from the atk vector
 
-            let current_tile = Vec2::new(
-                (atk.pos.x as i32 - LEFT_WALL) / TILE_WIDTH,
-                (atk.pos.y as i32 - TOP_WALL) / TILE_WIDTH
-            ); //The target tile
-
             //if !BlackBoard::is_walkable(current_tile)
             if atk.pos.x < 0.0 || atk.pos.y < 0.0 || atk.pos.x > WINDOW_WIDTH as f32|| atk.pos.y > WINDOW_HEIGHT as f32
             {
