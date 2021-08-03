@@ -18,7 +18,6 @@ mod yellowenemy;
 mod redenemy;
 mod blueenemy;
 
-
 mod finalenemy;
 use crate::finalenemy::*;
 
@@ -26,6 +25,7 @@ mod util;
 use crate::util::*;
 
 mod collision;
+use crate::collision::*;
 mod walkover;
 mod draw;
 
@@ -394,14 +394,14 @@ impl Demo for Manager {
                                     let enemy_walkbox = enemy.box_es.get_walkbox(enemy.pos);
                                     for enemy_walk in v.iter(){
                                         let enemy_walk_walkbox = enemy_walk.box_es.get_walkbox(enemy_walk.pos);
-                                        // to stop overlap of enemies
-                                        // if (enemy.pos != enemy_walk.pos) && (enemy_walkbox.has_intersection(enemy_walk_walkbox)){
+                                        // to stop overlap of enemies (Doesn't look good whatever we tried)
+                                        // if (enemy.kind == enemy_walk.kind) && (enemy.pos != enemy_walk.pos) && (enemy_walkbox.has_intersection(enemy_walk_walkbox)){
                                         //     println!("inter_rect");
-                                        //     enemy.state = State::Idle;
+                                        //     collision::enemy_collision(enemy, &(enemy_walk.current_frame_tile.x), &(enemy_walk.current_frame_tile.y));
+                                        //     //enemy.state = State::Idle;
                                         // }
                                         if (enemy_walkbox != enemy_walk_walkbox) && enemy.kind == EnemyKind::Health && enemy_walk.is_healing && enemy_walkbox.has_intersection(enemy_walk_walkbox) {
                                             // if red enemy is intersection with another enemy that is 'healing'
-                                            //println!("Im red and intersection with non red that is_heal");
                                             enemy.is_healing = true;
                                             enemy.state = State::Heal;
                                         }
