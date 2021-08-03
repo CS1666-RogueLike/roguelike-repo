@@ -162,16 +162,16 @@ impl Demo for Manager {
                     Event::Quit{..} => break 'gameloop,
                     Event::KeyUp {keycode: Some(Keycode::H), repeat: false, ..} =>
                         { self.game.player.plus_power_health();
-                            println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
-                            println!("Max Health is: {}", self.game.player.max_hp());
+                            //println!("PowerupHealth is {}", self.game.player.power_up_vec[0]);
+                            //println!("Max Health is: {}", self.game.player.max_hp());
                         },
                     Event::KeyUp {keycode: Some(Keycode::J), repeat: false, ..} =>
                         { self.game.player.plus_power_speed();
-                            println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
+                            //println!("PowerupSpeed is {}", self.game.player.power_up_vec[1]);
                         },
                     Event::KeyUp {keycode: Some(Keycode::K), repeat: false, ..} =>
                         { self.game.player.plus_power_attack();
-                            println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
+                            //println!("PowerupAttack is {}", self.game.player.power_up_vec[2]);
                         },
                     _ => {},
                 }
@@ -207,7 +207,7 @@ impl Demo for Manager {
                         self.game = Game::new(); // Initialize a new game
                         // This makes it so exiting to menu and staring the game again works
                         // properly
-                        println!("Switch");
+                        //println!("Switch");
                     }
                 }
 
@@ -414,14 +414,14 @@ impl Demo for Manager {
 
 
                                     if enemy.kind == EnemyKind::Final && enemy.is_attacking{ //Final Boss Check
-                                        println!("Before pops");
+                                        //println!("Before pops");
 
                                         match enemy.final_enemies_to_spawn.pop() {
                                             Some( new_enemy ) => enemy_to_push = new_enemy,
                                             None => {},
                                         };
 
-                                        println!("First pop");
+                                        //println!("First pop");
 
                                         match enemy.final_enemies_to_spawn.pop() {
                                             Some( new_enemy ) => enemy_to_push2 = new_enemy,
@@ -429,7 +429,7 @@ impl Demo for Manager {
                                         };
 
                                         //enemy_to_push2 = enemy.final_enemies_to_spawn.pop().unwrap();
-                                        println!("Second pop");
+                                        //println!("Second pop");
                                         push_enemy = true;
                                         //self.game.current_room_mut().additional_enemies(enemy.final_enemies_to_spawn.pop().unwrap());
                                         enemy.is_attacking = false;

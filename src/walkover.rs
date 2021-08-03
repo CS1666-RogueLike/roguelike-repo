@@ -117,17 +117,17 @@ pub fn base(game: &mut Game, menu: &mut MenuState) {
             }
 
             WalkoverAction::GivePlayerKey => {
-                println!("Key has been picked up!!!");
+                //println!("Key has been picked up!!!");
                 game.player.has_key = true;
             }
 
             WalkoverAction::GivePlayerBomb => {
-                println!("Bomb was picked up!!!");
+                //println!("Bomb was picked up!!!");
                 game.player.has_bomb = true;
             }
 
             WalkoverAction::Damage => {
-                println!("You've stepped on spikes!");
+                //println!("You've stepped on spikes!");
                 damage_and_adjust(game, menu);
             }
 

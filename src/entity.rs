@@ -489,7 +489,7 @@ impl Enemy {
     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32 }
 
     pub fn float_in_place(& mut self) {
-        println!("I'm floating Biatch!");
+        //println!("I'm floating Biatch!");
 
         if self.death {
             self.movement_vec.x = 0.0;
@@ -572,7 +572,7 @@ impl Enemy {
 
     pub fn update_pos(& mut self) {
 
-        println!("UPDATE POS CALLED");
+        //println!("UPDATE POS CALLED");
 
         if self.death {
             self.movement_vec.x = 0.0;

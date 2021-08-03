@@ -85,7 +85,7 @@ pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
     (blackboard.enemy_quantity > 1 &&
     !blackboard.types_in_room.iter().any(|&i| i==EnemyKind::Health))&&
     !blackboard.boss_fight{
-        println!("switching to retreat");
+        //println!("switching to retreat");
         enemy.state = State::Retreat;
     }
 
