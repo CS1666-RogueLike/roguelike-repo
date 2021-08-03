@@ -72,8 +72,7 @@ pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
 
 
     // if player is far, chase them
-    if !Enemy::player_close(enemy, blackboard)
-    {
+    if !Enemy::player_close(enemy, blackboard){
         enemy.state = State::Chase;
     }
 
@@ -361,7 +360,9 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
 
 pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
 
-    if Enemy::distance_to_player(enemy, blackboard) < 400.0
+    enemy.float_in_place();
+
+    if Enemy::distance_to_player(enemy, blackboard) < 200.0 || blackboard.yellow_chicken
     {
         enemy.state = State::Chase;
     }

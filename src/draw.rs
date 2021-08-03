@@ -5,6 +5,7 @@ use crate::menu::*;
 use crate::player::{BuffType, PowerUp};
 use crate::entity::*;
 use crate::finalenemy::*;
+use crate::blackboard::*;
 use roguelike::SDLCore;
 
 use std::time::Duration;
@@ -61,7 +62,7 @@ pub fn hsv_to_rgb( h: f32, s: f32, v: f32 ) -> Color {
     Color::RGBA( rgb.0 as u8, rgb.1 as u8, rgb.2 as u8, 255 )
 }
 
-pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug: &bool) -> Result<(), String> {
+pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug: &bool, blackboard : &BlackBoard) -> Result<(), String> {
 
 // MOVE SOMEWHERE ELSE, TEXTURES SHOULD ONLY BE INITIALIZED ONCE
     let texture_creator = core.wincan.texture_creator();
@@ -146,7 +147,6 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             let slime_left_at01 = texture_creator.load_texture("assets/slime_left_attack01.png")?;
             let slime_left_at02 = texture_creator.load_texture("assets/slime_left_attack02.png")?;
             let slime_left_at03 = texture_creator.load_texture("assets/slime_left_attack03.png")?;
-
             let slime_left_ch01 = texture_creator.load_texture("assets/slime_left_charge01.png")?;
             let slime_left_ch02 = texture_creator.load_texture("assets/slime_left_charge02.png")?;
             let slime_left_ch03 = texture_creator.load_texture("assets/slime_left_charge03.png")?;
@@ -848,13 +848,20 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                         EnemyKind::Attack => &attack_idle,
                         EnemyKind::Health => &health_idle,
                         EnemyKind::Speed => &speed_idle,
-                        EnemyKind::Final => &health_boss01, //TODO: sprite for final boss
+                        EnemyKind::Final => {
+                            match blackboard.boss_kind {
+                            EnemyKind::Attack => &attack_boss01,
+                            EnemyKind::Health =>  &health_boss01,
+                            EnemyKind::Speed => &speed_boss01,
+                            _ => &speed_idle
+                            } //TODO: sprite for final boss
+                        }
                     };
                     if (enemy.kind == EnemyKind::Final){
                         core.wincan.copy(&tex, None,
                             Rect::new(
-                                enemy.get_pos_x() - 35 + 4 + x_val,
-                                enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
+                                enemy.get_pos_x() - 35 + 4 + x_val - 86,
+                                enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val - 64,
                                 64+172, 64+64)
                         )?;
                     }

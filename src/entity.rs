@@ -39,7 +39,7 @@ pub enum EnemyKind {
     Final
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum State{
     Attack,
     Retreat,
@@ -146,10 +146,10 @@ impl Enemy {
             time_scale: 1.0,
 
             //FINAL BOSS ONLY
-            box_left_final: Box::new(Vec2::new(30, 50), Vec2::new(0, 0), Vec2::new(0, 0)),
-            box_left_final_pos: Vec2::new(position.x - 30.0, position.y + 5.0),
-            box_right_final: Box::new(Vec2::new(30, 50), Vec2::new(0, 0), Vec2::new(0, 0)),
-            box_right_final_pos: Vec2::new(position.x + 30.0, position.y + 5.0),
+            box_left_final: Box::new(Vec2::new(30, 70), Vec2::new(0, 0), Vec2::new(0, 0)),
+            box_left_final_pos: Vec2::new(position.x - 60.0, position.y),
+            box_right_final: Box::new(Vec2::new(30, 70), Vec2::new(0, 0), Vec2::new(0, 0)),
+            box_right_final_pos: Vec2::new(position.x + 60.0, position.y),
             final_enemies_to_spawn: Vec::<Enemy>::new(),
             last_shot_time: None,
             is_shooting: false,
@@ -452,7 +452,7 @@ impl Enemy {
         //let res = time.elapsed() <= Duration::from_millis(500+600);
         match self.last_shot_time {
             Some (time) => {
-                    let res = time.elapsed() <= Duration::from_millis(750); //Time in between shots
+                    let res = time.elapsed() <= Duration::from_millis(1000); //Time in between shots
                     if !res {
                         self.is_shooting = true;
                         self.last_shot_time = Some(Instant::now());
@@ -487,6 +487,88 @@ impl Enemy {
 
     pub fn get_pos_x(&self) -> i32 { self.pos.x as i32 }
     pub fn get_pos_y(&self) -> i32 { self.pos.y as i32 }
+
+    pub fn float_in_place(& mut self) {
+        println!("I'm floating Biatch!");
+
+        if self.death {
+            self.movement_vec.x = 0.0;
+            self.movement_vec.y = 0.0;
+            return;
+        }
+
+        // pub fn pathfinding(&mut self, target: Vec2<f32>, blackboard: &BlackBoard){
+        //
+        //     let target_tile = Vec2::new(
+        //         (target.x as i32 - LEFT_WALL) / TILE_WIDTH,
+        //         (target.y as i32 - TOP_WALL) / TILE_WIDTH
+        //     ); //The target tile
+
+        let now = Instant::now();
+
+        let mut rng = rand::thread_rng();
+
+        match self.last_dir_update {
+            Some(update_time) => {
+                if update_time.elapsed() >= Duration::from_millis(400) {
+
+                    //Make a new attack projectile every time the enemy moves. For test things
+                    //let new_atk = AtkProjectile::new(self.pos, self.movement_vec, &self.kind);
+                    //self.atk_list.push(new_atk);
+
+                    match rng.gen_range( 0 ..= 15 ) {
+                        0 => {
+                            self.movement_vec.x = 0.0;
+                            self.movement_vec.y = -1.0;
+                        },
+                        1 | 2 => {
+                            self.movement_vec.x = 0.0;
+                            self.movement_vec.y = 1.0;
+                        },
+                        3 | 4 => {
+                            self.movement_vec.x = -1.0;
+                            self.movement_vec.y = 0.0;
+                        },
+                        5 | 6 => {
+                            self.movement_vec.x = 1.0;
+                            self.movement_vec.y = 0.0;
+                        },
+                        7 | 8 => {
+                            self.movement_vec.x = DIAGONAL_VEC;
+                            self.movement_vec.y = DIAGONAL_VEC;
+                        },
+                        9 | 10 => {
+                            self.movement_vec.x = -DIAGONAL_VEC;
+                            self.movement_vec.y = -DIAGONAL_VEC;
+                        },
+                        11 | 12 => {
+                            self.movement_vec.x = DIAGONAL_VEC;
+                            self.movement_vec.y = -DIAGONAL_VEC;
+                        },
+                        13 | 14 => {
+                            self.movement_vec.x = -DIAGONAL_VEC;
+                            self.movement_vec.y = DIAGONAL_VEC;
+                        },
+                        15 => {
+                            self.movement_vec.x = 0.0;
+                            self.movement_vec.y = 0.0;
+                        }
+                        _ => {}
+                    }
+                    self.last_dir_update = Some(now);
+                }
+            },
+            None => {
+                self.last_dir_update = Some(now);
+            }
+        }
+
+        // Update position using movement vector and speed
+        // TODO
+        self.pos.x += self.movement_vec.x * self.speed;
+        self.pos.y += self.movement_vec.y * self.speed;
+
+    }
 
     pub fn update_pos(& mut self) {
 
@@ -606,9 +688,10 @@ impl Enemy {
             }
             index+=1;
         }
-
+        let mut offset = 0;
         for rmv in &mut to_remove {
-            self.atk_list.remove(*rmv);
+            self.atk_list.remove(*rmv - offset);
+            offset += 1;
             //println!("Bullet Scooby Removed");
         }
     }
@@ -648,7 +731,7 @@ pub fn health_kind(kind: EnemyKind) -> i32 {
             health = 3;
         }
         EnemyKind::Final => {
-            health = 10;
+            health = 20;
         }
 
     }
@@ -659,7 +742,7 @@ pub fn set_ranged() -> bool {
     let mut rng = rand::thread_rng();
 
     match rng.gen_range( 0 ..= 6 ){
-               0 | 1 | 2 | 4 => {
+               0 | 1 | 2 | 3 | 4 => {
                    return false;
                },
                _ => {return true;}
@@ -679,7 +762,8 @@ pub fn box_kind(kind: EnemyKind) -> Box {
         }
         EnemyKind::Final => {
             // Final doesn't attack itself so no attackbox
-            return Box::new(Vec2::new(40, 30), Vec2::new(40, 40), Vec2::new(0, 0));
+            return Box::new(Vec2::new(150, 100), Vec2::new(60, 60), Vec2::new(0, 0));
         }
     }
+
 }

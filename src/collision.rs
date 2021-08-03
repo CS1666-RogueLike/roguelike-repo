@@ -12,6 +12,8 @@ use roguelike::SDLCore;
 use crate::boxes::*;
 
 pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
+    
+    
     let intersection = enemy.box_es.get_walkbox(enemy.pos).intersection(Rect::new(
         LEFT_WALL + x * TILE_WIDTH,
         TOP_WALL + y * TILE_WIDTH,
@@ -23,6 +25,8 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
         Some(x) => x,
         None => return,
     };
+    
+    println!{"Collision"};
 
     let mut x_offset = inter_rect.width() as i32;
     let mut y_offset = inter_rect.height() as i32;
@@ -105,7 +109,7 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
     enemy.pos.y -= y_offset as f32;
 }
 
-pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
+pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, blackboard: &BlackBoard) {
 // Outermost wall collision
         game.player.pos.x = game.player.pos.x.clamp(
             LEFT_WALL as f32 + (game.player.box_es.walkbox.x/2) as f32,
@@ -178,7 +182,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                 }
 
                 // If the test enemy's walkbox intersects with the player walkbox...
-                let wb_test = enemy.box_es.get_walkbox(enemy.pos);
+                let wb_test = enemy.box_es.get_hitbox(enemy.pos);
                 // Attempt at collision with attackbox
                 if game.player.is_attacking {
                     let player_attack = game.player.box_es.get_attackbox(game.player.pos, game.player.dir);
@@ -190,7 +194,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                             enemy.power = true;
                         }
                         //main case to determine power up
-                        if enemy.death == true && live_count == 1 {
+                        if enemy.death == true && (live_count == 1 || blackboard.boss_fight) {
                             enemy.power = true;
                             game.current_room_mut().increment_gem();
                         }
