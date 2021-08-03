@@ -3,7 +3,7 @@ use crate::room::*;
 use crate::floor::*;
 
 pub struct Map {
-    pub floors: [Floor; 2],
+    pub floors: [Floor; 4],
 
     //pub room: Room, // TEMP
 }
@@ -26,9 +26,11 @@ impl Map {
             ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 10
         ];
         Map {
-            //floors: [Floor::test_floor()],
-            //room: Room::new_test_room(blueprint),
-            floors: [Floor::test_floor(), Floor::test_floor_2()],
+            // Actual thing
+            floors: [Floor::gen_floor(), Floor::gen_floor(), Floor::gen_floor(), Floor::boss_floor()],
+
+            // Boss testing
+            //floors: [Floor::boss_floor(), Floor::gen_floor(), Floor::gen_floor(), Floor::boss_floor()],
         }
     }
 

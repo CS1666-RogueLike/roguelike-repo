@@ -1,6 +1,7 @@
 use crate::util::*;
 use crate::tile::*;
 use crate::entity::*;
+use rand::Rng;
 
 pub const ROOM_WIDTH: i32 = 17;
 pub const ROOM_HEIGHT: i32 = 11;
@@ -11,6 +12,7 @@ pub struct Room {
     pub visited: bool,
     pub tiles: Vec<Vec<Box<dyn Tile>>>,
     pub enemies: Vec<Enemy>,
+    pub gemCount: i32,
 }
 
 /*
@@ -26,7 +28,7 @@ pub struct Room {
 impl Room {
     // Returns a room that the developer sets every tile of manually.
     pub fn non_room() -> Room {
-        Room { exists: false, visited: false, tiles: Vec::new(), enemies: Vec::new() }
+        Room { exists: false, visited: false, tiles: Vec::new(), enemies: Vec::new(), gemCount: 0 }
 
     }
     pub fn new_test_room(blueprint: [[char; 17]; 11]) -> Room {
@@ -64,10 +66,11 @@ impl Room {
                     'r' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Red })),
                     'y' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Yellow })),
                     'b' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Blue })),
+                    'Q' => tiles[y as usize].push(Box::new(Bomb {has_bomb: true})),
                     'W' => tiles[y as usize].push(Box::new(Wall {})),
                     'R' => tiles[y as usize].push(Box::new(Rock {})),
                     'P' => tiles[y as usize].push(Box::new(Pit {})),
-                    'S' => tiles[y as usize].push(Box::new(Spike {})),
+                    'S' => tiles[y as usize].push(Box::new(Spike { gem: Gem::None })),
                     // TODO: Add code for proper handling of direction
                     'D' => tiles[y as usize].push(Box::new(Door { lock: LockState::Unlocked, position: Direction::Up })),
 
@@ -108,7 +111,8 @@ impl Room {
             exists: true,
             visited: false,
             tiles: tiles,
-            enemies: Vec::new()
+            enemies: Vec::new(),
+            gemCount: 0,
         }
     }
 
@@ -122,5 +126,87 @@ impl Room {
 
     pub fn add_enemies(&mut self, enemies: Vec<Enemy>) {
         self.enemies = enemies;
+    }
+
+    pub fn increment_gem(&mut self){
+        self.gemCount += 1
+    }
+
+    pub fn additional_enemies(&mut self, enemy: Enemy) {
+        self.enemies.push(enemy);
+    }
+
+    // Repositions enemies to be a certain distance from player
+    // Avoids player taking immediate damage they can't prevent
+    pub fn reposition_enemies(&mut self, player_pos: Vec2<f32>) {
+
+        //println!("Repositioning enemies...");
+
+        let mut rng = rand::thread_rng();
+
+        for mut enemy in &mut self.enemies {
+
+            loop {
+                // Get distance between player and enemy
+                let mut dist = ((enemy.pos.x - player_pos.x).powf(2.0) + (enemy.pos.y - player_pos.y).powf(2.0)).sqrt();
+
+                // See if tile enemy is on is walkable
+                let mut valid_tile = self.tiles
+                    [((enemy.pos.y as i32 - TOP_WALL) / 64) as usize]
+                    [((enemy.pos.x as i32 - LEFT_WALL) / 64) as usize]
+                    .walkability() == Walkability::Floor;
+
+                // Reroll enemy position if too close or not walkable
+                if dist < 250.0 || !valid_tile {
+                    enemy.pos.x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;
+                    enemy.pos.y = rng.gen_range(TOP_WALL..BOT_WALL) as f32;
+                }
+                // If enemy is far enough away, go to next enemy
+                else {
+                    break
+                }
+            }
+        }
+    }
+
+    // Removes enemies when the player is at low hp
+    pub fn ease_enemy_difficulty(&mut self, hp: i32) {
+        
+        //for mut enemy in &mut self.enemies { enemy.is_ranged = false; }
+        
+        match hp {
+
+            // When at 1 heart, get rid of yellow enemies to avoid player getting one shot
+            2 => {
+                self.enemies.retain(
+                    |enemy| {
+                        enemy.kind == EnemyKind::Health || enemy.kind == EnemyKind::Speed
+                    }
+                );
+            }
+
+            // When at half a heart, only spawn 1 enemy red enemy.
+            1 => {
+                self.enemies.clear();
+                let mut rng = rand::thread_rng();
+                let x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;
+                let y = rng.gen_range(TOP_WALL..BOT_WALL) as f32;
+                self.enemies.push(Enemy::new(Vec2 {x, y}, EnemyKind::Health));
+            }
+
+            _ => {}
+        }
+        // When at lower than 1.5 hearts, don't spawn ranged enemies
+        if hp <= 3 {
+            for mut enemy in &mut self.enemies { enemy.is_ranged = false; }
+        }
+
+    }
+
+    // Provides enemies with time_scale so they can do frame independent movement
+    pub fn update_enemies(&mut self, ts: f32) {
+        for mut x in &mut self.enemies {
+            x.time_scale = ts;
+        }
     }
 }

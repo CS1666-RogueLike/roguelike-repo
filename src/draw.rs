@@ -2,24 +2,78 @@ use crate::game::*;
 use crate::util::*;
 use crate::tile::*;
 use crate::menu::*;
-use crate::player::PowerUp;
+use crate::player::{BuffType, PowerUp};
 use crate::entity::*;
+use crate::finalenemy::*;
+use crate::blackboard::*;
 use roguelike::SDLCore;
-use std::time::Duration;
 
+use std::time::Duration;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::rect::Point;
-use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
 use sdl2::image::LoadTexture;
-use sdl2::render::Texture;
+use sdl2::render::TextureQuery;
 
+// Pseudo-code credits to Max Agoston in Computer Graphics and Geometric Modeling book, page 303
+pub fn hsv_to_rgb( h: f32, s: f32, v: f32 ) -> Color {
+    let rgb : (f32, f32, f32);
 
-pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuState, &debug: &bool) -> Result<(), String> {
+    // H must be in [0, 360]
+    let new_h = if h >= 360.0 {
+        0.0
+    } else {
+        // H' = H / 60deg
+        // used to get the sextant of the hue
+        h / 60.0
+    };
+
+    // H' = H / 60deg
+    // used to get the sextant of the hue
+    let i = new_h as i32;
+
+    // Fractional part of hue
+    let frac = ( new_h as i32 - i ) as f32;
+
+    // According to the algorithm:
+    // p := v * ( 1 - s )
+    // q := v * ( 1 - ( s * frac ) )
+    // t := v * ( 1 - ( s * ( 1 - frac ) )
+
+    // All values below are scaled by 255 for Color::RGBA format
+    let p = ( v * ( 1.0 - s ) ) * 255.0;
+    let q = v * ( 1.0 - ( s * frac ) ) * 255.0;
+    let t = v * ( 1.0 - ( s * ( 1.0 - frac ) ) ) * 255.0;
+
+    // Scale the value as well
+    let scaled_v = v * 255.0;
+
+    // Also from the alg:
+    // Determine R, G, and B based off of the sextant of H
+    rgb = match i {
+        0 => (scaled_v, t, p),
+        1 => (q, scaled_v, p),
+        2 => (p, scaled_v, t),
+        3 => (p, q, scaled_v),
+        4 => (t, p, scaled_v),
+        5 | _ => (scaled_v, p, q)
+    };
+
+    Color::RGBA( rgb.0 as u8, rgb.1 as u8, rgb.2 as u8, 255 )
+}
+
+pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug: &bool, blackboard : &BlackBoard) -> Result<(), String> {
 
 // MOVE SOMEWHERE ELSE, TEXTURES SHOULD ONLY BE INITIALIZED ONCE
     let texture_creator = core.wincan.texture_creator();
+
+    let ttf_context = sdl2::ttf::init().map_err( |e| e.to_string() )?;
+    let font = ttf_context.load_font( "assets/earlygameboy.ttf", 32 )?;
+
+    // IF WE WANT A MAIN MENU DRAWN W/ FONT:
+    let font_lg = ttf_context.load_font( "assets/earlygameboy.ttf", 112 )?;
+
+
 
     // Scope enums for readability
    	//use::MenuState::*;
@@ -28,8 +82,40 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
     match menu {
 
         MenuState::MainMenu => {
+
+            // IF WE WANT A MAIN MENU DRAWN W/ FONT:
+            // core.wincan.set_draw_color(Color::BLACK);
+            // core.wincan.clear();
+
+            // let font_surface = font_lg.render( "Roguelike" ).blended( Color::RGBA( 255, 255, 255, 255 ) )
+            //     .map_err( |e| e.to_string() )?;
+
+            // let title_tex = texture_creator.create_texture_from_surface( &font_surface )
+            //     .map_err( |e| e.to_string() )?;
+
+            // let space_surface = font.render( "Press Space to Continue" ).blended( Color::RGBA( 255, 255, 255, 255 ) )
+            //                         .map_err( |e| e.to_string() )?;
+            // let space_tex = texture_creator.create_texture_from_surface( &space_surface )
+            //                         .map_err( |e| e.to_string() )?;
+
+            // let TextureQuery { width, height, .. } = title_tex.query();
+
+            // let cx = ( WINDOW_WIDTH as i32 - width as i32 ) / 2;
+
+            // core.wincan.copy(&title_tex, None, Rect::new( cx as i32, ( height / 2 ) as i32, width, height ))?;
+
+            // let TextureQuery { width, height, .. } = space_tex.query();
+
+            // let cx = ( WINDOW_WIDTH as i32 - width as i32 ) / 2;
+            // core.wincan.copy(&space_tex, None, Rect::new( cx as i32, ( WINDOW_HEIGHT - 256 ) as i32, width, height ))?;
+
             let main_menu = texture_creator.load_texture("assets/main_menu.png")?;
             core.wincan.copy(&main_menu, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+        }
+
+        MenuState::Victory => {
+            let vic = texture_creator.load_texture("assets/victory.png")?;
+            core.wincan.copy(&vic, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
         }
 
         MenuState::GameActive => {
@@ -41,15 +127,55 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             let slime_left = texture_creator.load_texture("assets/slime_left.png")?;
             let slime_right = texture_creator.load_texture("assets/slime_right.png")?;
 
+            /* slime attack textures */
+            let slime_up_at01 = texture_creator.load_texture("assets/slime_up_attack01.png")?;
+            let slime_up_at02 = texture_creator.load_texture("assets/slime_up_attack02.png")?;
+            let slime_up_at03 = texture_creator.load_texture("assets/slime_up_attack03.png")?;
+
+            let slime_down_at01 = texture_creator.load_texture("assets/slime_front_attack01.png")?;
+            let slime_down_at02 = texture_creator.load_texture("assets/slime_front_attack02.png")?;
+            let slime_down_at03 = texture_creator.load_texture("assets/slime_front_attack03.png")?;
+
+            let slime_right_at01 = texture_creator.load_texture("assets/slime_right_attack01.png")?;
+            let slime_right_at02 = texture_creator.load_texture("assets/slime_right_attack02.png")?;
+            let slime_right_at03 = texture_creator.load_texture("assets/slime_right_attack03.png")?;
+
+            let slime_right_ch01 = texture_creator.load_texture("assets/slime_right_charge01.png")?;
+            let slime_right_ch02 = texture_creator.load_texture("assets/slime_right_charge02.png")?;
+            let slime_right_ch03 = texture_creator.load_texture("assets/slime_right_charge03.png")?;
+
+            let slime_left_at01 = texture_creator.load_texture("assets/slime_left_attack01.png")?;
+            let slime_left_at02 = texture_creator.load_texture("assets/slime_left_attack02.png")?;
+            let slime_left_at03 = texture_creator.load_texture("assets/slime_left_attack03.png")?;
+            let slime_left_ch01 = texture_creator.load_texture("assets/slime_left_charge01.png")?;
+            let slime_left_ch02 = texture_creator.load_texture("assets/slime_left_charge02.png")?;
+            let slime_left_ch03 = texture_creator.load_texture("assets/slime_left_charge03.png")?;
+
+            /* enemy textures */
             let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
             let attack_idle = texture_creator.load_texture("assets/wizard_attack_enemy.png")?;
             let health_idle = texture_creator.load_texture("assets/health-sprite-down.png")?;
+
+            let mut speed_hit = texture_creator.load_texture("assets/speed_idle_hit.png")?;
+            let mut attack_hit = texture_creator.load_texture("assets/wizard_attack_enemy_hit.png")?;
+            let mut health_hit = texture_creator.load_texture("assets/health-sprite-down_hit.png")?;
 
             let health_atk = texture_creator.load_texture("assets/health-projectile.png")?;
             let speed_atk = texture_creator.load_texture("assets/speed-projectile.png")?;
             let attack_atk = texture_creator.load_texture("assets/attack-projectile.png")?;
 
             let hp_indicator = texture_creator.load_texture("assets/hp.png")?;
+            let hp_bomb_indicator = texture_creator.load_texture("assets/-3.png")?;
+
+            /*boss assets*/
+            let health_boss01 = texture_creator.load_texture("assets/boss_health01.png")?;
+            let health_boss02 = texture_creator.load_texture("assets/boss_health02.png")?;
+
+            let speed_boss01 = texture_creator.load_texture("assets/boss_speed01.png")?;
+            let speed_boss02 = texture_creator.load_texture("assets/boss_speed02.png")?;
+
+            let attack_boss01 = texture_creator.load_texture("assets/boss_attack01.png")?;
+            let attack_boss02 = texture_creator.load_texture("assets/boss_attack02.png")?;
 
             //power assets
             let p_text = texture_creator.load_texture("assets/p_text.png")?;
@@ -72,13 +198,29 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             let gem_red = texture_creator.load_texture("assets/gem_red.png")?;
             let gem_yellow = texture_creator.load_texture("assets/gem_yellow.png")?;
             let gem_blue = texture_creator.load_texture("assets/gem_blue.png")?;
+            let bomb_item = texture_creator.load_texture("assets/Bomb.png")?;
+            let bomb_menu = texture_creator.load_texture("assets/bomb_menu.png")?;
+            let bomb_explosion = texture_creator.load_texture("assets/Explosion.png")?;
 
             let bricks = texture_creator.load_texture("assets/ground_tile.png")?;
             let rock = texture_creator.load_texture("assets/rock.png")?;
             let spike = texture_creator.load_texture("assets/spike.png")?;
 
             let key = texture_creator.load_texture("assets/key.png")?;
+            let door_locked = texture_creator.load_texture("assets/door.png")?;
             let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
+
+
+            // Doors
+            let door_up_unlocked = texture_creator.load_texture("assets/door_up_unlocked.png")?;
+            let door_down_unlocked = texture_creator.load_texture("assets/door_down_unlocked.png")?;
+            let door_left_unlocked = texture_creator.load_texture("assets/door_left_unlocked.png")?;
+            let door_right_unlocked = texture_creator.load_texture("assets/door_right_unlocked.png")?;
+
+            let door_up_locked = texture_creator.load_texture("assets/door_up_locked.png")?;
+            let door_down_locked = texture_creator.load_texture("assets/door_down_locked.png")?;
+            let door_left_locked = texture_creator.load_texture("assets/door_left_locked.png")?;
+            let door_right_locked = texture_creator.load_texture("assets/door_right_locked.png")?;
 
             let pl_heart = texture_creator.load_texture("assets/playerheart16x.png")?;
 
@@ -96,12 +238,23 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     // Draw background of game screen
                     core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
                 }
+                GameState::InitialFloorTrans => {
+                    // Draw background of game screen again, room transition is custom
+                    core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+
+                    // BETWEEN FLOORS DRAWING CODE IS AT BOTTOM BC IT NEEDS TO BE DRAWN OVERTOP
+                }
+                GameState::BetweenFloors => {
+                    // Draw background of game screen again, room transition is custom
+                    core.wincan.copy(&bg, None, Rect::new(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))?;
+
+                    // BETWEEN FLOORS DRAWING CODE IS AT BOTTOM BC IT NEEDS TO BE DRAWN OVERTOP
+                }
                 GameState::BetweenRooms => {
                     // Transition duration
                     let dur = Duration::new(0, 400_000_000); // Half billion = half second
-
                     // 0.0 to 1.0 value to scale transition by
-                    let scale = (game.transition_start.elapsed().as_millis() as f64 / dur.as_millis() as f64);
+                    let scale = game.transition_start.elapsed().as_millis() as f64 / dur.as_millis() as f64;
 
                     // Scales values to make proper directions
                     x_dir = match game.trans_dir {
@@ -123,8 +276,8 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     core.wincan.copy(&bg, None, Rect::new(xo, yo, WINDOW_WIDTH, WINDOW_HEIGHT))?;
                     core.wincan.copy(&bg, None, Rect::new(xo + x_dir as i32 * -1280, yo + y_dir as i32 * -720, WINDOW_WIDTH, WINDOW_HEIGHT))?;
 
-                    let mut x = 0;
-                    let mut y = 0;
+                    let x = 0;
+                    let y = 0;
                     let rmx = game.cr.x + match game.trans_dir {
                         Direction::Right => -1,
                         Direction::Left => 1,
@@ -190,14 +343,12 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                                     //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
                                 }
 
+                                // DOOR CODE
                                 SpriteID::DoorLocked => {
-                                    core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                                    core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&door_up_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
                                 }
                                 SpriteID::DoorUnlocked => {
                                     core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
-                                    //core.wincan.set_draw_color(Color::RGBA(0, 255, 0, 255));
-                                    //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
                                 }
 
                                 SpriteID::Key => {
@@ -205,18 +356,42 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                                     core.wincan.copy(&key, None, Rect::new(x_val, y_val, 64, 64))?;
                                 }
 
+                                SpriteID::Bomb => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&bomb_item, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+
+                                SpriteID::Explosion => {
+                                    core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    core.wincan.copy(&bomb_explosion, None, Rect::new(x_val, y_val, 64, 64))?;
+                                }
+
                                 SpriteID::TrapdoorLocked => {
                                     core.wincan.copy(&td_locked, None, Rect::new(x_val, y_val, 64, 64))?;
                                 }
 
                                 SpriteID::TrapdoorUnlocked => {
-                                    core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
+                                    core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
                                     core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
                                 }
 
                                 SpriteID::Spike => {
                                     core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
                                     core.wincan.copy(&spike, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    if t.has_gem() {
+                                        match t.get_gem_type() {
+                                            Gem::Red => {
+                                                core.wincan.copy(&gem_red, None, Rect::new(x_val, y_val, 64, 64))?;
+                                            }
+                                            Gem::Blue => {
+                                                core.wincan.copy(&gem_blue, None, Rect::new(x_val, y_val, 64, 64))?;
+                                            }
+                                            Gem::Yellow => {
+                                                core.wincan.copy(&gem_yellow, None, Rect::new(x_val, y_val, 64, 64))?;
+                                            }
+                                            _ => {}
+                                        }
+                                    }
                                 }
                             }
                             x += 1;
@@ -280,14 +455,43 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                             //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
                         }
 
+                        SpriteID::Bomb => {
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&bomb_item, None, Rect::new(x_val, y_val, 64, 64))?;
+                        }
+
+                        SpriteID::Explosion => {
+                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
+                            core.wincan.copy(&bomb_explosion, None, Rect::new(x_val, y_val, 64, 64))?;
+                        }
+
                         SpriteID::DoorLocked => {
-                            core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
-                            core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
+
+                            if y < 3 {
+                                core.wincan.copy(&door_up_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            } else if y > 7 {
+                                core.wincan.copy(&door_down_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            }
+
+                            if x < 3 {
+                                core.wincan.copy(&door_left_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            } else if x > 10 {
+                                core.wincan.copy(&door_right_locked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            }
                         }
                         SpriteID::DoorUnlocked => {
-                            core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
-                            //core.wincan.set_draw_color(Color::RGBA(0, 255, 0, 255));
-                            //core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64));
+
+                            if y < 3 {
+                                core.wincan.copy(&door_up_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            } else if y > 7 {
+                                core.wincan.copy(&door_down_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            }
+
+                            if x < 3 {
+                                core.wincan.copy(&door_left_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            } else if x > 10 {
+                                core.wincan.copy(&door_right_unlocked, None, Rect::new(x_val, y_val, 64, 64))?;
+                            }
                         }
 
                         SpriteID::Key => {
@@ -300,13 +504,27 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                         }
 
                         SpriteID::TrapdoorUnlocked => {
-                            core.wincan.set_draw_color(Color::RGBA(255, 128, 128, 255));
+                            core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
                             core.wincan.draw_rect(Rect::new(x_val, y_val, 64, 64))?;
                         }
 
                         SpriteID::Spike => {
                             core.wincan.copy(&bricks, None, Rect::new(x_val, y_val, 64, 64))?;
                             core.wincan.copy(&spike, None, Rect::new(x_val, y_val, 64, 64))?;
+                            if t.has_gem() {
+                                match t.get_gem_type() {
+                                    Gem::Red => {
+                                        core.wincan.copy(&gem_red, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    }
+                                    Gem::Blue => {
+                                        core.wincan.copy(&gem_blue, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    }
+                                    Gem::Yellow => {
+                                        core.wincan.copy(&gem_yellow, None, Rect::new(x_val, y_val, 64, 64))?;
+                                    }
+                                    _ => {}
+                                }
+                            }
                         }
                     }
                     x += 1;
@@ -330,53 +548,294 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 else {
                     0
                 };
-            match game.player.get_dir() {
-                Direction::Up => {
-                    core.wincan.copy(&slime_up, None,
-                        Rect::new(
-                            game.player.get_pos_x() - 35 + 4 + x_val,
-                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
-                            64, 64)
-                        )?;
-                }
-                Direction::Down => {
-                    core.wincan.copy(&slime_down, None,
-                        Rect::new(
-                            game.player.get_pos_x() - 35 + x_val,
-                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
-                            64, 64)
-                        )?;
-                }
-                Direction::Left => {
-                    core.wincan.copy(&slime_left, None,
-                        Rect::new(
-                            game.player.get_pos_x() - 35 + 4 + x_val,
-                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
-                            64, 64)
-                        )?;
-                }
-                Direction::Right => {
-                    core.wincan.copy(&slime_right, None,
-                        Rect::new(
-                            game.player.get_pos_x() - 35 + x_val,
-                            game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
-                            64, 64)
-                        )?;
+
+            //Draw player
+
+            //Get how long ago the player became invincible
+            let mut timeSinceDmg = Duration::new(69, 420); //A number that is big enough to get ignored by the if statement below
+            match game.player.last_invincibility_time{
+                Some(time) =>{
+                    timeSinceDmg = time.elapsed();
+                },
+                None=>{
+
                 }
             }
+            let mut timeSinceAttack = Duration::new(69, 420); // haha funny number
+            match game.player.last_attack_time{
+                Some(time) =>{
+                    timeSinceAttack = time.elapsed();
+                },
+                None=>{
+
+                }
+            }
+            if !(timeSinceDmg <= Duration::from_millis(P_INVINCIBILITY_TIME - P_INVINCIBILITY_TIME/2) && timeSinceDmg.as_millis()%100 < 50) &&
+            !(timeSinceDmg <= Duration::from_millis(P_INVINCIBILITY_TIME)&& timeSinceDmg > Duration::from_millis(P_INVINCIBILITY_TIME - P_INVINCIBILITY_TIME/2) && timeSinceDmg.as_millis()%200 < 100){
+                match game.player.get_dir() {
+
+                    Direction::Up => {
+                        if game.player.recently_attacked() || game.player.recently_charged() {
+                            if (timeSinceAttack.as_millis() % 250 < 50 && game.player.is_attacking){
+                                core.wincan.copy(&slime_up_at01, None,
+                                    Rect::new(
+                                        game.player.get_pos_x() - 35 + x_val ,
+                                        game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                        64, 64)
+                                    )?;
+                                }
+                                else if (timeSinceAttack.as_millis() % 250 < 100 && game.player.is_attacking){
+                                core.wincan.copy(&slime_up_at02, None,
+                                    Rect::new(
+                                        game.player.get_pos_x() - 35 + x_val ,
+                                        game.player.get_pos_y() - 64 - 8 +(game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                        64, 64+8)
+                                    )?;
+                                }
+                                else if (timeSinceAttack.as_millis() % 250  < 250 && game.player.is_attacking){
+                                core.wincan.copy(&slime_up_at03, None,
+                                    Rect::new(
+                                        game.player.get_pos_x() - 35 + x_val ,
+                                        game.player.get_pos_y() - 64 - 60 +(game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                        64, 64+60)
+                                    )?;
+                                }
+                                else {
+                                core.wincan.copy(&slime_up, None,
+                                    Rect::new(
+                                        game.player.get_pos_x() - 35 + x_val,
+                                        game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                        64, 64)
+                                    )?;
+                                }
+                        }
+                        else {
+                            core.wincan.copy(&slime_up, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + 4 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64, 64)
+                                )?;
+                        }
+                    }
+                    Direction::Down => {
+                        if game.player.recently_attacked() || game.player.recently_charged() {
+                            if (timeSinceAttack.as_millis() % 250 < 50 && game.player.is_attacking){
+                            core.wincan.copy(&slime_down_at01, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val ,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 250 < 100 && game.player.is_attacking){
+                            core.wincan.copy(&slime_down_at02, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val ,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64, 64+20)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 250  < 250 && game.player.is_attacking){
+                            core.wincan.copy(&slime_down_at03, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val ,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64, 64+60)
+                                )?;
+                            }
+                            else {
+                            core.wincan.copy(&slime_down, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64, 64)
+                                )?;
+                            }
+                        }
+                        else {
+                            core.wincan.copy(&slime_down, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64, 64)
+                                )?;
+                        }
+                    }
+                    Direction::Left => {
+                        if game.player.recently_attacked() || game.player.recently_charged() {
+                            if (timeSinceAttack.as_millis() % 250 < 50 && game.player.is_attacking){
+                            core.wincan.copy(&slime_left_at01, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val - 8,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64+8, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 250 < 100 && game.player.is_attacking){
+                            core.wincan.copy(&slime_left_at02, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val - 36,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64+36, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 250  < 250 && game.player.is_attacking){
+                            core.wincan.copy(&slime_left_at03, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val - 60,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64+60, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 1000 < 400 && game.player.is_charging){
+                            core.wincan.copy(&slime_left_at01, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val - 8,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64+8, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 1000 < 800 && game.player.is_charging){
+                            core.wincan.copy(&slime_left_ch01, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val - 8,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64+8, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 1000 < 850 && game.player.is_charging){
+                                core.wincan.copy(&slime_left_ch02, None,
+                                    Rect::new(
+                                        game.player.get_pos_x() - 35 + x_val - 36,
+                                        game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                        64+36, 64)
+                                    )?;
+                                }
+                            else if (timeSinceAttack.as_millis() % 1000  < 1000 && game.player.is_charging){
+                                core.wincan.copy(&slime_left_ch03, None,
+                                    Rect::new(
+                                        game.player.get_pos_x() - 35 + x_val - 124,
+                                        game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                        64+124, 64)
+                                    )?;
+                                }
+                            else {
+                                core.wincan.copy(&slime_left, None,
+                                    Rect::new(
+                                        game.player.get_pos_x() - 35 + x_val,
+                                        game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                        64, 64)
+                                    )?;
+
+                            }
+                        }
+                        else {
+                            core.wincan.copy(&slime_left, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64, 64)
+                                )?;
+                        }
+                    }
+                    Direction::Right => {
+                        if game.player.recently_attacked() || game.player.recently_charged(){
+                            if (timeSinceAttack.as_millis() % 250 < 50 && game.player.is_attacking){
+                            core.wincan.copy(&slime_right_at01, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64+8, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 250 < 100 && game.player.is_attacking){
+                            core.wincan.copy(&slime_right_at02, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64+36, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 250  < 250 && game.player.is_attacking){
+                            core.wincan.copy(&slime_right_at03, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64+60, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 1000 < 400 && game.player.is_charging){
+                            core.wincan.copy(&slime_right_at01, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64+8, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 1000 < 800 && game.player.is_charging){
+                            core.wincan.copy(&slime_right_ch01, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64+8, 64)
+                                )?;
+                            }
+                            else if (timeSinceAttack.as_millis() % 1000 < 850 && game.player.is_charging){
+                                core.wincan.copy(&slime_right_ch02, None,
+                                    Rect::new(
+                                        game.player.get_pos_x() - 35 + x_val,
+                                        game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                        64+36, 64)
+                                    )?;
+                                }
+                            else if (timeSinceAttack.as_millis() % 1000  < 1000 && game.player.is_charging){
+                                core.wincan.copy(&slime_right_ch03, None,
+                                    Rect::new(
+                                        game.player.get_pos_x() - 35 + x_val,
+                                        game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                        64+124, 64)
+                                    )?;
+                                }
+                            else {
+                                core.wincan.copy(&slime_right, None,
+                                    Rect::new(
+                                        game.player.get_pos_x() - 35 + x_val,
+                                        game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                        64, 64)
+                                    )?;
+
+                            }
+                        }
+                        else {
+                            core.wincan.copy(&slime_right, None,
+                                Rect::new(
+                                    game.player.get_pos_x() - 35 + x_val,
+                                    game.player.get_pos_y() - 64 + (game.player.box_es.get_walkbox(game.player.pos).height()/2) as i32 + y_val,
+                                    64, 64)
+                                )?;
+                        }
+                    }
+
+
+
+                }
+            }
+
 
             //draw_enemies(textures);
 
             let enemies = &mut game.current_room_mut().enemies;
             for enemy in enemies.iter_mut()  {
-                    let texA = match &enemy.kind {
+
+                for atk in &enemy.atk_list {
+                    let tex_a = match atk.kind {
                         EnemyKind::Attack => &attack_atk,
                         EnemyKind::Health => &health_atk,
-                        EnemyKind::Speed => &speed_atk
+                        EnemyKind::Speed => &speed_atk,
+                        EnemyKind::Final => &health_atk, //Should not run
                     };
-
-                for atk in &enemy.atkList {
-                    core.wincan.copy(&texA, None,
+                    core.wincan.copy(&tex_a, None,
                         Rect::new(
                                 atk.pos.x as i32 - (atk.box_es.hitbox.x/2) as i32,
                                 atk.pos.y as i32 - (atk.box_es.hitbox.y) as i32,
@@ -388,27 +847,109 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                     let tex = match &enemy.kind {
                         EnemyKind::Attack => &attack_idle,
                         EnemyKind::Health => &health_idle,
-                        EnemyKind::Speed => &speed_idle
+                        EnemyKind::Speed => &speed_idle,
+                        EnemyKind::Final => {
+                            match blackboard.boss_kind {
+                            EnemyKind::Attack => &attack_boss01,
+                            EnemyKind::Health =>  &health_boss01,
+                            EnemyKind::Speed => &speed_boss01,
+                            _ => &speed_idle
+                            } //TODO: sprite for final boss
+                        }
                     };
+                    if (enemy.kind == EnemyKind::Final){
+                        core.wincan.copy(&tex, None,
+                            Rect::new(
+                                enemy.get_pos_x() - 35 + 4 + x_val - 86,
+                                enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val - 64,
+                                64+172, 64+64)
+                        )?;
+                    }
+                    else {
+                        core.wincan.copy(&tex, None,
+                            Rect::new(
+                                enemy.get_pos_x() - 35 + 4 + x_val,
+                                enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
+                                64, 64)
+                        )?;
+                    }
 
-                    core.wincan.copy(&tex, None,
-                        Rect::new(
-                            enemy.get_pos_x() - 35 + 4 + x_val,
-                            enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
-                            64, 64)
-                    )?;
+
+                    // If the enemy was recently damaged..
+                    if enemy.was_damaged() {
+                        // Outline (healthbar backdrop)
+                        core.wincan.set_draw_color( Color::RGBA( 0, 0, 0, 255 ) );
+                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 32, enemy.get_pos_y() - enemy.box_es.walkbox.y as i32 - 24, 64, 12 ) )?;
+                        // Fill color (healthbar)
+                        let hp_percentage: f32 = enemy.hp as f32 / enemy.m_hp as f32;
+
+                        // Determine healthbar color.
+                        // Speed enemies only have 2 hp, so it is okay for damage to immediately become yellow.
+                        let hp_color = if enemy.hp == enemy.m_hp - 1 && enemy.kind != EnemyKind::Speed {
+                            Color::RGBA( 0, 255, 0, 255 )
+                        } else {
+                            // Cool trick to use HSV to modulate color from green to red
+                            // Converted to RGBA as SDL2 doesn't have an HSV color structure
+                            hsv_to_rgb( 120.0 * hp_percentage, 1.0, 1.0 )
+                        };
+
+                        core.wincan.set_draw_color( hp_color );
+                        // Width remaining: ( hp / max_hp ) * width of healthbar
+                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 30, enemy.get_pos_y() - enemy.box_es.walkbox.y as i32 - 22, ( 60.0 * hp_percentage ) as u32, 8 ) )?;
+
+                        if enemy.last_invincibility_time.unwrap().elapsed() < Duration::from_millis( 500 ) {
+                            let enemy_rect = Rect::new(
+                                enemy.get_pos_x() - 35 + 4 + x_val,
+                                enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
+                                64, 64);
+
+                            // Hit overlay
+                            let tex = match enemy.kind {
+                                EnemyKind::Speed => &mut speed_hit,
+                                EnemyKind::Health => &mut health_hit,
+                                EnemyKind::Attack => &mut attack_hit,
+                                EnemyKind::Final => &mut attack_hit,
+                            };
+
+                            // The enemy is being healed here. Color modulate the texture
+                            if enemy.last_damage_taken < 0 {
+                                tex.set_color_mod( 0, 255, 0 );
+                            } else {
+                                tex.set_color_mod( 255, 0, 0 );
+                            }
+
+                            core.wincan.copy( &tex, None, enemy_rect )?;
+                        }
+                    }
+
+
+                    core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
+                    if enemy.recently_attacked() {
+                        core.wincan.fill_rect(enemy.box_es.get_attackbox(enemy.pos, enemy.dir))?;
+                    }
                 }
             }
 
             // If the player was attacked, show a quick damage indicator ("-1" in red)
             if game.player.was_attacked() {
-                core.wincan.copy(&hp_indicator, None, Rect::new(game.player.get_pos_x() as i32, game.player.get_pos_y() as i32, 64, 64))?;
+                let font_surface = font.render( format!( "-{}", game.player.last_damage_taken ).as_str() )
+                                    .blended( Color::RGBA( 255, 0, 0, 255 ) )
+                                    .map_err( |e| e.to_string() )?;
+
+                let dmg_tex = texture_creator.create_texture_from_surface( &font_surface )
+                                .map_err( |e| e.to_string() )?;
+
+                core.wincan.copy(&dmg_tex, None, Rect::new(game.player.get_pos_x() as i32, game.player.get_pos_y() as i32, 64, 64))?;
             }
 
+            // Draw the hearts for the player on the left side.
             let mut flip_heart = false;
             let mut hp_offset_x = 0;
             let mut hp_offset_y = 0;
+            // From 0 to max player HP
             for i in 0 .. game.player.hp {
+                // This is used to flip each heart (as we are drawing half-hearts)
+                // and also vertical adjustment for each 3 hearts the player has
                 if i > 0 {
                     if i % 2 == 0 {
                         hp_offset_x += 1;
@@ -421,6 +962,45 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                 }
                 core.wincan.copy_ex(&pl_heart, None, Rect::new(10 + ( i % 6 ) * 28 + hp_offset_x, 40 + hp_offset_y, 28, 48), 0.0, None, flip_heart, false)?;
                 flip_heart = !flip_heart;
+            }
+
+            // Draw info about the last buff the player received.
+            match &game.player.last_buff_info {
+                Some( buff_info ) => {
+                    // Has it been almost a second since they received their last buff? If so, hide this msg.
+                    if buff_info.time.elapsed() < Duration::from_millis( 750 ) {
+                        // What type is it? Determine the text
+                        let buff_surface = font.render( format!( "{} Up!", match buff_info.ty {
+                            BuffType::Health => "Health",
+                            BuffType::Attack => "Attack Power",
+                            BuffType::Speed => "Speed",
+                        } ).as_str() )
+                        .blended( match buff_info.ty { // Blend based on the color gem received...
+                            BuffType::Health => Color::RED,
+                            BuffType::Attack => Color::YELLOW,
+                            BuffType::Speed => Color::RGBA( 0, 145, 234, 255 ),
+                        } )
+                        .map_err( |e| e.to_string() )?;
+
+                        // Map this surface to a drawable texture
+                        let buff_tex = texture_creator.create_texture_from_surface( buff_surface )
+                                                      .map_err( |e| e.to_string() )?;
+
+                        // Width and height metrics for centering the box
+                        let TextureQuery { width, height, .. } = buff_tex.query();
+
+                        // "2 + 2 equals 4... minus 1 that's 3"...
+                        let center_x = ( ( WINDOW_WIDTH as i32 - width as i32 ) / 2 ) + 96;
+
+                        // quick maffs!
+                        core.wincan.set_draw_color( Color::BLACK );
+                        core.wincan.fill_rect( Rect::new( center_x - 5, 123, width + 5, height + 5 ) )?;
+                        core.wincan.copy( &buff_tex, None, Rect::new( center_x, 128, width, height ) )?;
+                    }
+
+
+                },
+                None => {}
             }
 
             //draw powerup dials
@@ -465,7 +1045,11 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
 
             // Rough key setup
             if game.player.has_key {
-                core.wincan.copy(&key, None, Rect::new(64, 200, 64, 64))?;
+                core.wincan.copy(&key, None, Rect::new(96, 200, 64, 64))?;
+            }
+
+            if game.player.has_bomb {
+                core.wincan.copy(&bomb_menu, None, Rect::new(16, 200, 64, 64))?;
             }
 
             // Minimap (commented out first block as the block below does the same thing)
@@ -542,9 +1126,19 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
                                 enemy.box_es.hitbox.y
                             )
                         )?;
+
                     }
 
-                    for atk in &enemy.atkList {
+                    // Final Boss debugging
+                    if !enemy.death() && enemy.kind == EnemyKind::Final {
+                        core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                        core.wincan.draw_rect(enemy.box_es.get_walkbox(enemy.pos))?;
+                        core.wincan.draw_rect(enemy.box_left_final.get_hitbox(enemy.box_left_final_pos))?;
+                        core.wincan.draw_rect(enemy.box_right_final.get_hitbox(enemy.box_right_final_pos))?;
+
+                    }
+
+                    for atk in &enemy.atk_list {
                         core.wincan.set_draw_color(Color::RGBA(128,128,255,255));
                         core.wincan.draw_rect(
                             Rect::new(
@@ -626,12 +1220,118 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
             }
 
             // Draw attackbox
-            core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
-            if game.player.recently_attacked() {
-                //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
-                core.wincan.fill_rect(game.player.box_es.get_attackbox(game.player.pos, game.player.dir))?;
-            }
+            // core.wincan.set_draw_color(Color::RGBA(139, 195, 74, 255));
+            // if game.player.recently_attacked() {
+            //     //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
+            //     core.wincan.fill_rect(game.player.box_es.get_attackbox(game.player.pos, game.player.dir))?;
+            // }
 
+            if game.player.recently_bombed() {
+                //core.wincan.fill_rect(game.player.get_attackbox_world())?;  //removed for boxes.es
+                core.wincan.copy(&bomb_explosion, None, game.player.box_es.get_bombbox(game.player.pos_static, game.player.dir))?;
+                //core.wincan.fill_rect(game.player.box_es.get_bombbox(game.player.pos, game.player.dir))?;
+            }
+            // FINAL DRAW FOR ANY OVERLAYS
+            match game.game_state {
+                GameState::InitialFloorTrans => {
+                    let dur = Duration::new(0, 500_000_000); // 1 billion = second
+                    let ms = game.transition_start.elapsed().as_millis();
+
+                    if ms <= 1500 {
+                        core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, 720))?;
+
+                        let f1_surface = font_lg.render( "Floor 1" ).blended( Color::WHITE )
+                                             .map_err( |e| e.to_string() )?;
+                        
+                        let f1_tex = texture_creator.create_texture_from_surface( f1_surface )
+                                                    .map_err( |e| e.to_string() )?;
+
+                        let TextureQuery { width, height, .. } = f1_tex.query();
+
+                        let cx = ( WINDOW_WIDTH as i32 - width as i32 ) / 2;
+                        let cy = ( WINDOW_HEIGHT as i32 - height as i32 ) / 2;
+
+                        //let f1 = texture_creator.load_texture("assets/floor_1.png")?;
+                        //core.wincan.copy(&f1, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                        core.wincan.copy( &f1_tex, None, Rect::new( cx, cy, width, height ) );
+                    } else if ms <= 2000 {
+                        let scale = 1.0 - ((game.transition_start.elapsed().as_millis() - 1500) as f64 / dur.as_millis() as f64);
+
+                        core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32))?;
+                        core.wincan.fill_rect(Rect::new(0, (720.0 - 360.0 * scale) as i32, 1280, (scale * 360.0) as u32))?;
+                    }
+                }
+                GameState::BetweenFloors => {
+
+
+                    // Transition duration
+                    let dur = Duration::new(0, 500_000_000); // 1 billion = second
+
+                    let ms = game.transition_start.elapsed().as_millis();
+                    if ms <= 500 {
+                        // 0.0 to 1.0 value to scale transition by
+                        let scale = game.transition_start.elapsed().as_millis() as f64 / dur.as_millis() as f64;
+
+                        core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32))?;
+                        core.wincan.fill_rect(Rect::new(0, (720.0 - 360.0 * scale) as i32, 1280, (scale * 360.0) as u32))?;
+                    } else if ms <= 2500 {
+                        core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, 720))?;
+
+                        if ms > 550 { // Avoids drawing previous floor for a few frames bug
+                            let f_text = if game.cf < 3 {
+                                format!( "Floor {}", game.cf + 1 )
+                            } else {
+                                String::from( "Boss Fight" )
+                            };
+
+                            let f_surface = font_lg.render( f_text.as_str() )
+                                             .blended( Color::WHITE )
+                                             .map_err( |e| e.to_string() )?;
+                        
+                            let f_tex = texture_creator.create_texture_from_surface( f_surface )
+                                                        .map_err( |e| e.to_string() )?;
+
+                            let TextureQuery { width, height, .. } = f_tex.query();
+
+                            let cx = ( WINDOW_WIDTH as i32 - width as i32 ) / 2;
+                            let cy = ( WINDOW_HEIGHT as i32 - height as i32 ) / 2;
+
+                            core.wincan.copy( &f_tex, None, Rect::new( cx, cy, width, height ) )?;
+
+                            // If you want the old transitions back, here's the code:
+                            // 
+                            //   match game.cf {
+                            //     0 => {
+                            //         let f1 = texture_creator.load_texture("assets/floor_1.png")?;
+                            //         core.wincan.copy(&f1, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                            //     }
+                            //     1 => {
+                            //         let f2 = texture_creator.load_texture("assets/floor_2.png")?;
+                            //         core.wincan.copy(&f2, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                            //     }
+                            //     2 => {
+                            //         let f3 = texture_creator.load_texture("assets/floor_3.png")?;
+                            //         core.wincan.copy(&f3, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                            //     }
+                            //     3 => {
+                            //         let f4 = texture_creator.load_texture("assets/boss_fight.png")?;
+                            //         core.wincan.copy(&f4, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                            //  }
+                        }
+                    } else if ms <= 3000 {
+                        let scale = 1.0 - ((game.transition_start.elapsed().as_millis() - 2500) as f64 / dur.as_millis() as f64);
+
+                        core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
+                        core.wincan.fill_rect(Rect::new(0, 0, 1280, (scale * 360.0) as u32))?;
+                        core.wincan.fill_rect(Rect::new(0, (720.0 - 360.0 * scale) as i32, 1280, (scale * 360.0) as u32))?;
+                    }
+                }
+                _ => {} // Do nothing for other stuff
+            }
         }
 
         MenuState::GameOver => {
@@ -648,6 +1348,9 @@ pub fn base(mut game : &mut Game, mut core : &mut SDLCore, mut menu : &mut MenuS
         }
 
     }
+
+
+
 
     // Tell SDL to draw everything on screen.
     core.wincan.present();
