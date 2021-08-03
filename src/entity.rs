@@ -688,9 +688,10 @@ impl Enemy {
             }
             index+=1;
         }
-
+        let mut offset = 0;
         for rmv in &mut to_remove {
-            self.atk_list.remove(*rmv);
+            self.atk_list.remove(*rmv - offset);
+            offset += 1;
             //println!("Bullet Scooby Removed");
         }
     }
@@ -730,7 +731,7 @@ pub fn health_kind(kind: EnemyKind) -> i32 {
             health = 3;
         }
         EnemyKind::Final => {
-            health = 10;
+            health = 20;
         }
 
     }
@@ -741,7 +742,7 @@ pub fn set_ranged() -> bool {
     let mut rng = rand::thread_rng();
 
     match rng.gen_range( 0 ..= 6 ){
-               0 | 1 | 2 | 4 => {
+               0 | 1 | 2 | 3 | 4 => {
                    return false;
                },
                _ => {return true;}
