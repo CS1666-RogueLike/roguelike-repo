@@ -31,7 +31,6 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
     let mut x_offset = inter_rect.width() as i32;
     let mut y_offset = inter_rect.height() as i32;
 
-    //println!("{:?}", enemy.dir);
     if enemy.pos.x < inter_rect.x() as f32 && //To left
     enemy.pos.y < inter_rect.y() as f32 { //And Above
         match enemy.dir{
@@ -105,6 +104,7 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
         y_offset *= -1;
     }
 
+    println!("Offset for X BEFORE: {}, for Y: {}", x_offset, y_offset);
     enemy.pos.x -= x_offset as f32;
     enemy.pos.y -= y_offset as f32;
 }
@@ -161,7 +161,8 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, blackb
             }
 
 
-            // FINAL BOSS projectile
+            // FINAL BOSS projectile (no it isn't, it works for all projectiles)
+            //enemy.move_projectile(&game.current_room().tile_at(atk.pos.x, atk.pos.y));
             enemy.move_projectile();
             if !enemy.death() {
 
@@ -256,7 +257,16 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, blackb
                     }
                 }*/
             }
+
             for atk in &enemy.atk_list{
+                // let cur = Vec2::new(
+                //     (atk.pos.x as i32 - LEFT_WALL) / TILE_WIDTH,
+                //     (atk.pos.y as i32 - TOP_WALL) / TILE_WIDTH
+                // );
+                //let current_tile = &mut game.map.floors[game.cf].rooms[game.cr.y as usize][game.cr.x as usize].tiles[((atk.pos.y as i32 - TOP_WALL) / TILE_WIDTH) as usize][((atk.pos.x as i32 - LEFT_WALL) / TILE_WIDTH) as usize];
+                //let current_tile = &mut game.map.floors[game.cf].rooms[game.cr.y as usize][game.cr.x as usize].tile_at(atk.pos.x as i32, atk.pos.y as i32);
+                //let current_tile = &mut game.map.floors[game.cf].rooms[game.cr.y as usize][game.cr.x as usize].tile_at(cur.x, cur.y);
+                //println!("{:?}", current_tile.walkability());
                 let wb_test = atk.box_es.get_hitbox(atk.pos);
                 let player_test = game.player.box_es.get_hitbox(game.player.pos);
 
@@ -266,7 +276,6 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, blackb
                         *menu = MenuState::GameOver;
                     }
                 }
-
             }
         }
 

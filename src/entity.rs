@@ -10,6 +10,7 @@ use crate::tile::*;
 use std::collections::VecDeque;
 use crate::room::ROOM_HEIGHT;
 use crate::room::ROOM_WIDTH;
+use crate::room::*;
 
 use rand::Rng;
 
@@ -170,7 +171,7 @@ impl Enemy {
                 crate::redenemy::update(self, blackboard)
             }
             EnemyKind::Speed => {
-                crate::yellowenemy::update(self, blackboard)
+                crate::blueenemy::update(self, blackboard)
             }
             EnemyKind::Attack => {
                 crate::yellowenemy::update(self, blackboard);
@@ -357,12 +358,15 @@ impl Enemy {
         }
     }
 
-    pub fn player_close(enemy: & mut Enemy, blackboard: &BlackBoard) -> bool{
-        // getting hyp
+    pub fn distance_to_player(enemy: & mut Enemy, blackboard: &BlackBoard) -> f64 {
         let mut vector = Vec2::new(blackboard.playerpos.x - enemy.pos.x, blackboard.playerpos.y - enemy.pos.y);
         let length = ((vector.x * vector.x + vector.y * vector.y) as f64).sqrt();
 
-        if enemy.is_ranged  && length < 300.0{
+        return length;
+    }
+
+    pub fn player_close(enemy: & mut Enemy, blackboard: &BlackBoard) -> bool{
+        if enemy.is_ranged  && Enemy::distance_to_player(enemy, blackboard) < 300.0{
                 return true;
         } else {
             if enemy.box_es.get_walkbox(enemy.pos).has_intersection(blackboard.player_box.get_walkbox(blackboard.playerpos)) {
@@ -595,6 +599,7 @@ impl Enemy {
 
             //If the attack is off screen, remove it from the atk vector
 
+            //if !BlackBoard::is_walkable(current_tile)
             if atk.pos.x < 0.0 || atk.pos.y < 0.0 || atk.pos.x > WINDOW_WIDTH as f32|| atk.pos.y > WINDOW_HEIGHT as f32
             {
                 to_remove.push(index);
@@ -604,7 +609,7 @@ impl Enemy {
 
         for rmv in &mut to_remove {
             self.atk_list.remove(*rmv);
-            //println!("Bullet Removed");
+            //println!("Bullet Scooby Removed");
         }
     }
 

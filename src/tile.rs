@@ -32,7 +32,7 @@ pub trait Tile {
     fn get_gem_type(&self) -> Gem;
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum Walkability {
     Floor, // Normal ground.
     Pit, // A pit. Can't be walked over but can be flown over.
@@ -152,7 +152,7 @@ pub struct Spike {
 impl Tile for Spike {
     fn sprite(&self) -> SpriteID { SpriteID::Spike }
     fn walkability(&self) -> Walkability { Walkability::Spike }
-    fn on_walkover(& mut self) -> WalkoverAction { 
+    fn on_walkover(& mut self) -> WalkoverAction {
         let ret = match self.gem {
             Gem::Red => WalkoverAction::BuffHealth,
             Gem::Blue => WalkoverAction::BuffSpeed,
