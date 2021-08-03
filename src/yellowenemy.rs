@@ -43,7 +43,9 @@ pub fn update(enemy: & mut Enemy, blackboard: &BlackBoard){
 
 pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
 
-    if blackboard.player_charged && Enemy::distance_to_player(enemy, blackboard) < 100.0{
+    // if player charging, and high on life, take cover
+    if blackboard.player_charged && Enemy::distance_to_player(enemy, blackboard) < 100.0 &&
+    blackboard.player_health as f32 > (blackboard.player_max_health as f32 * 0.5) {
         enemy.state = State::TakeCover;
         return;
     }
@@ -199,7 +201,9 @@ pub fn take_cover(enemy: & mut Enemy, blackboard: &BlackBoard){
 
 pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
 
-    if blackboard.player_charged && Enemy::distance_to_player(enemy, blackboard) < 100.0{
+    // if player charging, and high on life, take cover
+    if blackboard.player_charged && Enemy::distance_to_player(enemy, blackboard) < 100.0
+    && blackboard.player_health as f32 > (blackboard.player_max_health as f32 * 0.5) {
         enemy.state = State::TakeCover;
         return;
     }
