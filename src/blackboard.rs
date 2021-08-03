@@ -251,7 +251,6 @@ impl BlackBoard{
         }
     }
     else{
-        println!{"Scrappy Doo, i guess"};
     }
     self.boss_kind = high_kind;
 

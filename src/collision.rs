@@ -12,8 +12,8 @@ use roguelike::SDLCore;
 use crate::boxes::*;
 
 pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
-    
-    
+
+
     let intersection = enemy.box_es.get_walkbox(enemy.pos).intersection(Rect::new(
         LEFT_WALL + x * TILE_WIDTH,
         TOP_WALL + y * TILE_WIDTH,
@@ -25,8 +25,8 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
         Some(x) => x,
         None => return,
     };
-    
-    println!{"Collision"};
+
+    //println!{"Collision"};
 
     let mut x_offset = inter_rect.width() as i32;
     let mut y_offset = inter_rect.height() as i32;
@@ -104,7 +104,7 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
         y_offset *= -1;
     }
 
-    println!("Offset for X BEFORE: {}, for Y: {}", x_offset, y_offset);
+    //println!("Offset for X BEFORE: {}, for Y: {}", x_offset, y_offset);
     enemy.pos.x -= x_offset as f32;
     enemy.pos.y -= y_offset as f32;
 }
@@ -221,9 +221,9 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, blackb
                     game.current_room_mut().tiles[0][8].explode();
                     game.current_room_mut().tiles[10][8].explode();
                     if wb_test.has_intersection(player_bomb) {
-                        println!("Bomb collided with enemy!");
+                        //println!("Bomb collided with enemy!");
                         enemy.take_damage(4, E_INVINCIBILITY_TIME); //Bomb deals 3 damage
-                        println!("damage done was 3 from bomb");
+                        //println!("damage done was 3 from bomb");
                         if enemy.death == true && live_count == 1
                         {
                             enemy.power = true;
