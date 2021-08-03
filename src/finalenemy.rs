@@ -137,7 +137,8 @@ pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
 //        enemy.state = State::Heal;
 //    }
 
-    if Enemy::distance_to_player(enemy, blackboard) > 200.0{
+    if Enemy::distance_to_player(enemy, blackboard) > 300.0{
+        println!("{}", Enemy::distance_to_player(enemy, blackboard));
         enemy.state = State::Chase;
     }
 
@@ -351,14 +352,19 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
     //            }
     
                     let mut enemies = Enemy::new(Vec2::new(enemy.box_left_final_pos.x - 200.0, enemy.box_left_final_pos.y), enemyKind);
+                    enemies.is_ranged = false;
+                    enemies.state = State::Chase;
                     enemy.add_enemies(enemies);
                     enemies = Enemy::new(Vec2::new(enemy.box_right_final_pos.x + 200.0, enemy.box_right_final_pos.y), enemyKind);
+                    enemies.is_ranged = false;
+                    enemies.state = State::Chase;
                     enemy.add_enemies(enemies);
                 }
         }
 
-    if Enemy::distance_to_player(enemy, blackboard) <= 200.0{
-        enemy.state = State::Chase;
+    if Enemy::distance_to_player(enemy, blackboard) <= 300.0{
+        println!("{}", Enemy::distance_to_player(enemy, blackboard));
+        enemy.state = State::Attack;
     }
 
 

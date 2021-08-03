@@ -171,6 +171,9 @@ impl Room {
 
     // Removes enemies when the player is at low hp
     pub fn ease_enemy_difficulty(&mut self, hp: i32) {
+        
+        //for mut enemy in &mut self.enemies { enemy.is_ranged = false; }
+        
         match hp {
 
             // When at 1 heart, get rid of yellow enemies to avoid player getting one shot

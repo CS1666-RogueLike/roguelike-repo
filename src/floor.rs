@@ -48,9 +48,9 @@ impl Floor {
         // FOR FINAL BOSS TESTING ONLY
         rooms[START_Y as usize][START_X as usize] = Box::new(Room::new_test_room(room));
         let mut enemies = Vec::new();
-        //enemies.push(Enemy::new(Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 2 * 64) as f32 + 40.0), EnemyKind::Final));
-        enemies.push(Enemy::new(Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 2 * 64) as f32 + 40.0), EnemyKind::Attack));
-        enemies.push(Enemy::new(Vec2::new((LEFT_WALL + 6 * 64) as f32 + 32.0, (TOP_WALL + 2 * 64) as f32 + 40.0), EnemyKind::Attack));
+        enemies.push(Enemy::new(Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 2 * 64) as f32 + 40.0), EnemyKind::Final));
+        //enemies.push(Enemy::new(Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 2 * 64) as f32 + 40.0), EnemyKind::Attack));
+        //enemies.push(Enemy::new(Vec2::new((LEFT_WALL + 6 * 64) as f32 + 32.0, (TOP_WALL + 2 * 64) as f32 + 40.0), EnemyKind::Attack));
         rooms[START_Y as usize][START_X as usize].add_enemies(enemies);
         // END FINAL BOSS
         Floor { rooms }

@@ -78,7 +78,7 @@ impl Player {
             last_damage_taken: 0,
 
 
-            power_up_vec: vec![0; 3],
+            power_up_vec: vec![1; 3],
 
             prev_frame_tile: Vec2::new(8, 5),
             current_frame_tile: Vec2::new(8, 5),
@@ -322,13 +322,15 @@ impl PowerUp for Player {
             if let Some(temp) = self.power_up_vec.get_mut(0){
                 *temp = 1;
             }
-            if self.hp != self.m_hp {
-                self.heal(self.m_hp);
-            }
-            else{
-                self.m_hp += 2;
-                self.heal(self.m_hp);
-            }
+//            if self.hp != self.m_hp {
+//                self.heal(self.m_hp);
+//            }
+//            else{
+    
+            //Make it so the player increases max health every time
+            self.m_hp += 2;
+            self.heal(self.m_hp);
+            //}
         }
     }
     fn plus_power_speed(&mut self){

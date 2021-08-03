@@ -72,8 +72,7 @@ pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
 
 
     // if player is far, chase them
-    if !Enemy::player_close(enemy, blackboard)
-    {
+    if !Enemy::player_close(enemy, blackboard){
         enemy.state = State::Chase;
     }
 
