@@ -253,7 +253,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                     }
                 }*/
             }
-            let mut index = 0;
+
             for atk in &enemy.atk_list{
                 // let cur = Vec2::new(
                 //     (atk.pos.x as i32 - LEFT_WALL) / TILE_WIDTH,
@@ -265,7 +265,6 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState) {
                 //println!("{:?}", current_tile.walkability());
                 let wb_test = atk.box_es.get_hitbox(atk.pos);
                 let player_test = game.player.box_es.get_hitbox(game.player.pos);
-                index += 1;
 
                 if wb_test.has_intersection(player_test){
                     game.player.take_damage(atk.damage, P_INVINCIBILITY_TIME);
