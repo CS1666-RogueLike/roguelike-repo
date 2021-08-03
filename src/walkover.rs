@@ -29,16 +29,21 @@ pub fn base(game: &mut Game, menu: &mut MenuState) {
 
         match current_tile.on_walkover() {
             WalkoverAction::DoNothing => {
-                if BlackBoard::get_enemy_quantity(game) != 0 {
-                    game.current_room_mut().tiles[5][0].lock();
-                    game.current_room_mut().tiles[5][16].lock();
-                    game.current_room_mut().tiles[0][8].lock();
-                    game.current_room_mut().tiles[10][8].lock();
-                } else {
-                    game.current_room_mut().tiles[5][0].unlock();
-                    game.current_room_mut().tiles[5][16].unlock();
-                    game.current_room_mut().tiles[0][8].unlock();
-                    game.current_room_mut().tiles[10][8].unlock();
+                match game.current_room_mut().tiles[5][0].get_lock_state() {
+                    LockState::Explode => {},
+                    _ => {
+                        if BlackBoard::get_enemy_quantity(game) != 0 {
+                            game.current_room_mut().tiles[5][0].lock();
+                            game.current_room_mut().tiles[5][16].lock();
+                            game.current_room_mut().tiles[0][8].lock();
+                            game.current_room_mut().tiles[10][8].lock();
+                        } else {
+                            game.current_room_mut().tiles[5][0].unlock();
+                            game.current_room_mut().tiles[5][16].unlock();
+                            game.current_room_mut().tiles[0][8].unlock();
+                            game.current_room_mut().tiles[10][8].unlock();
+                        }
+                    }
                 }
                 game.player.speed_adjust(WalkoverAction::DoNothing);
             }
