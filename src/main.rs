@@ -414,8 +414,22 @@ impl Demo for Manager {
 
 
                                     if enemy.kind == EnemyKind::Final && enemy.is_attacking{ //Final Boss Check
-                                        enemy_to_push = enemy.final_enemies_to_spawn.pop().unwrap();
-                                        enemy_to_push2 = enemy.final_enemies_to_spawn.pop().unwrap();
+                                        println!("Before pops");
+
+                                        match enemy.final_enemies_to_spawn.pop() {
+                                            Some( new_enemy ) => enemy_to_push = new_enemy,
+                                            None => {},
+                                        };
+
+                                        println!("First pop");
+
+                                        match enemy.final_enemies_to_spawn.pop() {
+                                            Some( new_enemy ) => enemy_to_push2 = new_enemy,
+                                            None => {},
+                                        };
+
+                                        //enemy_to_push2 = enemy.final_enemies_to_spawn.pop().unwrap();
+                                        println!("Second pop");
                                         push_enemy = true;
                                         //self.game.current_room_mut().additional_enemies(enemy.final_enemies_to_spawn.pop().unwrap());
                                         enemy.is_attacking = false;

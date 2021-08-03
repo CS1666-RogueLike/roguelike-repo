@@ -6,6 +6,16 @@ use sdl2::rect::Rect;
 use std::time::{Duration, Instant};
 use crate::tile::*;
 
+pub enum BuffType {
+    Health,
+    Speed,
+    Attack,
+}
+
+pub struct BuffInfo {
+    pub time: Instant,
+    pub ty: BuffType,
+}
 
 pub const PLAYER_SPEED: f32 = 300.0;
 
@@ -32,6 +42,7 @@ pub struct Player {
     pub has_bomb: bool,
     pub using_bomb: bool,
     pub last_bomb_time: Option<Instant>,
+    pub last_buff_info: Option<BuffInfo>,
     pub has_key: bool,
     pub last_invincibility_time: Option<Instant>,
     pub time_between_frames: Option<Instant>,
@@ -86,6 +97,7 @@ impl Player {
             has_bomb: false,
             using_bomb: false,
             last_bomb_time: None,
+            last_buff_info: None,
             has_key: false,
             last_invincibility_time: None,
             time_between_frames: None,
@@ -123,7 +135,7 @@ impl Player {
                 // as they enter the room. It adds a natural snappiness to each room transition;
                 // still allowing player movement to occur, but delaying it slightly until
                 // the room transition is essentially finished.
-                if ( val < 300.0 ) {
+                if val < 300.0 {
                     self.pos.x += mov_vec.x * self.speed * ( val / 1000.0 );
                     self.pos.y += mov_vec.y * self.speed * ( val / 1000.0 );
                 }
@@ -315,10 +327,12 @@ impl Health for Player {
 
 impl PowerUp for Player {
     fn plus_power_health(&mut self){
+
         if let Some(temp) = self.power_up_vec.get_mut(0){
             *temp += 1;
         }
         if self.power_up_vec[0] > 3 {
+            self.last_buff_info = Some( BuffInfo { time: Instant::now(), ty: BuffType::Health } );
             if let Some(temp) = self.power_up_vec.get_mut(0){
                 *temp = 1;
             }
@@ -334,10 +348,12 @@ impl PowerUp for Player {
         }
     }
     fn plus_power_speed(&mut self){
+
         if let Some(temp) = self.power_up_vec.get_mut(1){
             *temp += 1;
         }
         if self.power_up_vec[1] > 3 {
+            self.last_buff_info = Some( BuffInfo { time: Instant::now(), ty: BuffType::Speed } );
             if let Some(temp) = self.power_up_vec.get_mut(1){
                 *temp = 1;
             }
@@ -349,6 +365,7 @@ impl PowerUp for Player {
             *temp += 1;
         }
         if self.power_up_vec[2] > 3 {
+            self.last_buff_info = Some( BuffInfo { time: Instant::now(), ty: BuffType::Attack } );
             if let Some(temp) = self.power_up_vec.get_mut(2){
                 *temp = 1;
             }
