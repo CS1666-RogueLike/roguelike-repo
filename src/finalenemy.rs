@@ -478,7 +478,8 @@ pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
 //    if blackboard.playerpos.x > 300.0{
 //        enemy.state = State::Attack;
 //    }
-    enemy.state = State::Chase;
+    //enemy.state = State::Chase;
+    enemy.pos.x -= 1.0;
 }
 
 pub fn generate_kind(enemy: & mut Enemy, blackboard: &BlackBoard) -> EnemyKind{

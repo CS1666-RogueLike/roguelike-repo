@@ -860,8 +860,8 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                     if (enemy.kind == EnemyKind::Final){
                         core.wincan.copy(&tex, None,
                             Rect::new(
-                                enemy.get_pos_x() - 35 + 4 + x_val,
-                                enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val,
+                                enemy.get_pos_x() - 35 + 4 + x_val - 86,
+                                enemy.get_pos_y() - 64 + (enemy.box_es.get_walkbox(enemy.pos).height()/2) as i32 + y_val - 64,
                                 64+172, 64+64)
                         )?;
                     }
