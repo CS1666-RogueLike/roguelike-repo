@@ -216,6 +216,10 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, blackb
                 }
                 if game.player.using_bomb {
                     let player_bomb = game.player.box_es.get_bombbox(game.player.pos_static, game.player.dir);
+                    game.current_room_mut().tiles[5][0].explode();
+                    game.current_room_mut().tiles[5][16].explode();
+                    game.current_room_mut().tiles[0][8].explode();
+                    game.current_room_mut().tiles[10][8].explode();
                     if wb_test.has_intersection(player_bomb) {
                         println!("Bomb collided with enemy!");
                         enemy.take_damage(4, E_INVINCIBILITY_TIME); //Bomb deals 3 damage

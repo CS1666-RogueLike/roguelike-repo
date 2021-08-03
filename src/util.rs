@@ -90,6 +90,7 @@ pub enum Direction {
 pub enum LockState {
     Locked,
     Unlocked,
+    Explode,
     NA,
 }
 
