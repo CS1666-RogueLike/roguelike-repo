@@ -2,7 +2,7 @@ use crate::game::*;
 use crate::util::*;
 use crate::tile::*;
 use crate::menu::*;
-use crate::player::PowerUp;
+use crate::player::{BuffType, PowerUp};
 use crate::entity::*;
 use crate::finalenemy::*;
 use roguelike::SDLCore;
@@ -70,7 +70,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
     let font = ttf_context.load_font( "assets/earlygameboy.ttf", 32 )?;
 
     // IF WE WANT A MAIN MENU DRAWN W/ FONT:
-    //let font_lg = ttf_context.load_font( "assets/earlygameboy.ttf", 128 )?;
+    let font_lg = ttf_context.load_font( "assets/earlygameboy.ttf", 112 )?;
 
 
 
@@ -872,7 +872,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                     if enemy.was_damaged() {
                         // Outline (healthbar backdrop)
                         core.wincan.set_draw_color( Color::RGBA( 0, 0, 0, 255 ) );
-                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 32, enemy.get_pos_y() - 69, 64, 12 ) )?;
+                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 32, enemy.get_pos_y() - enemy.box_es.walkbox.y as i32 - 24, 64, 12 ) )?;
                         // Fill color (healthbar)
                         let hp_percentage: f32 = enemy.hp as f32 / enemy.m_hp as f32;
 
@@ -888,7 +888,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
 
                         core.wincan.set_draw_color( hp_color );
                         // Width remaining: ( hp / max_hp ) * width of healthbar
-                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 30, enemy.get_pos_y() - 67, ( 60.0 * hp_percentage ) as u32, 8 ) )?;
+                        core.wincan.fill_rect( Rect::new( enemy.get_pos_x() - 30, enemy.get_pos_y() - enemy.box_es.walkbox.y as i32 - 22, ( 60.0 * hp_percentage ) as u32, 8 ) )?;
 
                         if enemy.last_invincibility_time.unwrap().elapsed() < Duration::from_millis( 500 ) {
                             let enemy_rect = Rect::new(
@@ -935,10 +935,14 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                 core.wincan.copy(&dmg_tex, None, Rect::new(game.player.get_pos_x() as i32, game.player.get_pos_y() as i32, 64, 64))?;
             }
 
+            // Draw the hearts for the player on the left side.
             let mut flip_heart = false;
             let mut hp_offset_x = 0;
             let mut hp_offset_y = 0;
+            // From 0 to max player HP
             for i in 0 .. game.player.hp {
+                // This is used to flip each heart (as we are drawing half-hearts)
+                // and also vertical adjustment for each 3 hearts the player has
                 if i > 0 {
                     if i % 2 == 0 {
                         hp_offset_x += 1;
@@ -951,6 +955,45 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                 }
                 core.wincan.copy_ex(&pl_heart, None, Rect::new(10 + ( i % 6 ) * 28 + hp_offset_x, 40 + hp_offset_y, 28, 48), 0.0, None, flip_heart, false)?;
                 flip_heart = !flip_heart;
+            }
+
+            // Draw info about the last buff the player received.
+            match &game.player.last_buff_info {
+                Some( buff_info ) => {
+                    // Has it been almost a second since they received their last buff? If so, hide this msg.
+                    if buff_info.time.elapsed() < Duration::from_millis( 750 ) {
+                        // What type is it? Determine the text
+                        let buff_surface = font.render( format!( "{} Up!", match buff_info.ty {
+                            BuffType::Health => "Health",
+                            BuffType::Attack => "Attack Power",
+                            BuffType::Speed => "Speed",
+                        } ).as_str() )
+                        .blended( match buff_info.ty { // Blend based on the color gem received...
+                            BuffType::Health => Color::RED,
+                            BuffType::Attack => Color::YELLOW,
+                            BuffType::Speed => Color::RGBA( 0, 145, 234, 255 ),
+                        } )
+                        .map_err( |e| e.to_string() )?;
+
+                        // Map this surface to a drawable texture
+                        let buff_tex = texture_creator.create_texture_from_surface( buff_surface )
+                                                      .map_err( |e| e.to_string() )?;
+
+                        // Width and height metrics for centering the box
+                        let TextureQuery { width, height, .. } = buff_tex.query();
+
+                        // "2 + 2 equals 4... minus 1 that's 3"...
+                        let center_x = ( ( WINDOW_WIDTH as i32 - width as i32 ) / 2 ) + 96;
+
+                        // quick maffs!
+                        core.wincan.set_draw_color( Color::BLACK );
+                        core.wincan.fill_rect( Rect::new( center_x - 5, 123, width + 5, height + 5 ) )?;
+                        core.wincan.copy( &buff_tex, None, Rect::new( center_x, 128, width, height ) )?;
+                    }
+
+
+                },
+                None => {}
             }
 
             //draw powerup dials
@@ -1191,8 +1234,20 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                         core.wincan.set_draw_color(Color::RGBA(0, 0, 0, 255));
                         core.wincan.fill_rect(Rect::new(0, 0, 1280, 720))?;
 
-                        let f1 = texture_creator.load_texture("assets/floor_1.png")?;
-                        core.wincan.copy(&f1, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                        let f1_surface = font_lg.render( "Floor 1" ).blended( Color::WHITE )
+                                             .map_err( |e| e.to_string() )?;
+                        
+                        let f1_tex = texture_creator.create_texture_from_surface( f1_surface )
+                                                    .map_err( |e| e.to_string() )?;
+
+                        let TextureQuery { width, height, .. } = f1_tex.query();
+
+                        let cx = ( WINDOW_WIDTH as i32 - width as i32 ) / 2;
+                        let cy = ( WINDOW_HEIGHT as i32 - height as i32 ) / 2;
+
+                        //let f1 = texture_creator.load_texture("assets/floor_1.png")?;
+                        //core.wincan.copy(&f1, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                        core.wincan.copy( &f1_tex, None, Rect::new( cx, cy, width, height ) );
                     } else if ms <= 2000 {
                         let scale = 1.0 - ((game.transition_start.elapsed().as_millis() - 1500) as f64 / dur.as_millis() as f64);
 
@@ -1220,26 +1275,45 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                         core.wincan.fill_rect(Rect::new(0, 0, 1280, 720))?;
 
                         if ms > 550 { // Avoids drawing previous floor for a few frames bug
-                            match game.cf {
-                                0 => {
-                                    let f1 = texture_creator.load_texture("assets/floor_1.png")?;
-                                    core.wincan.copy(&f1, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
-                                }
-                                1 => {
-                                    let f2 = texture_creator.load_texture("assets/floor_2.png")?;
-                                    core.wincan.copy(&f2, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
-                                }
-                                2 => {
-                                    let f3 = texture_creator.load_texture("assets/floor_3.png")?;
-                                    core.wincan.copy(&f3, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
-                                }
-                                3 => {
-                                    let f4 = texture_creator.load_texture("assets/boss_fight.png")?;
-                                    core.wincan.copy(&f4, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                            let f_text = if game.cf < 3 {
+                                format!( "Floor {}", game.cf + 1 )
+                            } else {
+                                String::from( "Boss Fight" )
+                            };
 
-                                }
-                                _ => {}
-                            }
+                            let f_surface = font_lg.render( f_text.as_str() )
+                                             .blended( Color::WHITE )
+                                             .map_err( |e| e.to_string() )?;
+                        
+                            let f_tex = texture_creator.create_texture_from_surface( f_surface )
+                                                        .map_err( |e| e.to_string() )?;
+
+                            let TextureQuery { width, height, .. } = f_tex.query();
+
+                            let cx = ( WINDOW_WIDTH as i32 - width as i32 ) / 2;
+                            let cy = ( WINDOW_HEIGHT as i32 - height as i32 ) / 2;
+
+                            core.wincan.copy( &f_tex, None, Rect::new( cx, cy, width, height ) )?;
+
+                            // If you want the old transitions back, here's the code:
+                            // 
+                            //   match game.cf {
+                            //     0 => {
+                            //         let f1 = texture_creator.load_texture("assets/floor_1.png")?;
+                            //         core.wincan.copy(&f1, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                            //     }
+                            //     1 => {
+                            //         let f2 = texture_creator.load_texture("assets/floor_2.png")?;
+                            //         core.wincan.copy(&f2, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                            //     }
+                            //     2 => {
+                            //         let f3 = texture_creator.load_texture("assets/floor_3.png")?;
+                            //         core.wincan.copy(&f3, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                            //     }
+                            //     3 => {
+                            //         let f4 = texture_creator.load_texture("assets/boss_fight.png")?;
+                            //         core.wincan.copy(&f4, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
+                            //  }
                         }
                     } else if ms <= 3000 {
                         let scale = 1.0 - ((game.transition_start.elapsed().as_millis() - 2500) as f64 / dur.as_millis() as f64);
