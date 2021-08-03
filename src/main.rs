@@ -194,7 +194,7 @@ impl Demo for Manager {
             match self.menu {
 
                 Victory => {
-                    println!("Press Escape to return to main menu.");
+                    //println!("Press Escape to return to main menu.");
                     if keystate.contains(&Keycode::Escape) {
                         self.menu = MainMenu;
                     }
