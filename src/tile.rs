@@ -22,6 +22,7 @@ pub trait Tile {
     // a new tile, or keeping track of what doors a room has for unlocking.
     fn lock(& mut self);
     fn unlock(& mut self);
+    fn explode(& mut self);
     fn get_lock_state(&self) -> LockState;
 
     // Used for dropping the gem. Should only do something for ground tiles
@@ -87,6 +88,7 @@ impl Tile for Ground {
     }
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
+    fn explode(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, color: Gem) { self.gem = color; }
     fn get_gem_type(&self) -> Gem {
@@ -102,6 +104,7 @@ impl Tile for Rock {
     fn on_walkover(& mut self) -> WalkoverAction { WalkoverAction::DoNothing }
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
+    fn explode(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {
@@ -119,6 +122,7 @@ impl Tile for Wall {
     fn on_walkover(& mut self) -> WalkoverAction { WalkoverAction::DoNothing }
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
+    fn explode(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {
@@ -136,6 +140,7 @@ impl Tile for Pit {
     fn on_walkover(& mut self) -> WalkoverAction { WalkoverAction::DoNothing }
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
+    fn explode(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {
@@ -171,6 +176,7 @@ impl Tile for Spike {
     }
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
+    fn explode(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, color: Gem) { self.gem = color; }
     fn get_gem_type(&self) -> Gem {
@@ -187,6 +193,7 @@ impl Tile for Door {
         match self.lock {
             LockState::Locked => SpriteID::DoorLocked,
             LockState::Unlocked => SpriteID::DoorUnlocked,
+            LockState::Explode => SpriteID::DoorUnlocked,
             LockState::NA => panic!("Locking tile shouldn't have NA!!!")
         }
     }
@@ -194,6 +201,7 @@ impl Tile for Door {
         match self.lock {
             LockState::Locked => Walkability::Wall,
             LockState::Unlocked => Walkability::Floor,
+            LockState::Explode => Walkability::Floor,
             LockState::NA => panic!("Locking tile shouldn't have NA!!!")
         }
     }
@@ -203,6 +211,7 @@ impl Tile for Door {
     fn on_walkover(& mut self) -> WalkoverAction { WalkoverAction::ChangeRooms }
     fn lock(&mut self) { self.lock = LockState::Locked; }
     fn unlock(&mut self) { self.lock = LockState::Unlocked; }
+    fn explode(&mut self) { self.lock = LockState::Explode }
     fn get_lock_state(&self) -> LockState { self.lock }
     fn place_gem(&mut self, _color: Gem) {}
     fn get_gem_type(&self) -> Gem {
@@ -232,6 +241,7 @@ impl Tile for Bomb {
 
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
+    fn explode(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {
@@ -262,6 +272,7 @@ impl Tile for Key {
     }
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
+    fn explode(& mut self) {}
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {
@@ -280,6 +291,7 @@ impl Tile for Trapdoor {
         match self.lock {
             LockState::Locked => SpriteID::TrapdoorLocked,
             LockState::Unlocked => SpriteID::TrapdoorUnlocked,
+            LockState::Explode => SpriteID::TrapdoorLocked,
             LockState::NA => panic!("Locking tile shouldn't have NA!!!")
         }
     }
@@ -289,6 +301,7 @@ impl Tile for Trapdoor {
     }
     fn lock(&mut self) { self.lock = LockState::Locked; }
     fn unlock(&mut self) { self.lock = LockState::Unlocked; }
+    fn explode(& mut self) {}
     fn get_lock_state(&self) -> LockState { self.lock }
     fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {
