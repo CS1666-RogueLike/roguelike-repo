@@ -34,7 +34,7 @@ pub const E_INVINCIBILITY_TIME: u64 = 1000;
 pub const HEAL_TIME: u64 = 2000;
 
 //----Health Enemy Stats----
-pub const HEALTH_ENEMY_ATK_DMG: i32 = 2; //The damage of this enemy's projectile attack
+pub const HEALTH_ENEMY_ATK_DMG: i32 = 1; //The damage of this enemy's projectile attack
 pub const HEALTH_ENEMY_ATK_PROJSPEED: f32 = 2.0; //The speed of this enemy's projectile attack
 pub const HEALTH_ENEMY_ATK_WIDTH: u32 = 30; //The width of this enemy's projectile attack
 pub const HEALTH_ENEMY_ATK_HEIGHT: u32 = 30; //The height of this enemy's projectile attack
@@ -47,7 +47,7 @@ pub const SPEED_ENEMY_ATK_HEIGHT: u32 = 10; //The height of this enemy's project
 
 
 //----Attack Enemy Stats----
-pub const ATTACK_ENEMY_ATK_DMG: i32 = 3; //The damage of this enemy's projectile attack
+pub const ATTACK_ENEMY_ATK_DMG: i32 = 2; //The damage of this enemy's projectile attack
 pub const ATTACK_ENEMY_ATK_PROJSPEED: f32 = 3.0; //The speed of this enemy's projectile attack
 pub const ATTACK_ENEMY_ATK_WIDTH: u32 = 20; //The width of this enemy's projectile attack
 pub const ATTACK_ENEMY_ATK_HEIGHT: u32 = 20; //The height of this enemy's projectile attack

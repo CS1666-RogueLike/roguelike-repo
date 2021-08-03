@@ -1,6 +1,7 @@
 use crate::util::*;
 use crate::tile::*;
 use crate::entity::*;
+use rand::Rng;
 
 pub const ROOM_WIDTH: i32 = 17;
 pub const ROOM_HEIGHT: i32 = 11;
@@ -139,7 +140,64 @@ impl Room {
     // Avoids player taking immediate damage they can't prevent
     pub fn reposition_enemies(&mut self, player_pos: Vec2<f32>) {
 
-        println!("Repositioning enemies...")
+        //println!("Repositioning enemies...");
+
+        let mut rng = rand::thread_rng();
+
+        for mut enemy in &mut self.enemies {
+
+            loop {
+                // Get distance between player and enemy
+                let mut dist = ((enemy.pos.x - player_pos.x).powf(2.0) + (enemy.pos.y - player_pos.y).powf(2.0)).sqrt();
+
+                // See if tile enemy is on is walkable
+                let mut valid_tile = self.tiles
+                    [((enemy.pos.y as i32 - TOP_WALL) / 64) as usize]
+                    [((enemy.pos.x as i32 - LEFT_WALL) / 64) as usize]
+                    .walkability() == Walkability::Floor;
+
+                // Reroll enemy position if too close or not walkable
+                if dist < 250.0 || !valid_tile {
+                    enemy.pos.x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;
+                    enemy.pos.y = rng.gen_range(TOP_WALL..BOT_WALL) as f32;
+                }
+                // If enemy is far enough away, go to next enemy
+                else {
+                    break
+                }
+            }
+        }
+    }
+
+    // Removes enemies when the player is at low hp
+    pub fn ease_enemy_difficulty(&mut self, hp: i32) {
+        match hp {
+
+            // When at 1 heart, get rid of yellow enemies to avoid player getting one shot
+            2 => {
+                self.enemies.retain(
+                    |enemy| {
+                        enemy.kind == EnemyKind::Health || enemy.kind == EnemyKind::Speed
+                    }
+                );
+            }
+
+            // When at half a heart, only spawn 1 enemy red enemy.
+            1 => {
+                self.enemies.clear();
+                let mut rng = rand::thread_rng();
+                let x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;
+                let y = rng.gen_range(TOP_WALL..BOT_WALL) as f32;
+                self.enemies.push(Enemy::new(Vec2 {x, y}, EnemyKind::Health));
+            }
+
+            _ => {}
+        }
+        // When at lower than 1.5 hearts, don't spawn ranged enemies
+        if hp <= 3 {
+            for mut enemy in &mut self.enemies { enemy.is_ranged = false; }
+        }
+
     }
 
     // Provides enemies with time_scale so they can do frame independent movement

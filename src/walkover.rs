@@ -85,6 +85,9 @@ pub fn base(game: &mut Game, menu: &mut MenuState) {
                     game.trans_dir = Direction::Down;
                 }
 
+                // Adjust number of enemies and type based off of player health
+                game.map.floors[game.cf].rooms[game.cr.y as usize][game.cr.x as usize].ease_enemy_difficulty(game.player.hp);
+
                 // Player position has already been set, so we can reposition enemies right here.
                 game.map.floors[game.cf].rooms[game.cr.y as usize][game.cr.x as usize].reposition_enemies(game.player.pos);
 
