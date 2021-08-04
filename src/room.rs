@@ -68,7 +68,7 @@ impl Room {
                     'b' => tiles[y as usize].push(Box::new(Ground { gem: Gem::Blue })),
                     'Q' => tiles[y as usize].push(Box::new(Bomb {has_bomb: true})),
                     'W' => tiles[y as usize].push(Box::new(Wall {})),
-                    'R' => tiles[y as usize].push(Box::new(Rock {})),
+                    'R' => tiles[y as usize].push(Box::new(Rock { is_exploded: false })),
                     'P' => tiles[y as usize].push(Box::new(Pit {})),
                     'S' => tiles[y as usize].push(Box::new(Spike { gem: Gem::None })),
                     // TODO: Add code for proper handling of direction

@@ -98,14 +98,32 @@ impl Tile for Ground {
 }
 
 
-pub struct Rock {}
+pub struct Rock {
+    pub is_exploded: bool,
+}
 impl Tile for Rock {
-    fn sprite(&self) -> SpriteID { SpriteID::Rock }
-    fn walkability(&self) -> Walkability { Walkability::Rock }
+    fn sprite(&self) -> SpriteID {
+        if self.is_exploded {
+            SpriteID::Ground
+        }
+        else {
+            SpriteID::Rock
+        }
+    }
+    fn walkability(&self) -> Walkability {
+        if self.is_exploded {
+            Walkability::Floor
+        }
+        else {
+            Walkability::Rock
+        }
+    }
     fn on_walkover(& mut self) -> WalkoverAction { WalkoverAction::DoNothing }
     fn lock(& mut self) {}
     fn unlock(& mut self) {}
-    fn explode(& mut self) {}
+    fn explode(& mut self) {
+        self.is_exploded = true;
+    }
     fn get_lock_state(&self) -> LockState { LockState::NA }
     fn place_gem(&mut self, _color: Gem) {}
     fn has_gem(&self) -> bool {

@@ -95,7 +95,7 @@ pub enum LockState {
 }
 
 
-//#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum SpriteID {
     Ground,
     Wall,
