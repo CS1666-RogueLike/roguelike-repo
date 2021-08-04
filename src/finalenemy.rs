@@ -138,7 +138,7 @@ pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
 //    }
 
     if Enemy::distance_to_player(enemy, blackboard) > 300.0{
-        println!("{}", Enemy::distance_to_player(enemy, blackboard));
+        //println!("{}", Enemy::distance_to_player(enemy, blackboard));
         enemy.state = State::Chase;
     }
 
