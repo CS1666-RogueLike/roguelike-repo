@@ -1,5 +1,5 @@
 
-use crate::room::*;
+//use crate::room::*;
 use crate::floor::*;
 
 pub struct Map {
@@ -10,7 +10,7 @@ pub struct Map {
 
 impl Map {
     pub fn new() -> Map {
-        let blueprint = [
+        /*let blueprint = [
             //                                   MID
             //    0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
             ['W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W','W'], // 0
@@ -24,7 +24,7 @@ impl Map {
             ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 8
             ['W','_','_','_','_','_','_','_','_','_','_','_','_','_','_','_','W'], // 9
             ['W','W','W','W','W','W','W','W','D','W','W','W','W','W','W','W','W'], // 10
-        ];
+        ];*/
         Map {
             // Actual thing
             floors: [Floor::gen_floor(), Floor::gen_floor(), Floor::gen_floor(), Floor::boss_floor()],

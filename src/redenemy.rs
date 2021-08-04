@@ -52,7 +52,7 @@ pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
             // normalize vector
             vector.x /= length as f32;
             vector.y /= length as f32;
-            let mut new_atk = AtkProjectile::new(enemy.pos, vector, &enemy.kind);
+            let new_atk = AtkProjectile::new(enemy.pos, vector, &enemy.kind);
             enemy.atk_list.push(new_atk);
 
             enemy.is_shooting = false;
@@ -130,13 +130,13 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
     enemy.pos.y += enemy.movement_vec.y * enemy.speed * enemy.time_scale;
 
     // if last enemy in room, switch to chase
-    if(blackboard.enemy_quantity == 1)
+    if blackboard.enemy_quantity == 1
     {
         enemy.state = State::Chase;
     }
 }
 
-pub fn take_cover(enemy: & mut Enemy, blackboard: &BlackBoard){
+pub fn take_cover(_enemy: & mut Enemy, _blackboard: &BlackBoard){
 
 }
 
@@ -206,7 +206,7 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
 
 }
 
-pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
+pub fn heal(enemy: & mut Enemy, _blackboard: &BlackBoard){
     //println!("Im healing somebody else");
     if !enemy.is_healing {
         enemy.state = State::Chase;

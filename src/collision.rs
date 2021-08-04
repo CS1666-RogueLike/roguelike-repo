@@ -1,15 +1,15 @@
 use crate::game::*;
 use crate::util::*;
-use crate::player::PowerUp;
+//use crate::player::PowerUp;
 use crate::entity::*;
 use crate::tile::*;
 use crate::menu::*;
 use crate::blackboard::*;
-use std::time::Duration;
+//use std::time::Duration;
 use sdl2::rect::Rect;
 use sdl2::pixels::Color;
 use roguelike::SDLCore;
-use crate::boxes::*;
+//use crate::boxes::*;
 
 pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
 
@@ -40,9 +40,9 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
             Direction::Right | Direction::Left => { //Act like it is only above
                 x_offset = 0;
             }
-            _ => {
+            /*_ => {
                 println!("What? This shouldn't be happening");
-            }
+            }*/
         }
     }else if enemy.pos.x < inter_rect.x() as f32 && //To left
     enemy.pos.y > (inter_rect.y() + inter_rect.height() as i32) as f32{ //And below
@@ -54,9 +54,9 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
                 x_offset = 0;
                 y_offset *= -1;
             }
-            _ => {
+            /*_ => {
                 println!("What? I think I left the stove on");
-            }
+            }*/
         }
     }else if enemy.pos.x > (inter_rect.x() + inter_rect.width() as i32) as f32  &&//To right
     enemy.pos.y < inter_rect.y() as f32 { //And above
@@ -68,9 +68,9 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
             Direction::Left | Direction::Right => { //Act like it is only above
                 x_offset = 0;
             }
-            _ => {
+            /*_ => {
                 println!("What? Is life even real?");
-            }
+            }*/
         }
     }else if enemy.pos.x > (inter_rect.x() + inter_rect.width() as i32) as f32 &&//To right
     enemy.pos.y > (inter_rect.y() + inter_rect.height() as i32) as f32{ //And below
@@ -83,9 +83,9 @@ pub fn enemy_collision(enemy: &mut Enemy, x: &i32, y: &i32) {
                 x_offset = 0;
                 y_offset *= -1;
             }
-            _ => {
+            /*_ => {
                 println!("What? I think I might be in hell");
-            }
+            }*/
         }
 
     }else if enemy.pos.x < inter_rect.x() as f32 {
@@ -160,7 +160,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, blackb
             // If the test enemy is in the current room of the player...
 
             //handles two + enemies dying at once for power up, spawns random power up from enemy types in room
-            if game.current_room().gemCount != 1 &&  BlackBoard::get_enemy_quantity(game) == 0 {
+            if game.current_room().gem_count != 1 &&  BlackBoard::get_enemy_quantity(game) == 0 {
                 game.current_room_mut().increment_gem();
                 game.current_room_mut()
                     .tile_at(288, 100)
@@ -202,7 +202,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, blackb
                     if wb_test.has_intersection(player_attack) {
                         enemy.take_damage(game.player.attack, E_INVINCIBILITY_TIME);
                         //edge case for enemies dying for power up
-                        if game.current_room().gemCount != 1 &&  BlackBoard::get_enemy_quantity(game) == 0 {
+                        if game.current_room().gem_count != 1 &&  BlackBoard::get_enemy_quantity(game) == 0 {
                             enemy.power = true;
                         }
                         //main case to determine power up

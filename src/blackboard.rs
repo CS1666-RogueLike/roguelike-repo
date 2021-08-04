@@ -153,7 +153,7 @@ impl BlackBoard{
     pub fn get_health_enemy_tile(i: &Vec<Vec2<f32>>) -> Vec<Vec2<i32>> {
         let mut v = vec![];
         for pos in i.iter(){
-                let mut tile = Vec2::new(
+                let tile = Vec2::new(
                     (pos.x as i32- LEFT_WALL) / TILE_WIDTH,
                     (pos.y as i32- TOP_WALL) / TILE_WIDTH
                 );

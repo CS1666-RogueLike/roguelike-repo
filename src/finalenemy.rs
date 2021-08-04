@@ -2,13 +2,13 @@ use crate::blackboard::*;
 use crate::attack::*;
 use crate::util::*;
 //use sdl2::rect::Rect;
-use std::time::{Duration, Instant};
+//use std::time::{Duration, Instant};
 //use crate::boxes::*;
 use crate::player::*;
 use crate::entity::*;
-use crate::game::*;
+//use crate::game::*;
 use rand::Rng;
-use std::num::*;
+//use std::num::*;
 
 
 /*#[derive(Clone)]
@@ -186,7 +186,7 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
     enemy.pos.x += enemy.movement_vec.x * enemy.speed * enemy.time_scale;
     enemy.pos.y += enemy.movement_vec.y * enemy.speed * enemy.time_scale;
 
-    if(blackboard.enemy_quantity == 1)
+    if blackboard.enemy_quantity == 1
     {
         enemy.state = State::Chase;
     }
@@ -234,7 +234,7 @@ pub fn take_cover(enemy: & mut Enemy, blackboard: &BlackBoard){
 
             //boss_type: EnemyKind
 
-        let mut new_atk = AtkProjectile::new(enemy.pos, vector, &enemy.g_kind);
+        let new_atk = AtkProjectile::new(enemy.pos, vector, &enemy.g_kind);
         enemy.atk_list.push(new_atk);
 
         enemy.is_shooting = false;
@@ -311,7 +311,7 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
             enemy.signal_attack();
             if enemy.is_attacking {
                 let mut kindvec = Vec::new(); //Declared
-                let mut enemyKind = EnemyKind::Final; //Declared, never actually final
+                let mut enemy_kind = EnemyKind::Final; //Declared, never actually final
                 match generate_kind(enemy, blackboard){
                     EnemyKind::Attack => {
                         kindvec = vec![EnemyKind::Attack, EnemyKind::Speed, EnemyKind::Health];
@@ -327,13 +327,13 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
 
                 match rng.gen_range( 0 ..= 4 ){
                     0 | 1 | 2 => {
-                        enemyKind = kindvec[0];
+                        enemy_kind = kindvec[0];
                     },
                     3 => {
-                        enemyKind = kindvec[1];
+                        enemy_kind = kindvec[1];
                     },
                     4 => {
-                        enemyKind = kindvec[2];
+                        enemy_kind = kindvec[2];
                     },
                     _ => {println!("This isnt right, in fact its.. wrong");}
 
@@ -352,11 +352,11 @@ pub fn chase(enemy: & mut Enemy, blackboard: &BlackBoard){
     //
     //            }
 
-                    let mut enemies = Enemy::new(Vec2::new(enemy.box_left_final_pos.x - 200.0, enemy.box_left_final_pos.y), enemyKind);
+                    let mut enemies = Enemy::new(Vec2::new(enemy.box_left_final_pos.x - 200.0, enemy.box_left_final_pos.y), enemy_kind);
                     enemies.is_ranged = false;
                     enemies.state = State::Chase;
                     enemy.add_enemies(enemies);
-                    enemies = Enemy::new(Vec2::new(enemy.box_right_final_pos.x + 200.0, enemy.box_right_final_pos.y), enemyKind);
+                    enemies = Enemy::new(Vec2::new(enemy.box_right_final_pos.x + 200.0, enemy.box_right_final_pos.y), enemy_kind);
                     enemies.is_ranged = false;
                     enemies.state = State::Chase;
                     enemy.add_enemies(enemies);
@@ -384,11 +384,11 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
         if enemy.is_attacking {
             match rng.gen_range( 0 ..= 3 ){
                 0 | 1 => {
-                    let mut enemies = Enemy::new(Vec2::new(enemy.box_left_final_pos.x, enemy.box_left_final_pos.y), EnemyKind::Health);
+                    let enemies = Enemy::new(Vec2::new(enemy.box_left_final_pos.x, enemy.box_left_final_pos.y), EnemyKind::Health);
                     enemy.add_enemies(enemies);
                 },
                 2 | 3 => {
-                    let mut enemies = Enemy::new(Vec2::new(enemy.box_right_final_pos.x, enemy.box_right_final_pos.y), EnemyKind::Health);
+                    let enemies = Enemy::new(Vec2::new(enemy.box_right_final_pos.x, enemy.box_right_final_pos.y), EnemyKind::Health);
                     enemy.add_enemies(enemies);
                 },
                 _ => {enemy.is_attacking = false}
@@ -423,11 +423,11 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
                     enemy.movement_vec.y = 1.0;
                 }
                 Direction::Right => {
-                    if(enemy.pos.y < blackboard.health_enemy_pos[0].y-5.0){
+                    if enemy.pos.y < blackboard.health_enemy_pos[0].y-5.0{
                         enemy.movement_vec.x = DIAGONAL_VEC;
                         enemy.movement_vec.y = DIAGONAL_VEC;
                     }
-                    else if(enemy.pos.y > blackboard.health_enemy_pos[0].y+5.0){
+                    else if enemy.pos.y > blackboard.health_enemy_pos[0].y+5.0{
                         enemy.movement_vec.x = DIAGONAL_VEC;
                         enemy.movement_vec.y = -DIAGONAL_VEC;
                     }
@@ -437,11 +437,11 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
                     }
                 }
                 Direction::Left => {
-                    if(enemy.pos.y < blackboard.health_enemy_pos[0].y-5.0){
+                    if enemy.pos.y < blackboard.health_enemy_pos[0].y-5.0{
                         enemy.movement_vec.x = -DIAGONAL_VEC;
                         enemy.movement_vec.y = DIAGONAL_VEC;
                     }
-                    else if(enemy.pos.y > blackboard.health_enemy_pos[0].y+5.0){
+                    else if enemy.pos.y > blackboard.health_enemy_pos[0].y+5.0{
                         enemy.movement_vec.x = -DIAGONAL_VEC;
                         enemy.movement_vec.y = -DIAGONAL_VEC;
                     }
@@ -482,7 +482,7 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
     }
 }
 
-pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
+pub fn idle(enemy: & mut Enemy, _blackboard: &BlackBoard){
 //     enemy.g_kind = generate_kind(enemy, blackboard);
 //     enemy.state_timer = Instant::now();
 //    if blackboard.playerpos.x > 300.0{
@@ -492,7 +492,7 @@ pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
     //enemy.pos.x -= 1.0;
 }
 
-pub fn generate_kind(enemy: & mut Enemy, blackboard: &BlackBoard) -> EnemyKind{
+pub fn generate_kind(_enemy: & mut Enemy, blackboard: &BlackBoard) -> EnemyKind{
     let speed_powerups = ((blackboard.player_speed - PLAYER_SPEED)/20.0) as i32;
     let atk_powerups = blackboard.player_attack - P_DEFAULT_ATK;
     let health_powerups= (blackboard.player_max_health - P_MAX_HP)/2;
