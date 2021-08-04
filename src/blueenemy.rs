@@ -362,7 +362,7 @@ pub fn idle(enemy: & mut Enemy, blackboard: &BlackBoard){
 
     enemy.float_in_place();
 
-    if Enemy::distance_to_player(enemy, blackboard) < 200.0 || blackboard.yellow_chicken
+    if Enemy::distance_to_player(enemy, blackboard) < 300.0 || blackboard.yellow_chicken
     {
         enemy.state = State::Chase;
     }
