@@ -12,7 +12,7 @@ pub struct Room {
     pub visited: bool,
     pub tiles: Vec<Vec<Box<dyn Tile>>>,
     pub enemies: Vec<Enemy>,
-    pub gemCount: i32,
+    pub gem_count: i32,
 }
 
 /*
@@ -28,7 +28,7 @@ pub struct Room {
 impl Room {
     // Returns a room that the developer sets every tile of manually.
     pub fn non_room() -> Room {
-        Room { exists: false, visited: false, tiles: Vec::new(), enemies: Vec::new(), gemCount: 0 }
+        Room { exists: false, visited: false, tiles: Vec::new(), enemies: Vec::new(), gem_count: 0 }
 
     }
     pub fn new_test_room(blueprint: [[char; 17]; 11]) -> Room {
@@ -112,7 +112,7 @@ impl Room {
             visited: false,
             tiles: tiles,
             enemies: Vec::new(),
-            gemCount: 0,
+            gem_count: 0,
         }
     }
 
@@ -120,16 +120,16 @@ impl Room {
         &mut self.tiles[ ((y - TOP_WALL) / 64) as usize ][ ((x - LEFT_WALL) / 64) as usize ]
     }
 
-    pub fn tile_at_vec2(&mut self, pos: Vec2<i32>) -> &mut Box<dyn Tile> {
+    /*pub fn tile_at_vec2(&mut self, pos: Vec2<i32>) -> &mut Box<dyn Tile> {
         self.tile_at( pos.x, pos.y )
-    }
+    }*/
 
     pub fn add_enemies(&mut self, enemies: Vec<Enemy>) {
         self.enemies = enemies;
     }
 
     pub fn increment_gem(&mut self){
-        self.gemCount += 1
+        self.gem_count += 1
     }
 
     pub fn additional_enemies(&mut self, enemy: Enemy) {
@@ -148,10 +148,10 @@ impl Room {
 
             loop {
                 // Get distance between player and enemy
-                let mut dist = ((enemy.pos.x - player_pos.x).powf(2.0) + (enemy.pos.y - player_pos.y).powf(2.0)).sqrt();
+                let dist = ((enemy.pos.x - player_pos.x).powf(2.0) + (enemy.pos.y - player_pos.y).powf(2.0)).sqrt();
 
                 // See if tile enemy is on is walkable
-                let mut valid_tile = self.tiles
+                let valid_tile = self.tiles
                     [((enemy.pos.y as i32 - TOP_WALL) / 64) as usize]
                     [((enemy.pos.x as i32 - LEFT_WALL) / 64) as usize]
                     .walkability() == Walkability::Floor;
@@ -190,8 +190,8 @@ impl Room {
                 self.enemies.clear();
                 let mut rng = rand::thread_rng();
                 let choice = rng.gen_range(0..=3);
-                let mut x = 0.0;
-                let mut y = 0.0;
+                let mut x:f32;
+                let mut y:f32;
                 match choice {
                     0 => {
                         x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;

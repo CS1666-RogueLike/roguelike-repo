@@ -93,12 +93,12 @@ impl RecursiveBacktracker {
     }
 
     // Resets the structure for future use
-    pub fn reset( &mut self ) {
+    /*pub fn reset( &mut self ) {
         self.cells = Default::default();
         for y in 0 .. GRID_SIZE {
             for x in 0 .. GRID_SIZE {
                 self.cells[ y ].push( Rc::new( RefCell::new( Node::new( x as i32, y as i32 ) ) ) );
             }
         }
-    }
+    }*/
 }

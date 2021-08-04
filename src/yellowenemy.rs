@@ -59,7 +59,7 @@ pub fn attack(enemy: & mut Enemy, blackboard: &BlackBoard){
             // normalize vector
             vector.x /= length as f32;
             vector.y /= length as f32;
-            let mut new_atk = AtkProjectile::new(enemy.pos, vector, &enemy.kind);
+            let new_atk = AtkProjectile::new(enemy.pos, vector, &enemy.kind);
             enemy.atk_list.push(new_atk);
 
             enemy.is_shooting = false;
@@ -143,7 +143,7 @@ pub fn retreat(enemy: & mut Enemy, blackboard: &BlackBoard){
     enemy.pos.y += enemy.movement_vec.y * enemy.speed * enemy.time_scale;
 
     // if last enemy in room, switch to chase
-    if(blackboard.enemy_quantity == 1 && !blackboard.player_charged)
+    if blackboard.enemy_quantity == 1 && !blackboard.player_charged
     {
         enemy.state = State::Chase;
     }
@@ -308,11 +308,11 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
                 enemy.movement_vec.y = 1.0;
             }
             Direction::Right => {
-                if(enemy.pos.y < blackboard.health_enemy_pos[0].y - 5.0){
+                if enemy.pos.y < blackboard.health_enemy_pos[0].y - 5.0{
                     enemy.movement_vec.x = DIAGONAL_VEC;
                     enemy.movement_vec.y = DIAGONAL_VEC;
                 }
-                else if(enemy.pos.y > blackboard.health_enemy_pos[0].y + 5.0){
+                else if enemy.pos.y > blackboard.health_enemy_pos[0].y + 5.0{
                     enemy.movement_vec.x = DIAGONAL_VEC;
                     enemy.movement_vec.y = -DIAGONAL_VEC;
                 }
@@ -322,11 +322,11 @@ pub fn heal(enemy: & mut Enemy, blackboard: &BlackBoard){
                 }
             }
             Direction::Left => {
-                if(enemy.pos.y < blackboard.health_enemy_pos[0].y - 5.0){
+                if enemy.pos.y < blackboard.health_enemy_pos[0].y - 5.0{
                     enemy.movement_vec.x = -DIAGONAL_VEC;
                     enemy.movement_vec.y = DIAGONAL_VEC;
                 }
-                else if(enemy.pos.y > blackboard.health_enemy_pos[0].y + 5.0){
+                else if enemy.pos.y > blackboard.health_enemy_pos[0].y + 5.0{
                     enemy.movement_vec.x = -DIAGONAL_VEC;
                     enemy.movement_vec.y = -DIAGONAL_VEC;
                 }

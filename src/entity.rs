@@ -3,14 +3,14 @@ use crate::attack::*;
 use crate::util::*;
 use std::time::{Duration, Instant};
 use crate::boxes::*;
-use crate::yellowenemy::*;
-use crate::finalenemy::*;
+//use crate::yellowenemy::*;
+//use crate::finalenemy::*;
 use crate::blackboard::*;
-use crate::tile::*;
+//use crate::tile::*;
 use std::collections::VecDeque;
 use crate::room::ROOM_HEIGHT;
 use crate::room::ROOM_WIDTH;
-use crate::room::*;
+//use crate::room::*;
 
 use rand::Rng;
 
@@ -198,13 +198,13 @@ impl Enemy {
         }
   }
 
-    pub fn switch_heal(&mut self) {
+    /*pub fn switch_heal(&mut self) {
         if self.is_healing {
             self.is_healing = false;
         } else {
             self.is_healing = true;
         }
-    }
+    }*/
 
     pub fn pathfinding(&mut self, target: Vec2<f32>, blackboard: &BlackBoard){
 
@@ -287,7 +287,7 @@ impl Enemy {
         }
 
         let mut path:Vec<Vec2<i32>> = Vec::new();
-        while(cur_tile!=start_tile){
+        while cur_tile!=start_tile{
             path.push(cur_tile);
             cur_tile = parent_array[cur_tile.x as usize][cur_tile.y as usize];
         }
@@ -362,7 +362,7 @@ impl Enemy {
     }
 
     pub fn distance_to_player(enemy: & mut Enemy, blackboard: &BlackBoard) -> f64 {
-        let mut vector = Vec2::new(blackboard.playerpos.x - enemy.pos.x, blackboard.playerpos.y - enemy.pos.y);
+        let vector = Vec2::new(blackboard.playerpos.x - enemy.pos.x, blackboard.playerpos.y - enemy.pos.y);
         let length = ((vector.x * vector.x + vector.y * vector.y) as f64).sqrt();
 
         return length;
@@ -573,7 +573,7 @@ impl Enemy {
 
     }
 
-    pub fn update_pos(& mut self) {
+    /*pub fn update_pos(& mut self) {
 
         //println!("UPDATE POS CALLED");
 
@@ -671,7 +671,7 @@ impl Enemy {
         for rmv in &mut to_remove {
             self.atk_list.remove(*rmv);
         }
-    }
+    }*/
 
     pub fn move_projectile(&mut self){
         //Moves all the attacks that this enemy shot
@@ -699,12 +699,12 @@ impl Enemy {
         }
     }
 
-    pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }
-    pub fn get_dir(& mut self) -> Direction { self.dir }
+    //pub fn set_dir(& mut self, new_dir: Direction) { self.dir = new_dir; }
+    //pub fn get_dir(& mut self) -> Direction { self.dir }
 }
 
 pub fn speed_kind(kind: EnemyKind) -> f32 {
-    let mut speed = 0.0;
+    let speed:f32;
     match kind {
         EnemyKind::Health => {
             speed = 1.8;
@@ -722,7 +722,7 @@ pub fn speed_kind(kind: EnemyKind) -> f32 {
     return speed;
 }
 pub fn health_kind(kind: EnemyKind) -> i32 {
-    let mut health = 0;
+    let health:i32;
     match kind {
         EnemyKind::Health => {
             health = 5;

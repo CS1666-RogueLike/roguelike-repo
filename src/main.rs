@@ -1,5 +1,5 @@
 extern crate roguelike;
-use sdl2::audio::{AudioCallback, AudioSpecDesired};
+//use sdl2::audio::{AudioCallback, AudioSpecDesired};
 
 mod menu;
 use crate::menu::*;
@@ -19,13 +19,13 @@ mod redenemy;
 mod blueenemy;
 
 mod finalenemy;
-use crate::finalenemy::*;
+//use crate::finalenemy::*;
 
 mod util;
 use crate::util::*;
 
 mod collision;
-use crate::collision::*;
+//use crate::collision::*;
 mod walkover;
 mod draw;
 
@@ -49,7 +49,7 @@ use entity::*;
 
 //use std::cmp::min;
 use std::collections::HashSet;
-use std::collections::VecDeque;
+//use std::collections::VecDeque;
 use std::time::Instant;
 
 
@@ -311,10 +311,10 @@ impl Demo for Manager {
                             // Attacks
 
                             // These stay to update direction even when player can't attack
-                            if keystate.contains(&Keycode::Up)    { if(!self.game.player.is_charging && !self.game.player.is_attacking) {self.game.player.set_dir(Direction::Up);} }
-                            if keystate.contains(&Keycode::Down)  { if(!self.game.player.is_charging && !self.game.player.is_attacking) {self.game.player.set_dir(Direction::Down);}  }
-                            if keystate.contains(&Keycode::Left)  { if(!self.game.player.is_charging && !self.game.player.is_attacking) {self.game.player.set_dir(Direction::Left);}  }
-                            if keystate.contains(&Keycode::Right) { if(!self.game.player.is_charging && !self.game.player.is_attacking) {self.game.player.set_dir(Direction::Right);} }
+                            if keystate.contains(&Keycode::Up)    { if !self.game.player.is_charging && !self.game.player.is_attacking {self.game.player.set_dir(Direction::Up);} }
+                            if keystate.contains(&Keycode::Down)  { if !self.game.player.is_charging && !self.game.player.is_attacking {self.game.player.set_dir(Direction::Down);}  }
+                            if keystate.contains(&Keycode::Left)  { if !self.game.player.is_charging && !self.game.player.is_attacking {self.game.player.set_dir(Direction::Left);}  }
+                            if keystate.contains(&Keycode::Right) { if !self.game.player.is_charging && !self.game.player.is_attacking {self.game.player.set_dir(Direction::Right);} }
 
                             if keystate.contains(&Keycode::Up) && matches!(self.menu, MenuState::GameActive) &&
                                 self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking && !self.game.player.is_charging {

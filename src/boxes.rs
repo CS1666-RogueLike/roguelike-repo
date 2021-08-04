@@ -1,16 +1,16 @@
 use crate::util::*;
-use crate::entity::Health;
-use crate::player::*;
+//use crate::entity::Health;
+//use crate::player::*;
 use sdl2::rect::Rect;
-use std::time::{Duration, Instant};
-use crate::tile::*;
-use crate::game::*;
+//use std::time::{Duration, Instant};
+//use crate::tile::*;
+//use crate::game::*;
 
-pub enum BoxKind {
+/*pub enum BoxKind {
     Attack,
     Hit,
     Walk,
-}
+}*/
 
 #[derive(Clone, Copy)]
 pub struct Box {

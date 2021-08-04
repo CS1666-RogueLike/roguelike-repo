@@ -2,9 +2,9 @@ use crate::game::*;
 use crate::util::*;
 use crate::tile::*;
 use crate::menu::*;
-use crate::player::{BuffType, PowerUp};
+use crate::player::{BuffType};
 use crate::entity::*;
-use crate::finalenemy::*;
+//use crate::finalenemy::*;
 use crate::blackboard::*;
 use roguelike::SDLCore;
 
@@ -165,18 +165,18 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             let speed_atk = texture_creator.load_texture("assets/speed-projectile.png")?;
             let attack_atk = texture_creator.load_texture("assets/attack-projectile.png")?;
 
-            let hp_indicator = texture_creator.load_texture("assets/hp.png")?;
-            let hp_bomb_indicator = texture_creator.load_texture("assets/-3.png")?;
+            //let hp_indicator = texture_creator.load_texture("assets/hp.png")?;
+            //let hp_bomb_indicator = texture_creator.load_texture("assets/-3.png")?;
 
             /*boss assets*/
             let health_boss01 = texture_creator.load_texture("assets/boss_health01.png")?;
-            let health_boss02 = texture_creator.load_texture("assets/boss_health02.png")?;
+            //let health_boss02 = texture_creator.load_texture("assets/boss_health02.png")?;
 
             let speed_boss01 = texture_creator.load_texture("assets/boss_speed01.png")?;
-            let speed_boss02 = texture_creator.load_texture("assets/boss_speed02.png")?;
+            //let speed_boss02 = texture_creator.load_texture("assets/boss_speed02.png")?;
 
             let attack_boss01 = texture_creator.load_texture("assets/boss_attack01.png")?;
-            let attack_boss02 = texture_creator.load_texture("assets/boss_attack02.png")?;
+            //let attack_boss02 = texture_creator.load_texture("assets/boss_attack02.png")?;
 
             //power assets
             let p_text = texture_creator.load_texture("assets/p_text.png")?;
@@ -208,7 +208,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             let spike = texture_creator.load_texture("assets/spike.png")?;
 
             let key = texture_creator.load_texture("assets/key.png")?;
-            let door_locked = texture_creator.load_texture("assets/door.png")?;
+            //let door_locked = texture_creator.load_texture("assets/door.png")?;
             let td_locked = texture_creator.load_texture("assets/trapdoor_locked.png")?;
 
 
@@ -277,8 +277,8 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                     core.wincan.copy(&bg, None, Rect::new(xo, yo, WINDOW_WIDTH, WINDOW_HEIGHT))?;
                     core.wincan.copy(&bg, None, Rect::new(xo + x_dir as i32 * -1280, yo + y_dir as i32 * -720, WINDOW_WIDTH, WINDOW_HEIGHT))?;
 
-                    let x = 0;
-                    let y = 0;
+                    //let x = 0;
+                    //let y = 0;
                     let rmx = game.cr.x + match game.trans_dir {
                         Direction::Right => -1,
                         Direction::Left => 1,
@@ -553,31 +553,31 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             //Draw player
 
             //Get how long ago the player became invincible
-            let mut timeSinceDmg = Duration::new(69, 420); //A number that is big enough to get ignored by the if statement below
+            let mut time_since_dmg = Duration::new(69, 420); //A number that is big enough to get ignored by the if statement below
             match game.player.last_invincibility_time{
                 Some(time) =>{
-                    timeSinceDmg = time.elapsed();
+                    time_since_dmg = time.elapsed();
                 },
                 None=>{
 
                 }
             }
-            let mut timeSinceAttack = Duration::new(69, 420); // haha funny number
+            let mut time_since_attack = Duration::new(69, 420); // haha funny number
             match game.player.last_attack_time{
                 Some(time) =>{
-                    timeSinceAttack = time.elapsed();
+                    time_since_attack = time.elapsed();
                 },
                 None=>{
 
                 }
             }
-            if !(timeSinceDmg <= Duration::from_millis(P_INVINCIBILITY_TIME - P_INVINCIBILITY_TIME/2) && timeSinceDmg.as_millis()%100 < 50) &&
-            !(timeSinceDmg <= Duration::from_millis(P_INVINCIBILITY_TIME)&& timeSinceDmg > Duration::from_millis(P_INVINCIBILITY_TIME - P_INVINCIBILITY_TIME/2) && timeSinceDmg.as_millis()%200 < 100){
+            if !(time_since_dmg <= Duration::from_millis(P_INVINCIBILITY_TIME - P_INVINCIBILITY_TIME/2) && time_since_dmg.as_millis()%100 < 50) &&
+            !(time_since_dmg <= Duration::from_millis(P_INVINCIBILITY_TIME)&& time_since_dmg > Duration::from_millis(P_INVINCIBILITY_TIME - P_INVINCIBILITY_TIME/2) && time_since_dmg.as_millis()%200 < 100){
                 match game.player.get_dir() {
 
                     Direction::Up => {
                         if game.player.recently_attacked() || game.player.recently_charged() {
-                            if (timeSinceAttack.as_millis() % 250 < 50 && game.player.is_attacking){
+                            if time_since_attack.as_millis() % 250 < 50 && game.player.is_attacking{
                                 core.wincan.copy(&slime_up_at01, None,
                                     Rect::new(
                                         game.player.get_pos_x() - 35 + x_val ,
@@ -585,7 +585,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                         64, 64)
                                     )?;
                                 }
-                                else if (timeSinceAttack.as_millis() % 250 < 100 && game.player.is_attacking){
+                                else if time_since_attack.as_millis() % 250 < 100 && game.player.is_attacking{
                                 core.wincan.copy(&slime_up_at02, None,
                                     Rect::new(
                                         game.player.get_pos_x() - 35 + x_val ,
@@ -593,7 +593,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                         64, 64+8)
                                     )?;
                                 }
-                                else if (timeSinceAttack.as_millis() % 250  < 250 && game.player.is_attacking){
+                                else if time_since_attack.as_millis() % 250  < 250 && game.player.is_attacking{
                                 core.wincan.copy(&slime_up_at03, None,
                                     Rect::new(
                                         game.player.get_pos_x() - 35 + x_val ,
@@ -621,7 +621,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                     }
                     Direction::Down => {
                         if game.player.recently_attacked() || game.player.recently_charged() {
-                            if (timeSinceAttack.as_millis() % 250 < 50 && game.player.is_attacking){
+                            if time_since_attack.as_millis() % 250 < 50 && game.player.is_attacking{
                             core.wincan.copy(&slime_down_at01, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val ,
@@ -629,7 +629,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     64, 64)
                                 )?;
                             }
-                            else if (timeSinceAttack.as_millis() % 250 < 100 && game.player.is_attacking){
+                            else if time_since_attack.as_millis() % 250 < 100 && game.player.is_attacking{
                             core.wincan.copy(&slime_down_at02, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val ,
@@ -637,7 +637,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     64, 64+20)
                                 )?;
                             }
-                            else if (timeSinceAttack.as_millis() % 250  < 250 && game.player.is_attacking){
+                            else if time_since_attack.as_millis() % 250  < 250 && game.player.is_attacking{
                             core.wincan.copy(&slime_down_at03, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val ,
@@ -665,7 +665,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                     }
                     Direction::Left => {
                         if game.player.recently_attacked() || game.player.recently_charged() {
-                            if (timeSinceAttack.as_millis() % 250 < 50 && game.player.is_attacking){
+                            if time_since_attack.as_millis() % 250 < 50 && game.player.is_attacking{
                             core.wincan.copy(&slime_left_at01, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val - 8,
@@ -673,7 +673,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     64+8, 64)
                                 )?;
                             }
-                            else if (timeSinceAttack.as_millis() % 250 < 100 && game.player.is_attacking){
+                            else if time_since_attack.as_millis() % 250 < 100 && game.player.is_attacking{
                             core.wincan.copy(&slime_left_at02, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val - 36,
@@ -681,7 +681,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     64+36, 64)
                                 )?;
                             }
-                            else if (timeSinceAttack.as_millis() % 250  < 250 && game.player.is_attacking){
+                            else if time_since_attack.as_millis() % 250  < 250 && game.player.is_attacking{
                             core.wincan.copy(&slime_left_at03, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val - 60,
@@ -689,7 +689,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     64+60, 64)
                                 )?;
                             }
-                            else if (timeSinceAttack.as_millis() % 1000 < 400 && game.player.is_charging){
+                            else if time_since_attack.as_millis() % 1000 < 400 && game.player.is_charging{
                             core.wincan.copy(&slime_left_at01, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val - 8,
@@ -697,7 +697,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     64+8, 64)
                                 )?;
                             }
-                            else if (timeSinceAttack.as_millis() % 1000 < 800 && game.player.is_charging){
+                            else if time_since_attack.as_millis() % 1000 < 800 && game.player.is_charging{
                             core.wincan.copy(&slime_left_ch01, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val - 8,
@@ -705,7 +705,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     64+8, 64)
                                 )?;
                             }
-                            else if (timeSinceAttack.as_millis() % 1000 < 850 && game.player.is_charging){
+                            else if time_since_attack.as_millis() % 1000 < 850 && game.player.is_charging{
                                 core.wincan.copy(&slime_left_ch02, None,
                                     Rect::new(
                                         game.player.get_pos_x() - 35 + x_val - 36,
@@ -713,7 +713,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                         64+36, 64)
                                     )?;
                                 }
-                            else if (timeSinceAttack.as_millis() % 1000  < 1000 && game.player.is_charging){
+                            else if time_since_attack.as_millis() % 1000  < 1000 && game.player.is_charging{
                                 core.wincan.copy(&slime_left_ch03, None,
                                     Rect::new(
                                         game.player.get_pos_x() - 35 + x_val - 124,
@@ -742,7 +742,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                     }
                     Direction::Right => {
                         if game.player.recently_attacked() || game.player.recently_charged(){
-                            if (timeSinceAttack.as_millis() % 250 < 50 && game.player.is_attacking){
+                            if time_since_attack.as_millis() % 250 < 50 && game.player.is_attacking{
                             core.wincan.copy(&slime_right_at01, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val,
@@ -750,7 +750,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     64+8, 64)
                                 )?;
                             }
-                            else if (timeSinceAttack.as_millis() % 250 < 100 && game.player.is_attacking){
+                            else if time_since_attack.as_millis() % 250 < 100 && game.player.is_attacking{
                             core.wincan.copy(&slime_right_at02, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val,
@@ -758,7 +758,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     64+36, 64)
                                 )?;
                             }
-                            else if (timeSinceAttack.as_millis() % 250  < 250 && game.player.is_attacking){
+                            else if time_since_attack.as_millis() % 250  < 250 && game.player.is_attacking{
                             core.wincan.copy(&slime_right_at03, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val,
@@ -766,7 +766,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     64+60, 64)
                                 )?;
                             }
-                            else if (timeSinceAttack.as_millis() % 1000 < 400 && game.player.is_charging){
+                            else if time_since_attack.as_millis() % 1000 < 400 && game.player.is_charging{
                             core.wincan.copy(&slime_right_at01, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val,
@@ -774,7 +774,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     64+8, 64)
                                 )?;
                             }
-                            else if (timeSinceAttack.as_millis() % 1000 < 800 && game.player.is_charging){
+                            else if time_since_attack.as_millis() % 1000 < 800 && game.player.is_charging{
                             core.wincan.copy(&slime_right_ch01, None,
                                 Rect::new(
                                     game.player.get_pos_x() - 35 + x_val,
@@ -782,7 +782,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                     64+8, 64)
                                 )?;
                             }
-                            else if (timeSinceAttack.as_millis() % 1000 < 850 && game.player.is_charging){
+                            else if time_since_attack.as_millis() % 1000 < 850 && game.player.is_charging{
                                 core.wincan.copy(&slime_right_ch02, None,
                                     Rect::new(
                                         game.player.get_pos_x() - 35 + x_val,
@@ -790,7 +790,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                                         64+36, 64)
                                     )?;
                                 }
-                            else if (timeSinceAttack.as_millis() % 1000  < 1000 && game.player.is_charging){
+                            else if  time_since_attack.as_millis() % 1000  < 1000 && game.player.is_charging{
                                 core.wincan.copy(&slime_right_ch03, None,
                                     Rect::new(
                                         game.player.get_pos_x() - 35 + x_val,
@@ -858,7 +858,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                             } //TODO: sprite for final boss
                         }
                     };
-                    if (enemy.kind == EnemyKind::Final){
+                    if  enemy.kind == EnemyKind::Final{
                         core.wincan.copy(&tex, None,
                             Rect::new(
                                 enemy.get_pos_x() - 35 + 4 + x_val - 86,
@@ -1267,7 +1267,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
 
                         //let f1 = texture_creator.load_texture("assets/floor_1.png")?;
                         //core.wincan.copy(&f1, None, Rect::new(420, 290, 64 * 8, 15 * 8))?;
-                        core.wincan.copy( &f1_tex, None, Rect::new( cx, cy, width, height ) );
+                        core.wincan.copy( &f1_tex, None, Rect::new( cx, cy, width, height ) )?;
                     } else if ms <= 2000 {
                         let scale = 1.0 - ((game.transition_start.elapsed().as_millis() - 1500) as f64 / dur.as_millis() as f64);
 

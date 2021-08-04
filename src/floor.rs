@@ -285,7 +285,7 @@ impl Floor {
                         let mut blank = 0;
                         let mut rock = 0;
                         let mut spike = 0;
-                        let mut pit = 0;
+                        let pit = 0;
                         let mut neighborhood = Vec::new();
                         neighborhood.push(read[rows - 1][cols - 1]);
                         neighborhood.push(read[rows - 1][cols]);
