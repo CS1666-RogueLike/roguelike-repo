@@ -152,7 +152,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
             let slime_left_ch03 = texture_creator.load_texture("assets/slime_left_charge03.png")?;
 
             /* enemy textures */
-            let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
+            let speed_idle = texture_creator.load_texture("assets/speed_melee.png")?;
             let attack_idle = texture_creator.load_texture("assets/attack_melee.png")?;
             let health_idle = texture_creator.load_texture("assets/health-sprite-down.png")?;
             
