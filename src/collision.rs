@@ -120,9 +120,21 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, blackb
             BOT_WALL as f32 - (game.player.box_es.walkbox.y/2) as f32
         );
 
-        // TODO: Goal is to generalize hitbox data into a trait so that we can condense logic
+    // More robust clamping for walls
+        if game.player.pos.y < TOP_WALL as f32 + 5.0 * 64.0 || game.player.pos.y > BOT_WALL as f32 - 5.0 * 64.0 {
+            game.player.pos.x = game.player.pos.x.clamp(
+                LEFT_WALL as f32 + 64.0 + (game.player.box_es.walkbox.x/2) as f32,
+                RIGHT_WALL as f32 - 64.0 - (game.player.box_es.walkbox.x/2) as f32
+            );
+        }
+    if game.player.pos.x < LEFT_WALL as f32 + 8.0 * 64.0 || game.player.pos.x > RIGHT_WALL as f32 - 8.0 * 64.0 {
+        game.player.pos.y = game.player.pos.y.clamp(
+            TOP_WALL as f32 + 64.0 + (game.player.box_es.walkbox.x/2) as f32,
+            BOT_WALL as f32 - 64.0 - (game.player.box_es.walkbox.x/2) as f32
+        );
+    }
 
-        // Maintain enemy bounds for the room and check player collisions
+    // Maintain enemy bounds for the room and check player collisions
         let mut enemy_list = game.current_room().enemies.clone();
 
         let mut live_count = 0;

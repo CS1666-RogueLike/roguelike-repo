@@ -189,9 +189,43 @@ impl Room {
             1 => {
                 self.enemies.clear();
                 let mut rng = rand::thread_rng();
-                let x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;
-                let y = rng.gen_range(TOP_WALL..BOT_WALL) as f32;
-                self.enemies.push(Enemy::new(Vec2 {x, y}, EnemyKind::Health));
+                let choice = rng.gen_range(0..=3);
+                let mut x = 0.0;
+                let mut y = 0.0;
+                match choice {
+                    0 => {
+                        x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;
+                        y = rng.gen_range(TOP_WALL..BOT_WALL) as f32;
+                        self.enemies.push(Enemy::new(Vec2 {x, y}, EnemyKind::Health));
+                    }
+                    1 => {
+                        x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;
+                        y = rng.gen_range(TOP_WALL..BOT_WALL) as f32;
+                        self.enemies.push(Enemy::new(Vec2 {x, y}, EnemyKind::Health));
+                        x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;
+                        y = rng.gen_range(TOP_WALL..BOT_WALL) as f32;
+                        self.enemies.push(Enemy::new(Vec2 {x, y}, EnemyKind::Health));
+
+                    }
+                    2 => {
+                        x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;
+                        y = rng.gen_range(TOP_WALL..BOT_WALL) as f32;
+                        self.enemies.push(Enemy::new(Vec2 {x, y}, EnemyKind::Health));
+                        x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;
+                        y = rng.gen_range(TOP_WALL..BOT_WALL) as f32;
+                        self.enemies.push(Enemy::new(Vec2 {x, y}, EnemyKind::Speed));
+                    }
+                    3 => {
+                        x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;
+                        y = rng.gen_range(TOP_WALL..BOT_WALL) as f32;
+                        self.enemies.push(Enemy::new(Vec2 {x, y}, EnemyKind::Health));
+                        x = rng.gen_range(LEFT_WALL..RIGHT_WALL) as f32;
+                        y = rng.gen_range(TOP_WALL..BOT_WALL) as f32;
+                        self.enemies.push(Enemy::new(Vec2 {x, y}, EnemyKind::Attack));
+
+                    }
+                    _ => {}
+                }
             }
 
             _ => {}
