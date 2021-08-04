@@ -17,6 +17,9 @@ pub struct Box {
     pub hitbox: Vec2<u32>, // Hitbox where player takes damage.
     pub walkbox: Vec2<u32>, // walkbox involved in collision with rooms.
     pub attackbox: Vec2<i32>, //Attack box where player does damage
+    pub attack_x_offset: i32,
+    pub attack_y_offset: i32,
+    pub charge: bool,
 }
 
 impl Box {
@@ -25,6 +28,9 @@ impl Box {
             hitbox: hit,
             walkbox: walk,
             attackbox: attack,
+            attack_x_offset: 20,
+            attack_y_offset: -20,
+            charge: false,
         }
     }
     //need a function getter for each type of box
@@ -45,8 +51,9 @@ impl Box {
     }
     //function to get the attackbox based on direction
     pub fn get_attackbox(&self, pos : Vec2<f32>, dir : Direction) -> Rect {
-        
-        //Add an if statement for enemies so that the attackbox doesn't look terrible
+
+        //Add an if statement for enemies so that the attackbox doesn't look terribl
+
         match dir {
             Direction::Up => {
                 Rect::new(pos.x as i32 - ( self.attackbox.x / 2 ) as i32, pos.y as i32 - (self.attackbox.y as i32) - (self.attackbox.y / 2 as i32) - 24,
@@ -57,14 +64,27 @@ impl Box {
                         self.attackbox.x as u32, self.attackbox.y as u32)
             }
             Direction::Left => {
-                Rect::new(pos.x as i32 - 48 - self.attackbox.x, pos.y as i32 - 32,
-                        self.attackbox.y as u32, self.attackbox.x as u32)
+                if self.charge{
+                    Rect::new(pos.x as i32 - 88 - self.attackbox.x, pos.y as i32 - 32,
+                            self.attackbox.y as u32, self.attackbox.x as u32)
+                } else {
+                    Rect::new(pos.x as i32 - 48 - self.attackbox.x, pos.y as i32 - 32,
+                            self.attackbox.y as u32, self.attackbox.x as u32)
+                }
+
             }
             Direction::Right => {
-                Rect::new(pos.x as i32 + self.attackbox.x as i32, pos.y as i32 - 32,
-                        self.attackbox.y as u32, self.attackbox.x as u32)
+                if self.charge{
+                    Rect::new(pos.x as i32 - 20 + self.attackbox.x as i32, pos.y as i32 - 32,
+                            self.attackbox.y as u32, self.attackbox.x as u32)
+                } else {
+                    Rect::new(pos.x as i32 + self.attackbox.x as i32, pos.y as i32 - 32,
+                            self.attackbox.y as u32, self.attackbox.x as u32)
+                }
+
             }
         }
+
     }
 
     pub fn get_bombbox(&self, pos : Vec2<f32>, dir : Direction) -> Rect {

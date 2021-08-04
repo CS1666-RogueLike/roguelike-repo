@@ -25,6 +25,7 @@ pub struct Player {
 
     // TODO: REWORK INTO INDIVIDUAL TRAITS SO THEY CAN BE USED WITH ENEMIES
     pub box_es: Box,
+    pub charge_box: Box,
     pub speed: f32,
     pub stored_speed: f32,
     pub dir: Direction,
@@ -46,7 +47,7 @@ pub struct Player {
     pub has_key: bool,
     pub last_invincibility_time: Option<Instant>,
     pub time_between_frames: Option<Instant>,
-    
+
 
     pub is_attacking: bool,
     pub is_charging: bool,
@@ -77,6 +78,7 @@ impl Player {
             pos: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
             pos_static: Vec2::new((LEFT_WALL + 8 * 64) as f32 + 32.0, (TOP_WALL + 5 * 64) as f32 + 40.0),
             box_es: Box::new(Vec2::new(48, 52), Vec2::new(40, 24), Vec2::new(48, 64)),
+            charge_box: Box::new(Vec2::new(0, 0), Vec2::new(0, 0), Vec2::new(48, 104)),
             speed: PLAYER_SPEED,
             stored_speed: PLAYER_SPEED,
             dir: Direction::Down,
@@ -130,7 +132,7 @@ impl Player {
 
                 // This check prevents the position from abruptly speeding up during the very short period
                 // that the delta isn't updating, as we are transitioning between doors (around a 300-400ms period)
-                
+
                 // This also prevents the player from flying immediately into a spike as soon
                 // as they enter the room. It adds a natural snappiness to each room transition;
                 // still allowing player movement to occur, but delaying it slightly until
@@ -340,7 +342,7 @@ impl PowerUp for Player {
 //                self.heal(self.m_hp);
 //            }
 //            else{
-    
+
             //Make it so the player increases max health every time
             self.m_hp += 2;
             self.heal(self.m_hp);

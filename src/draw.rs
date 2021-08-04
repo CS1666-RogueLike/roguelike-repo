@@ -1134,7 +1134,8 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                 // Draw player collision hitbox
                 core.wincan.set_draw_color(Color::RGBA(255, 0, 0, 255));
                 // removing previous hitbox debug for boxes.rs
-                //core.wincan.draw_rect(game.player.get_walkbox_world())?;
+                game.player.charge_box.charge = true;
+                core.wincan.draw_rect(game.player.charge_box.get_attackbox(game.player.pos, game.player.dir))?;
 
                 let enemies = &mut game.current_room_mut().enemies;
 
@@ -1269,7 +1270,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
 
                         let f1_surface = font_lg.render( "Floor 1" ).blended( Color::WHITE )
                                              .map_err( |e| e.to_string() )?;
-                        
+
                         let f1_tex = texture_creator.create_texture_from_surface( f1_surface )
                                                     .map_err( |e| e.to_string() )?;
 
@@ -1317,7 +1318,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                             let f_surface = font_lg.render( f_text.as_str() )
                                              .blended( Color::WHITE )
                                              .map_err( |e| e.to_string() )?;
-                        
+
                             let f_tex = texture_creator.create_texture_from_surface( f_surface )
                                                         .map_err( |e| e.to_string() )?;
 
@@ -1329,7 +1330,7 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                             core.wincan.copy( &f_tex, None, Rect::new( cx, cy, width, height ) )?;
 
                             // If you want the old transitions back, here's the code:
-                            // 
+                            //
                             //   match game.cf {
                             //     0 => {
                             //         let f1 = texture_creator.load_texture("assets/floor_1.png")?;
