@@ -93,7 +93,7 @@ impl BlackBoard{
                         Walkability::Spike => {tiles[y as usize].push(std::boxed::Box::new(Spike { gem: Gem::None}))}
                         Walkability::Pit => {tiles[y as usize].push(std::boxed::Box::new(Pit {}))}
                         Walkability::Wall => {tiles[y as usize].push(std::boxed::Box::new(Wall {}))}
-                        Walkability::Rock => {tiles[y as usize].push(std::boxed::Box::new(Rock {}))}
+                        Walkability::Rock => {tiles[y as usize].push(std::boxed::Box::new(Rock { is_exploded: false }))}
                     }
                 }
             }

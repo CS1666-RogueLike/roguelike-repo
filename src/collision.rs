@@ -262,10 +262,22 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, blackb
                         door_pos = Vec2::new(8, 0);
                     }
 
+                    // Explode door in adjacent room
                     game.map.floors[game.cf]
                         .rooms[(game.cr.y + y_off) as usize][(game.cr.x + x_off) as usize]
                         .tiles[door_pos.y as usize][door_pos.x as usize]
                         .explode();
+
+                    // Blow up any rocks in the radius of the bomb
+                    for y in 0..9 {
+                        for x in 0..15 {
+                            if Rect::new(LEFT_WALL + x * 64, TOP_WALL + y * 64, 64, 64).has_intersection(player_bomb)
+                            && game.current_room().tiles[y as usize][x as usize].sprite() == SpriteID::Rock
+                                {
+                                    game.current_room_mut().tiles[y as usize][x as usize].explode();
+                                }
+                        }
+                    }
 
                     if wb_test.has_intersection(player_bomb) {
                         //println!("Bomb collided with enemy!");
