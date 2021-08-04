@@ -86,7 +86,7 @@ pub enum Direction {
     Right,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum LockState {
     Locked,
     Unlocked,

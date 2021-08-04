@@ -228,10 +228,45 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, blackb
                 }
                 if game.player.using_bomb {
                     let player_bomb = game.player.box_es.get_bombbox(game.player.pos_static, game.player.dir);
-                    game.current_room_mut().tiles[5][0].explode();
-                    game.current_room_mut().tiles[5][16].explode();
-                    game.current_room_mut().tiles[0][8].explode();
-                    game.current_room_mut().tiles[10][8].explode();
+
+                    // Used to blow up door on opposite side
+                    let mut x_off = 0;
+                    let mut y_off = 0;
+
+                    // Blow up door
+                    if Rect::new(LEFT_WALL + 0 * 64, TOP_WALL + 5 * 64, 64, 64).has_intersection(player_bomb) {
+                        game.current_room_mut().tiles[5][0].explode();
+                        x_off -= 1;
+                    }
+                    else if Rect::new(LEFT_WALL + 16 * 64, TOP_WALL + 5 * 64, 64, 64).has_intersection(player_bomb) {
+                        game.current_room_mut().tiles[5][16].explode();
+                        x_off += 1;
+                    }
+                    else if Rect::new(LEFT_WALL + 8 * 64, TOP_WALL + 0 * 64, 64, 64).has_intersection(player_bomb) {
+                        game.current_room_mut().tiles[0][8].explode();
+                        y_off -= 1;
+                    }
+                    else if Rect::new(LEFT_WALL + 8 * 64, TOP_WALL + 10 * 64, 64, 64).has_intersection(player_bomb) {
+                        game.current_room_mut().tiles[10][8].explode();
+                        y_off += 1;
+                    }
+
+                    let mut door_pos = Vec2::new(0, 0);
+                    if x_off == -1 {
+                        door_pos = Vec2::new(16, 5);
+                    } else if x_off == 1 {
+                        door_pos = Vec2::new(0, 5);
+                    } else if y_off == - 1 {
+                        door_pos = Vec2::new(8, 10);
+                    } else if y_off == 1 {
+                        door_pos = Vec2::new(8, 0);
+                    }
+
+                    game.map.floors[game.cf]
+                        .rooms[(game.cr.y + y_off) as usize][(game.cr.x + x_off) as usize]
+                        .tiles[door_pos.y as usize][door_pos.x as usize]
+                        .explode();
+
                     if wb_test.has_intersection(player_bomb) {
                         //println!("Bomb collided with enemy!");
                         enemy.take_damage(4, E_INVINCIBILITY_TIME); //Bomb deals 3 damage
