@@ -1,4 +1,5 @@
 use crate::util::*;
+use crate::util::LockState::Locked;
 
 
 pub trait Tile {
@@ -209,8 +210,16 @@ impl Tile for Door {
         false
     }
     fn on_walkover(& mut self) -> WalkoverAction { WalkoverAction::ChangeRooms }
-    fn lock(&mut self) { self.lock = LockState::Locked; }
-    fn unlock(&mut self) { self.lock = LockState::Unlocked; }
+    fn lock(&mut self) {
+        if self.lock != LockState::Explode {
+            self.lock = LockState::Locked;
+        }
+    }
+    fn unlock(&mut self) {
+        if self.lock != LockState::Explode {
+            self.lock = LockState::Unlocked;
+        }
+    }
     fn explode(&mut self) { self.lock = LockState::Explode; }
     fn get_lock_state(&self) -> LockState { self.lock }
     fn place_gem(&mut self, _color: Gem) {}
