@@ -153,8 +153,12 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
 
             /* enemy textures */
             let speed_idle = texture_creator.load_texture("assets/speed_idle.png")?;
-            let attack_idle = texture_creator.load_texture("assets/wizard_attack_enemy.png")?;
+            let attack_idle = texture_creator.load_texture("assets/attack_melee.png")?;
             let health_idle = texture_creator.load_texture("assets/health-sprite-down.png")?;
+            
+            let speed_ranged = texture_creator.load_texture("assets/speed_idle.png")?;
+            let attack_ranged = texture_creator.load_texture("assets/wizard_attack_enemy.png")?;
+            let health_ranged = texture_creator.load_texture("assets/health_dragon_left.png")?;
 
             let mut speed_hit = texture_creator.load_texture("assets/speed_idle_hit.png")?;
             let mut attack_hit = texture_creator.load_texture("assets/wizard_attack_enemy_hit.png")?;
@@ -846,9 +850,18 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, &debug
                 }
                 if !enemy.death() {
                     let tex = match &enemy.kind {
-                        EnemyKind::Attack => &attack_idle,
-                        EnemyKind::Health => &health_idle,
-                        EnemyKind::Speed => &speed_idle,
+                        EnemyKind::Attack => {
+                            if enemy.is_ranged{&attack_ranged}
+                            else{&attack_idle}
+                        }
+                        EnemyKind::Health => {
+                            if enemy.is_ranged{&health_ranged}
+                            else{&health_idle}
+                        }
+                        EnemyKind::Speed => {
+                            if enemy.is_ranged{&speed_ranged}
+                            else{&speed_idle}
+                        }
                         EnemyKind::Final => {
                             match blackboard.boss_kind {
                             EnemyKind::Attack => &attack_boss01,
