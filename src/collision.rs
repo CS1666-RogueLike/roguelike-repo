@@ -196,8 +196,12 @@ pub fn base(game : &mut Game, core : &mut SDLCore, menu : &mut MenuState, blackb
                 // If the test enemy's walkbox intersects with the player walkbox...
                 let wb_test = enemy.box_es.get_hitbox(enemy.pos);
                 // Attempt at collision with attackbox
+                let mut player_attack = game.player.box_es.get_attackbox(game.player.pos, game.player.dir);
                 if game.player.is_attacking {
-                    let player_attack = game.player.box_es.get_attackbox(game.player.pos, game.player.dir);
+                    if game.player.is_charging {
+                        game.player.charge_box.charge = true;
+                        player_attack = game.player.charge_box.get_attackbox(game.player.pos, game.player.dir);
+                    }
                     //let player_attack = game.player.get_attackbox_world();
                     if wb_test.has_intersection(player_attack) {
                         enemy.take_damage(game.player.attack, E_INVINCIBILITY_TIME);

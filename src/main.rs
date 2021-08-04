@@ -320,7 +320,8 @@ impl Demo for Manager {
                                 self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking && !self.game.player.is_charging {
                                 self.game.player.set_dir(Direction::Up);
                                 if keystate.contains(&Keycode::LShift){
-                                    self.game.player.signal_charge();
+                                    //self.game.player.signal_charge();
+                                    self.game.player.signal_attack();
                                 }
                                 else{
                                     self.game.player.signal_attack();
@@ -330,7 +331,9 @@ impl Demo for Manager {
                                 self.game.player.last_attack_time.unwrap().elapsed() >= Duration::from_millis(800) && !self.game.player.is_attacking && !self.game.player.is_charging {
                                 self.game.player.set_dir(Direction::Down);
                                 if keystate.contains(&Keycode::LShift){
-                                    self.game.player.signal_charge();
+                                    //maybe we add charge for up and down?
+                                    //self.game.player.signal_charge();
+                                    self.game.player.signal_attack();
                                 }
                                 else{
                                     self.game.player.signal_attack();
@@ -341,6 +344,7 @@ impl Demo for Manager {
                                 self.game.player.set_dir(Direction::Left);
                                 if keystate.contains(&Keycode::LShift){
                                     self.game.player.signal_charge();
+                                    self.game.player.signal_attack();
                                 }
                                 else{
                                     self.game.player.signal_attack();
@@ -351,6 +355,7 @@ impl Demo for Manager {
                                 self.game.player.set_dir(Direction::Right);
                                 if keystate.contains(&Keycode::LShift){
                                     self.game.player.signal_charge();
+                                    self.game.player.signal_attack();
                                 }
                                 else{
                                     self.game.player.signal_attack();
